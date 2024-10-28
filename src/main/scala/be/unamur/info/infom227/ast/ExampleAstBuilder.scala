@@ -73,7 +73,7 @@ private class ExampleAstBuilder(private var symbolTable: Option[ExampleSymbolTab
     } else if (ctx.whileStatement != null) {
       visitWhileStatement(ctx.whileStatement)
     } else {
-      Failure(UnsupportedRuleException(s"Line ${ctx.getStart.getLine} - Unsupported statement : ${ctx.getText}", ctx, null))
+      Failure(UnsupportedRuleException(s"Unsupported statement : ${ctx.getText}", ctx, null))
     }
   }
 
@@ -83,7 +83,7 @@ private class ExampleAstBuilder(private var symbolTable: Option[ExampleSymbolTab
       exampleType <- visitType(ctx.`type`)
       _ <- withScope(_.define(name, exampleType))
         .recover(exception => Failure(CannotBuildAstException(s"Variable $name is already defined", ctx, exception)))
-    } yield ExampleDeclareStatement(name, exampleType)
+    } yield ExampleDeclareStatement(ctx.getStart.getLine, name, exampleType)
   }
 
   override def visitAssignStatement(ctx: ExampleGrammarParser.AssignStatementContext): Try[ExampleAssignStatement] = {
@@ -109,14 +109,14 @@ private class ExampleAstBuilder(private var symbolTable: Option[ExampleSymbolTab
         } else {
           Failure(CannotBuildAstException(s"Expected type $exampleType but got ${expression.exampleType} in statement : ${ctx.getText}", ctx))
         }
-      } yield ExampleAssignStatement(name, scope, expression)
+      } yield ExampleAssignStatement(ctx.getStart.getLine, name, scope, expression)
     )
   }
 
   override def visitPrintStatement(ctx: ExampleGrammarParser.PrintStatementContext): Try[ExamplePrintStatement] = {
     for {
       expression <- visitExpression(ctx.expression)
-    } yield ExamplePrintStatement(expression)
+    } yield ExamplePrintStatement(ctx.getStart.getLine, expression)
   }
 
   override def visitIfStatement(ctx: ExampleGrammarParser.IfStatementContext): Try[ExampleIfStatement] = {
@@ -127,7 +127,7 @@ private class ExampleAstBuilder(private var symbolTable: Option[ExampleSymbolTab
       }
       ifStatements <- visitStatements(ctx.if_)
       elseStatements <- visitStatements(ctx.else_)
-    } yield ExampleIfStatement(condition, ifStatements, elseStatements)
+    } yield ExampleIfStatement(ctx.getStart.getLine, condition, ifStatements, elseStatements)
   }
 
   override def visitWhileStatement(ctx: ExampleGrammarParser.WhileStatementContext): Try[ExampleWhileStatement] = {
@@ -137,7 +137,7 @@ private class ExampleAstBuilder(private var symbolTable: Option[ExampleSymbolTab
         case _ => Failure(CannotBuildAstException(s"While condition ${ctx.expression.getText} is not a boolean", ctx, null))
       }
       statements <- visitStatements(ctx.statements)
-    } yield ExampleWhileStatement(condition, statements)
+    } yield ExampleWhileStatement(ctx.getStart.getLine, condition, statements)
   }
 
 
@@ -149,7 +149,7 @@ private class ExampleAstBuilder(private var symbolTable: Option[ExampleSymbolTab
     } else if (ctx.BOOL != null) {
       Success(ExampleBool)
     } else {
-      Failure(UnsupportedRuleException(s"Line ${ctx.getStart.getLine} - Unsupported type : ${ctx.getText}", ctx, null))
+      Failure(UnsupportedRuleException(s"Unsupported type : ${ctx.getText}", ctx, null))
     }
   }
 
@@ -258,7 +258,7 @@ private class ExampleAstBuilder(private var symbolTable: Option[ExampleSymbolTab
         } else if (ctx.SUBTRACT != null) {
           Success(ExampleIntegerBinaryOperator.Sub)
         } else {
-          Failure(CannotBuildAstException("Invalid operator at line " + ctx.getStart.getLine))
+          Failure(UnsupportedRuleException(s"Unsupported operator in sum : ${ctx.getText}", ctx, null))
         }
         left <- visitSum(ctx.left).flatMap {
           case expression: ExampleIntegerExpression => Success(expression)
@@ -282,7 +282,7 @@ private class ExampleAstBuilder(private var symbolTable: Option[ExampleSymbolTab
         } else if (ctx.DIVIDE != null) {
           Success(ExampleIntegerBinaryOperator.Div)
         } else {
-          Failure(CannotBuildAstException(s"Invalid operator in expression : ${ctx.getText}", ctx))
+          Failure(UnsupportedRuleException(s"Unsupported operator in product : ${ctx.getText}", ctx, null))
         }
         left <- visitProduct(ctx.left).flatMap {
           case expression: ExampleIntegerExpression => Success(expression)
@@ -336,7 +336,7 @@ private class ExampleAstBuilder(private var symbolTable: Option[ExampleSymbolTab
     } else if (ctx.expression != null) {
       visitExpression(ctx.expression)
     } else {
-      Failure(UnsupportedRuleException(s"Line ${ctx.getStart.getLine} - Unsupported expression : ${ctx.getText}", ctx, null))
+      Failure(UnsupportedRuleException(s"Unsupported expression : ${ctx.getText}", ctx, null))
     }
   }
 }
