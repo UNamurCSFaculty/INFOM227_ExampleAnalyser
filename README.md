@@ -20,31 +20,31 @@ The syntax of a programming language determines what constitutes a valid program
 In this example, we will use the following grammar to define the syntax of our language:
 
 $$
-\newcommand{\rule}[1]{\langle #1 \rangle}
+\newcommand{\grule}[1]{\langle #1 \rangle}
 \newcommand{\quad}[0]{\text{ }}
 \begin{align}
-& \rule{DIGIT} ::= '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' \\
-& \rule{NUMBER} ::= \rule{DIGIT}+ \\
-& \rule{LETTER} ::= 'a' | 'b' | 'c' | ... | 'z' | 'A' | 'B' | 'C' | ... | 'Z' \\
-& \rule{IDENTIFIER} ::= \rule{LETTER} (\rule{LETTER} | \rule{DIGIT})* \\
-& \rule{program} ::= \rule{scope} \\
-& \rule{scope} ::= \rule{declareStatement}* \quad \rule{statements} \\
-& \rule{statements} ::= \rule{statement}* \\
-& \rule{statement} ::= \rule{declareStatement} | \rule{assignStatement} | \rule{printStatement}) | \rule{ifStatement}) | \rule{whileStatement} \\
-& \rule{declareStatement} ::= \rule{type} \quad \rule{IDENTIFIER} ';' \\
-& \rule{assignStatement} ::= \rule{IDENTIFIER} '=' (\rule{expression} | '\{' \rule{scope} \rule{expression} '\}') ';' \\
-& \rule{printStatement} ::= 'print' \quad \rule{expression} ';' \\
-& \rule{ifStatement} ::= 'if' \quad '(' \rule{expression} ')' \quad '\{' \rule{statements} '\}' \quad 'else' \quad '\{' \rule{statements} '\}' \\
-& \rule{whileStatement} ::= 'while' \quad '(' \rule{expression} ')' \quad '\{' \rule{statements} '\}' \\
-& \rule{type} ::= 'int' | 'bool' \\
-& \rule{expression} ::= \rule{disjunction} \\
-& \rule{disjunction} ::= \rule{conjunction} ('OR' \rule{conjunction}) | \rule{conjunction} \\
-& \rule{inversion} ::= 'NOT' \quad \rule{inversion} | \rule{comparison} \\
-& \rule{comparison} ::= \rule{comparison} ('<' | '>' | '==' | '!=' | '>=' | '<=') \rule{sum}) | \rule{sum} \\
-& \rule{sum} ::= \rule{sum} ('+' | '-') \rule{product} | \rule{product} \\
-& \rule{product} ::= \rule{product} ('*' | '/') \rule{factor} | \rule{factor} \\
-& \rule{factor} ::= ('+' | '-') \rule{atom} | \rule{atom} \\
-& \rule{atom} ::= \rule{IDENTIFIER} | \rule{NUMBER} | 'True' | 'False' | '(' \rule{expression} ')'
+& \grule{DIGIT} ::= '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' \\
+& \grule{NUMBER} ::= \grule{DIGIT}+ \\
+& \grule{LETTER} ::= 'a' | 'b' | 'c' | ... | 'z' | 'A' | 'B' | 'C' | ... | 'Z' \\
+& \grule{IDENTIFIER} ::= \grule{LETTER} (\grule{LETTER} | \grule{DIGIT})* \\
+& \grule{program} ::= \grule{scope} \\
+& \grule{scope} ::= \grule{declareStatement}* \quad \grule{statements} \\
+& \grule{statements} ::= \grule{statement}* \\
+& \grule{statement} ::= \grule{declareStatement} | \grule{assignStatement} | \grule{printStatement}) | \grule{ifStatement}) | \grule{whileStatement} \\
+& \grule{declareStatement} ::= \grule{type} \quad \grule{IDENTIFIER} ';' \\
+& \grule{assignStatement} ::= \grule{IDENTIFIER} '=' (\grule{expression} | '\{' \grule{scope} \grule{expression} '\}') ';' \\
+& \grule{printStatement} ::= 'print' \quad \grule{expression} ';' \\
+& \grule{ifStatement} ::= 'if' \quad '(' \grule{expression} ')' \quad '\{' \grule{statements} '\}' \quad 'else' \quad '\{' \grule{statements} '\}' \\
+& \grule{whileStatement} ::= 'while' \quad '(' \grule{expression} ')' \quad '\{' \grule{statements} '\}' \\
+& \grule{type} ::= 'int' | 'bool' \\
+& \grule{expression} ::= \grule{disjunction} \\
+& \grule{disjunction} ::= \grule{conjunction} ('OR' \grule{conjunction}) | \grule{conjunction} \\
+& \grule{inversion} ::= 'NOT' \quad \grule{inversion} | \grule{comparison} \\
+& \grule{comparison} ::= \grule{comparison} ('<' | '>' | '==' | '!=' | '>=' | '<=') \grule{sum}) | \grule{sum} \\
+& \grule{sum} ::= \grule{sum} ('+' | '-') \grule{product} | \grule{product} \\
+& \grule{product} ::= \grule{product} ('*' | '/') \grule{factor} | \grule{factor} \\
+& \grule{factor} ::= ('+' | '-') \grule{atom} | \grule{atom} \\
+& \grule{atom} ::= \grule{IDENTIFIER} | \grule{NUMBER} | 'True' | 'False' | '(' \grule{expression} ')'
 \end{align}
 $$
 
@@ -79,11 +79,11 @@ Once the syntactic analysis has been performed using ANTLR, it is then possible 
 The semantics of our language are defined by the [rules of inference](https://en.wikipedia.org/wiki/Rule_of_inference) below:
 
 $$
-\newcommand{\var}[0]{< Var >}
+\newcommand{\svar}[0]{< Var >}
 \begin{align}
 [\text{Value}] & \quad \frac{v \in \mathbb{Z} \cup \{ True, False \}}{(v, \Sigma \bullet \sigma) \leadsto v} & \\
-[\text{Var}] & \quad \frac{x \in \var}{(x, \Sigma \bullet \sigma) \leadsto \sigma(x)} & \\
-[\text{Non-local var}] & \quad \frac{x \in \var \qquad x \notin dom(\sigma_s) \qquad (x, \Sigma \bullet \sigma) \leadsto v}{(x, \Sigma \bullet \sigma \bullet \sigma_s) \leadsto v} & \\
+[\text{Var}] & \quad \frac{x \in \svar}{(x, \Sigma \bullet \sigma) \leadsto \sigma(x)} & \\
+[\text{Non-local var}] & \quad \frac{x \in \svar \qquad x \notin dom(\sigma_s) \qquad (x, \Sigma \bullet \sigma) \leadsto v}{(x, \Sigma \bullet \sigma \bullet \sigma_s) \leadsto v} & \\
 [\text{Op}] & \quad \frac{(x_1, \Sigma \bullet \sigma) \leadsto v_1 \qquad (x_2, \Sigma \bullet \sigma) \leadsto v_2 \qquad v_1 \oplus v_2 = v}{(x_1 \oplus x_2, \Sigma \bullet \sigma) \leadsto v} & \\
 [\text{Simple assignment}] & \quad \frac{(e, \Sigma \bullet \sigma) \leadsto v \qquad \sigma' = \sigma[x \mapsto v]}{(x = e, \Sigma \bullet \sigma) \leadsto \Sigma \bullet \sigma'} & \\
 [\text{Sequence}] & \quad \frac{(s_1, \Sigma \bullet \sigma) \leadsto \Sigma \bullet \sigma' \qquad (s_2, \Sigma \bullet \sigma') \leadsto \Sigma \bullet \sigma''}{(s_1;s_2, \Sigma \bullet \sigma) \leadsto \Sigma \bullet \sigma''} & \\
