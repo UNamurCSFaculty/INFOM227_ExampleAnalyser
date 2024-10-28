@@ -105,7 +105,6 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
-    "Gradle.ExampleAstBuilderSpec (1).executor": "Run",
     "Gradle.ExampleAstBuilderSpec (2).executor": "Run",
     "Gradle.ExampleAstBuilderSpec.executor": "Run",
     "Gradle.INFOM227_ExampleAnalyser [build].executor": "Run",

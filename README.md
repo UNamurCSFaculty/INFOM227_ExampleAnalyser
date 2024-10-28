@@ -19,34 +19,30 @@ The syntax of a programming language determines what constitutes a valid program
 
 In this example, we will use the following grammar to define the syntax of our language:
 
-\(
-    \newcommand{\grule}[1]{\langle #1 \rangle}
-\)
-
 $$
 \begin{align}
-& \grule{DIGIT} ::= '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' \\
-& \grule{NUMBER} ::= \grule{DIGIT}+ \\
-& \grule{LETTER} ::= 'a' | 'b' | 'c' | ... | 'z' | 'A' | 'B' | 'C' | ... | 'Z' \\
-& \grule{IDENTIFIER} ::= \grule{LETTER} (\grule{LETTER} | \grule{DIGIT})* \\
-& \grule{program} ::= \grule{scope} \\
-& \grule{scope} ::= \grule{declareStatement}* \quad \grule{statements} \\
-& \grule{statements} ::= \grule{statement}* \\
-& \grule{statement} ::= \grule{declareStatement} | \grule{assignStatement} | \grule{printStatement}) | \grule{ifStatement}) | \grule{whileStatement} \\
-& \grule{declareStatement} ::= \grule{type} \quad \grule{IDENTIFIER} ';' \\
-& \grule{assignStatement} ::= \grule{IDENTIFIER} '=' (\grule{expression} | '\{' \grule{scope} \grule{expression} '\}') ';' \\
-& \grule{printStatement} ::= 'print' \quad \grule{expression} ';' \\
-& \grule{ifStatement} ::= 'if' \quad '(' \grule{expression} ')' \quad '\{' \grule{statements} '\}' \quad 'else' \quad '\{' \grule{statements} '\}' \\
-& \grule{whileStatement} ::= 'while' \quad '(' \grule{expression} ')' \quad '\{' \grule{statements} '\}' \\
-& \grule{type} ::= 'int' | 'bool' \\
-& \grule{expression} ::= \grule{disjunction} \\
-& \grule{disjunction} ::= \grule{conjunction} ('OR' \grule{conjunction}) | \grule{conjunction} \\
-& \grule{inversion} ::= 'NOT' \quad \grule{inversion} | \grule{comparison} \\
-& \grule{comparison} ::= \grule{comparison} ('<' | '>' | '==' | '!=' | '>=' | '<=') \grule{sum}) | \grule{sum} \\
-& \grule{sum} ::= \grule{sum} ('+' | '-') \grule{product} | \grule{product} \\
-& \grule{product} ::= \grule{product} ('*' | '/') \grule{factor} | \grule{factor} \\
-& \grule{factor} ::= ('+' | '-') \grule{atom} | \grule{atom} \\
-& \grule{atom} ::= \grule{IDENTIFIER} | \grule{NUMBER} | 'True' | 'False' | '(' \grule{expression} ')'
+& \langle DIGIT \rangle ::= '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' \\
+& \langle NUMBER \rangle ::= \langle DIGIT \rangle+ \\
+& \langle LETTER \rangle ::= 'a' | 'b' | 'c' | ... | 'z' | 'A' | 'B' | 'C' | ... | 'Z' \\
+& \langle IDENTIFIER \rangle ::= \langle LETTER \rangle (\langle LETTER \rangle | \langle DIGIT \rangle)* \\
+& \langle program \rangle ::= \langle scope \rangle \\
+& \langle scope \rangle ::= \langle declareStatement \rangle* \quad \langle statements \rangle \\
+& \langle statements \rangle ::= \langle statement \rangle* \\
+& \langle statement \rangle ::= \langle declareStatement \rangle | \langle assignStatement \rangle | \langle printStatement \rangle) | \langle ifStatement \rangle) | \langle whileStatement \rangle \\
+& \langle declareStatement \rangle ::= \langle type \rangle \quad \langle IDENTIFIER \rangle ';' \\
+& \langle assignStatement \rangle ::= \langle IDENTIFIER \rangle '=' (\langle expression \rangle | '\{' \langle scope \rangle \langle expression \rangle '\}') ';' \\
+& \langle printStatement \rangle ::= 'print' \quad \langle expression \rangle ';' \\
+& \langle ifStatement \rangle ::= 'if' \quad '(' \langle expression \rangle ')' \quad '\{' \langle statements \rangle '\}' \quad 'else' \quad '\{' \langle statements \rangle '\}' \\
+& \langle whileStatement \rangle ::= 'while' \quad '(' \langle expression \rangle ')' \quad '\{' \langle statements \rangle '\}' \\
+& \langle type \rangle ::= 'int' | 'bool' \\
+& \langle expression \rangle ::= \langle disjunction \rangle \\
+& \langle disjunction \rangle ::= \langle conjunction \rangle ('OR' \langle conjunction \rangle) | \langle conjunction \rangle \\
+& \langle inversion \rangle ::= 'NOT' \quad \langle inversion \rangle | \langle comparison \rangle \\
+& \langle comparison \rangle ::= \langle comparison \rangle ('<' | '>' | '==' | '!=' | '>=' | '<=') \langle sum \rangle) | \langle sum \rangle \\
+& \langle sum \rangle ::= \langle sum \rangle ('+' | '-') \langle product \rangle | \langle product \rangle \\
+& \langle product \rangle ::= \langle product \rangle ('*' | '/') \langle factor \rangle | \langle factor \rangle \\
+& \langle factor \rangle ::= ('+' | '-') \langle atom \rangle | \langle atom \rangle \\
+& \langle atom \rangle ::= \langle IDENTIFIER \rangle | \langle NUMBER \rangle | 'True' | 'False' | '(' \langle expression \rangle ')'
 \end{align}
 $$
 
@@ -80,15 +76,11 @@ Once the syntactic analysis has been performed using ANTLR, it is then possible 
 
 The semantics of our language are defined by the [rules of inference](https://en.wikipedia.org/wiki/Rule_of_inference) below:
 
-\(
-    \newcommand{\svar}[0]{< Var >}
-\)
-
 $$
 \begin{align}
 [\text{Value}] & \quad \frac{v \in \mathbb{Z} \cup \{ True, False \}}{(v, \Sigma \bullet \sigma) \leadsto v} & \\
-[\text{Var}] & \quad \frac{x \in \svar}{(x, \Sigma \bullet \sigma) \leadsto \sigma(x)} & \\
-[\text{Non-local var}] & \quad \frac{x \in \svar \qquad x \notin dom(\sigma_s) \qquad (x, \Sigma \bullet \sigma) \leadsto v}{(x, \Sigma \bullet \sigma \bullet \sigma_s) \leadsto v} & \\
+[\text{Var}] & \quad \frac{x \in < Var >}{(x, \Sigma \bullet \sigma) \leadsto \sigma(x)} & \\
+[\text{Non-local var}] & \quad \frac{x \in < Var > \qquad x \notin dom(\sigma_s) \qquad (x, \Sigma \bullet \sigma) \leadsto v}{(x, \Sigma \bullet \sigma \bullet \sigma_s) \leadsto v} & \\
 [\text{Op}] & \quad \frac{(x_1, \Sigma \bullet \sigma) \leadsto v_1 \qquad (x_2, \Sigma \bullet \sigma) \leadsto v_2 \qquad v_1 \oplus v_2 = v}{(x_1 \oplus x_2, \Sigma \bullet \sigma) \leadsto v} & \\
 [\text{Simple assignment}] & \quad \frac{(e, \Sigma \bullet \sigma) \leadsto v \qquad \sigma' = \sigma[x \mapsto v]}{(x = e, \Sigma \bullet \sigma) \leadsto \Sigma \bullet \sigma'} & \\
 [\text{Sequence}] & \quad \frac{(s_1, \Sigma \bullet \sigma) \leadsto \Sigma \bullet \sigma' \qquad (s_2, \Sigma \bullet \sigma') \leadsto \Sigma \bullet \sigma''}{(s_1;s_2, \Sigma \bullet \sigma) \leadsto \Sigma \bullet \sigma''} & \\
@@ -104,7 +96,7 @@ with:
 
 - The symbol $\oplus$ corresponds to the operators `+`, `-`, `*`, `/`, `<`, `>`, `<=`, `>=`, `!=` and `==` with their mathematical semantics.
 - The symbol $\mathcal{E}$ corresponds to the set of all possible environments.
-- The symbol $\sigma$, with $\sigma \in \mathcal{E}$ and $\sigma : < var > \mapsto \mathbb{Z} \cup \{True, False\}$, corresponds to the environment of the function currently being executed.
+- The symbol $\sigma$, with $\sigma \in \mathcal{E}$ and $\sigma : < Var > \mapsto \mathbb{Z} \cup \{True, False\}$, corresponds to the environment of the function currently being executed.
 - The symbol $\Sigma$, with $\Sigma = \langle \sigma_0, ..., \sigma_n \rangle$, corresponds to the execution stack which is a sequence of environments.
 - The expression $\Sigma \bullet \sigma$ splits the execution stack into the environment of the function currently being executed $\sigma$ and the rest of the execution stack $\Sigma$.
 - The expression $(e, \Sigma \bullet \sigma) \leadsto v$ corresponds to the evaluation of an expression $e$ with respect to an environment $\sigma$ and the rest of the execution stack $\Sigma$ and which produces $v$ as a value.
