@@ -20,9 +20,9 @@ class TestExampleAstBuilder extends AnyFunSuite {
     val expected = Success(
       ExampleProgram(
         ExampleScope(
-          ExampleDeclareStatement("a", ExampleInt),
-          ExampleDeclareStatement("b", ExampleInt),
-          ExampleAssignStatement("a", ExampleScope(), ExampleIntegerBinaryOperation(
+          ExampleDeclareStatement(2, "a", ExampleInt),
+          ExampleDeclareStatement(3, "b", ExampleInt),
+          ExampleAssignStatement(4, "a", ExampleScope(), ExampleIntegerBinaryOperation(
             ExampleIntegerBinaryOperator.Div,
             ExampleIntegerBinaryOperation(
               ExampleIntegerBinaryOperator.Mul,
@@ -31,7 +31,7 @@ class TestExampleAstBuilder extends AnyFunSuite {
             ),
             ExampleIntegerConstant(5)
           )),
-          ExampleAssignStatement("b", ExampleScope(), ExampleIntegerBinaryOperation(
+          ExampleAssignStatement(5, "b", ExampleScope(), ExampleIntegerBinaryOperation(
             ExampleIntegerBinaryOperator.Sub,
             ExampleIntegerBinaryOperation(
               ExampleIntegerBinaryOperator.Add,
@@ -71,12 +71,13 @@ class TestExampleAstBuilder extends AnyFunSuite {
     val expected = Success(
       ExampleProgram(
         ExampleScope(
-          ExampleDeclareStatement("a", ExampleInt),
+          ExampleDeclareStatement(2, "a", ExampleInt),
           ExampleAssignStatement(
+            3,
             "a",
             ExampleScope(
-              ExampleDeclareStatement("b", ExampleInt),
-              ExampleAssignStatement("b", ExampleScope(), ExampleIntegerBinaryOperation(
+              ExampleDeclareStatement(4, "b", ExampleInt),
+              ExampleAssignStatement(5, "b", ExampleScope(), ExampleIntegerBinaryOperation(
                 ExampleIntegerBinaryOperator.Sub,
                 ExampleIntegerBinaryOperation(
                   ExampleIntegerBinaryOperator.Add,
@@ -123,8 +124,8 @@ class TestExampleAstBuilder extends AnyFunSuite {
     val expected = Success(
       ExampleProgram(
         ExampleScope(
-          ExampleDeclareStatement("a", ExampleInt),
-          ExampleAssignStatement("a", ExampleScope(), ExampleIntegerBinaryOperation(
+          ExampleDeclareStatement(2, "a", ExampleInt),
+          ExampleAssignStatement(3, "a", ExampleScope(), ExampleIntegerBinaryOperation(
             ExampleIntegerBinaryOperator.Add,
             ExampleIntegerBinaryOperation(
               ExampleIntegerBinaryOperator.Mul,
@@ -163,14 +164,14 @@ class TestExampleAstBuilder extends AnyFunSuite {
     val expected = Success(
       ExampleProgram(
         ExampleScope(
-          ExampleDeclareStatement("a", ExampleInt),
-          ExampleDeclareStatement("b", ExampleBool),
-          ExampleAssignStatement("a", ExampleScope(), ExampleIntegerBinaryOperation(
+          ExampleDeclareStatement(2, "a", ExampleInt),
+          ExampleDeclareStatement(3, "b", ExampleBool),
+          ExampleAssignStatement(4, "a", ExampleScope(), ExampleIntegerBinaryOperation(
             ExampleIntegerBinaryOperator.Add,
             ExampleIntegerConstant(1),
             ExampleIntegerConstant(2)
           )),
-          ExampleAssignStatement("b", ExampleScope(), ExampleBooleanUnaryOperation(
+          ExampleAssignStatement(5, "b", ExampleScope(), ExampleBooleanUnaryOperation(
             ExampleBooleanUnaryOperator.Neg,
             ExampleIntegerEqualComparisonOperation(
               ExampleEqualComparisonOperator.Eq,
@@ -206,14 +207,17 @@ class TestExampleAstBuilder extends AnyFunSuite {
       ExampleProgram(
         ExampleScope(
           ExampleIfStatement(
+            2,
             ExampleBooleanConstant(true),
             ExampleStatements(
               ExamplePrintStatement(
+                3,
                 ExampleIntegerConstant(1)
               )
             ),
             ExampleStatements(
               ExamplePrintStatement(
+                5,
                 ExampleIntegerConstant(2)
               )
             )
@@ -244,9 +248,11 @@ class TestExampleAstBuilder extends AnyFunSuite {
       ExampleProgram(
         ExampleScope(
           ExampleWhileStatement(
+            2,
             ExampleBooleanConstant(true),
             ExampleStatements(
               ExamplePrintStatement(
+                3,
                 ExampleIntegerConstant(1)
               )
             ),
