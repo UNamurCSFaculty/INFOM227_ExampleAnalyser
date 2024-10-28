@@ -11,7 +11,11 @@ object ExampleInterpreter {
   }
 }
 
-private class ExampleInterpreter extends ExampleAstVisitor[Try[Int | Boolean | Unit], ExampleEnvironment[Int | Boolean]] {
+
+private class ExampleInterpreter extends
+  ExampleSequenceVisitor[Try[Unit], ExampleEnvironment[Int | Boolean]],
+  ExampleStatementVisitor[Try[Unit], ExampleEnvironment[Int | Boolean]],
+  ExampleExpressionVisitor[Try[Int | Boolean], ExampleEnvironment[Int | Boolean]] {
   override def visitExampleProgram(node: ExampleProgram, environment: ExampleEnvironment[Int | Boolean]): Try[Unit] = {
     visitExampleScope(node.scope, environment)
   }
@@ -76,10 +80,6 @@ private class ExampleInterpreter extends ExampleAstVisitor[Try[Int | Boolean | U
       }
     } yield ()
   }
-
-  override def visitExampleInt(node: ExampleInt.type, environment: ExampleEnvironment[Int | Boolean]): Try[Unit] = Success(())
-
-  override def visitExampleBool(node: ExampleBool.type, environment: ExampleEnvironment[Int | Boolean]): Try[Unit] = Success(())
 
   override def visitExampleIntegerConstant(node: ExampleIntegerConstant, environment: ExampleEnvironment[Int | Boolean]): Try[Int] = {
     Success(node.value)

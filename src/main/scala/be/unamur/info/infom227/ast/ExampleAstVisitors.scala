@@ -2,13 +2,15 @@ package be.unamur.info.infom227.ast
 
 import be.unamur.info.infom227.*
 
-trait ExampleAstVisitor[T, E] {
+trait ExampleSequenceVisitor[T, E] {
   def visitExampleProgram(node: ExampleProgram, environment: E): T
 
   def visitExampleScope(node: ExampleScope, environment: E): T
 
   def visitExampleStatements(node: ExampleStatements, environment: E): T
+}
 
+trait ExampleStatementVisitor[T, E] {
   def visitExampleDeclareStatement(node: ExampleDeclareStatement, environment: E): T
 
   def visitExampleAssignStatement(node: ExampleAssignStatement, environment: E): T
@@ -18,11 +20,15 @@ trait ExampleAstVisitor[T, E] {
   def visitExampleIfStatement(node: ExampleIfStatement, environment: E): T
 
   def visitExampleWhileStatement(node: ExampleWhileStatement, environment: E): T
+}
 
+trait ExampleTypeVisitor[T, E] {
   def visitExampleInt(node: ExampleInt.type, environment: E): T
 
   def visitExampleBool(node: ExampleBool.type, environment: E): T
+}
 
+trait ExampleExpressionVisitor[T, E] {
   def visitExampleIntegerConstant(node: ExampleIntegerConstant, environment: E): T
 
   def visitExampleIntegerVariable(node: ExampleIntegerVariable, environment: E): T

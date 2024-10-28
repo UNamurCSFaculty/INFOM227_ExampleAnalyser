@@ -12,7 +12,7 @@ object ExampleAstBuilder {
   }
 }
 
-private class ExampleAstBuilder(private var symbolTable: Option[ExampleSymbolTable] = None) extends ExampleGrammarBaseVisitor[Try[ExampleAstNode]] {
+private class ExampleAstBuilder(private var symbolTable: Option[ExampleSymbolTable] = None) extends ExampleGrammarBaseVisitor[Try[ExampleSequence | ExampleStatement | ExampleExpression | ExampleType]] {
 
   private def withScope[T](function: ExampleSymbolTable => Try[T]): Try[T] = {
     symbolTable match
