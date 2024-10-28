@@ -1,0 +1,8 @@
+int a;
+a = 3;
+a = {
+  int b;
+  b = a + 5;
+  b / 2
+};
+print a; // Should be 4
