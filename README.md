@@ -19,9 +19,9 @@ The syntax of a programming language determines what constitutes a valid program
 
 In this example, we will use the following grammar to define the syntax of our language:
 
+$$\newcommand{\grule}[1]{\langle #1 \rangle}$$
+
 $$
-\newcommand{\grule}[1]{\langle \\#1 \rangle}
-\newcommand{\quad}[0]{\text{ }}
 \begin{align}
 & \grule{DIGIT} ::= '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' \\
 & \grule{NUMBER} ::= \grule{DIGIT}+ \\
@@ -78,8 +78,9 @@ Once the syntactic analysis has been performed using ANTLR, it is then possible 
 
 The semantics of our language are defined by the [rules of inference](https://en.wikipedia.org/wiki/Rule_of_inference) below:
 
+$$\newcommand{\svar}[0]{< Var >}$$
+
 $$
-\newcommand{\svar}[0]{< Var >}
 \begin{align}
 [\text{Value}] & \quad \frac{v \in \mathbb{Z} \cup \{ True, False \}}{(v, \Sigma \bullet \sigma) \leadsto v} & \\
 [\text{Var}] & \quad \frac{x \in \svar}{(x, \Sigma \bullet \sigma) \leadsto \sigma(x)} & \\
