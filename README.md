@@ -20,7 +20,7 @@ The syntax of a programming language determines what constitutes a valid program
 In this example, we will use the following grammar to define the syntax of our language:
 
 $$
-\newcommand{\grule}[1]{\langle #1 \rangle}
+\newcommand{\grule}[1]{\langle \\#1 \rangle}
 \newcommand{\quad}[0]{\text{ }}
 \begin{align}
 & \grule{DIGIT} ::= '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' \\
