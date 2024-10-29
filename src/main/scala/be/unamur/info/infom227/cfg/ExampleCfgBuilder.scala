@@ -4,8 +4,8 @@ import be.unamur.info.infom227.ast.*
 
 
 object ExampleCfgBuilder {
-  def build(programAst: ExampleProgram): ExampleCfg = {
-    val (_, edges) = ExampleCfgBuilder().visitExampleProgram(programAst, Set.empty)
+  def build(sequenceAst: ExampleSequence): ExampleCfg = {
+    val (_, edges) = sequenceAst.accept(ExampleCfgBuilder(), Set.empty)
 
     ExampleCfg(
       edges.flatMap((startEdges, endProgramPoint) =>
