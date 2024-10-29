@@ -7,7 +7,7 @@ enum SignAnalysisLattice:
 
 class TestExampleLattice extends AnyFunSuite {
 
-  private val lattice = ExampleLattice(
+  private val lattice = ExampleFiniteSizeLattice(
     Set(
       (SignAnalysisLattice.Bottom, SignAnalysisLattice.Lt),
       (SignAnalysisLattice.Bottom, SignAnalysisLattice.Z),

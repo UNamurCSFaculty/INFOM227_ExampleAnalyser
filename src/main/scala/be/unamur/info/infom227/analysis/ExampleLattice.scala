@@ -1,7 +1,13 @@
 package be.unamur.info.infom227.analysis
 
 
-case class ExampleLattice[L](edges: Set[(L, L)]) {
+trait ExampleLattice[L] {
+  def top: Option[L]
+  def bottom: Option[L]
+  def join(value1: L, value2: L): Option[L]
+}
+
+case class ExampleFiniteSizeLattice[L](edges: Set[(L, L)]) extends ExampleLattice[L] {
   def top: Option[L] = {
     edges.map(_._2).find(end => !edges.map(_._1).contains(end))
   }
