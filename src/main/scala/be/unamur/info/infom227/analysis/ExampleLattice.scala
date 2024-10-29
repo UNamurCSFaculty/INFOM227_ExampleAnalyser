@@ -3,7 +3,11 @@ package be.unamur.info.infom227.analysis
 
 trait ExampleLattice[L] {
   def top: Option[L]
+
   def bottom: Option[L]
+
+  def includes(including: L, included: L): Boolean
+
   def join(value1: L, value2: L): Option[L]
 }
 
@@ -16,13 +20,23 @@ case class ExampleFiniteSizeLattice[L](edges: Set[(L, L)]) extends ExampleLattic
     edges.map(_._1).find(start => !edges.map(_._2).contains(start))
   }
 
+  private def ends(value: L): Set[L] = {
+    edges.filter(_._1 == value).map(_._2)
+  }
+
+  def includes(including: L, included: L): Boolean = {
+    val includedEnds = ends(included)
+
+    includedEnds.contains(including) || includedEnds.exists(includes(including, _))
+  }
+
   def join(value1: L, value2: L): Option[L] = {
     joinDist(value1, value2).map(_._1)
   }
 
   private def joinDist(value1: L, value2: L): Option[(L, Int)] = {
-    val ends1 = edges.filter(_._1 == value1).map(_._2)
-    val ends2 = edges.filter(_._1 == value2).map(_._2)
+    val ends1 = ends(value1)
+    val ends2 = ends(value2)
 
     if (value1 == value2) {
       Some((value1, 0))

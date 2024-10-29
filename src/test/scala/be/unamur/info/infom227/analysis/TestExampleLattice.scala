@@ -40,6 +40,15 @@ class TestExampleLattice extends AnyFunSuite {
     assert(expected == result)
   }
 
+  test("valid included values") {
+    assert(!lattice.includes(SignAnalysisLattice.Bottom, SignAnalysisLattice.Z))
+    assert(!lattice.includes(SignAnalysisLattice.Bottom, SignAnalysisLattice.U))
+    assert(!lattice.includes(SignAnalysisLattice.Nz, SignAnalysisLattice.Z))
+    assert(lattice.includes(SignAnalysisLattice.U, SignAnalysisLattice.Z))
+    assert(lattice.includes(SignAnalysisLattice.Gte, SignAnalysisLattice.Z))
+    assert(lattice.includes(SignAnalysisLattice.Gte, SignAnalysisLattice.Gt))
+  }
+
   test("valid join values") {
     assert(lattice.join(SignAnalysisLattice.Bottom, SignAnalysisLattice.Bottom) == Some(SignAnalysisLattice.Bottom))
     assert(lattice.join(SignAnalysisLattice.Bottom, SignAnalysisLattice.Lt) == Some(SignAnalysisLattice.Lt))
