@@ -19,4 +19,8 @@ case class ExampleCfg(edges: Map[(ExampleProgramPoint, ExampleProgramPoint), Exa
   def entryPoint: Option[ExampleProgramPoint] = {
     edges.keys.map(_._1).find(pred(_).isEmpty)
   }
+
+  def programPoints: Set[ExampleProgramPoint] = {
+    edges.keys.flatMap((startProgramPoint, endProgramPoint) => Set(startProgramPoint, endProgramPoint)).toSet
+  }
 }
