@@ -5,4 +5,4 @@ a = {
   b = a + 5;
   b / 2
 };
-print a; // Should be 4
+print a; // Should print 4
