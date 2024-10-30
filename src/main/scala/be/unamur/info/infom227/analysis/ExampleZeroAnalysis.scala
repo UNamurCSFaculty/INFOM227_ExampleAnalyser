@@ -21,7 +21,7 @@ object ExampleZeroAnalysisAbstractValue {
   }
 }
 
-private class ExampleZeroAnalysisFlowFunctions extends
+private class ExampleZeroAnalysisControlFlowFunctions extends
   ExampleStatementVisitor[Try[ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]], ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]],
   ExampleExpressionVisitor[Try[ExampleZeroAnalysisAbstractValue], ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]] {
 
@@ -222,7 +222,7 @@ private class ConditionUpdate() extends ExampleExpressionVisitor[Try[Map[String,
 
 object ExampleZeroAnalysisWorklist extends ExampleWorklist(ExampleZeroAnalysisAbstractValue.lattice) {
   override def controlFlowFunctions(p: ExampleProgramPoint, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]] = {
-    p.statement.accept(ExampleZeroAnalysisFlowFunctions(), abstractEnvironment)
+    p.statement.accept(ExampleZeroAnalysisControlFlowFunctions(), abstractEnvironment)
   }
 
   override def conditionUpdate(condition: ExampleBooleanExpression, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[Map[String, ExampleZeroAnalysisAbstractValue]] = {
