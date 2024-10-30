@@ -45,7 +45,7 @@ class TestExampleZeroAnalysis extends AnyFunSuite {
         )
       )
 
-    val result = ExampleZeroWorkflowAnalysis().worklist(cfg)
+    val result = ExampleZeroAnalysisWorklist().worklist(cfg)
 
     assert(expected === result)
   }
@@ -90,7 +90,7 @@ class TestExampleZeroAnalysis extends AnyFunSuite {
         )
       )
 
-    val result = ExampleZeroWorkflowAnalysis().worklist(cfg)
+    val result = ExampleZeroAnalysisWorklist().worklist(cfg)
 
     assert(expected === result)
   }
@@ -130,7 +130,7 @@ class TestExampleZeroAnalysis extends AnyFunSuite {
         )
       )
 
-    val result = ExampleZeroWorkflowAnalysis().worklist(cfg)
+    val result = ExampleZeroAnalysisWorklist().worklist(cfg)
 
     assert(expected === result)
   }

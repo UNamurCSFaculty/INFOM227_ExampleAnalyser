@@ -220,7 +220,7 @@ private class ConditionUpdate() extends ExampleExpressionVisitor[Try[Map[String,
   }
 }
 
-class ExampleZeroWorkflowAnalysis extends ExampleWorkflowAnalysis(ExampleZeroAnalysisAbstractValue.lattice) {
+class ExampleZeroAnalysisWorklist extends ExampleWorklist(ExampleZeroAnalysisAbstractValue.lattice) {
   override def controlFlowFunctions(p: ExampleProgramPoint, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]] = {
     p.statement.accept(ExampleZeroAnalysisFlowFunctions(), abstractEnvironment)
   }

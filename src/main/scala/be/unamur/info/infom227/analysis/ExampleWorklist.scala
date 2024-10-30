@@ -6,7 +6,7 @@ import be.unamur.info.infom227.cfg.{ExampleCfg, ExampleProgramPoint}
 import scala.util.Try
 
 
-abstract class ExampleWorkflowAnalysis[L](lattice: ExampleLattice[L]) {
+abstract class ExampleWorklist[L](lattice: ExampleLattice[L]) {
   def controlFlowFunctions(p: ExampleProgramPoint, abstractEnvironment: ExampleAbstractEnvironment[String, L]): Try[ExampleAbstractEnvironment[String, L]]
 
   def conditionUpdate(condition: ExampleBooleanExpression, abstractEnvironment: ExampleAbstractEnvironment[String, L]): Try[Map[String, L]]
