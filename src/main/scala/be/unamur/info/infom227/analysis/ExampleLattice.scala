@@ -27,7 +27,7 @@ case class ExampleFiniteSizeLattice[L](edges: Set[(L, L)]) extends ExampleLattic
   def includes(including: L, included: L): Boolean = {
     val includedEnds = ends(included)
 
-    includedEnds.contains(including) || includedEnds.exists(includes(including, _))
+    including == included || includedEnds.contains(including) || includedEnds.exists(includes(including, _))
   }
 
   def join(value1: L, value2: L): Option[L] = {
