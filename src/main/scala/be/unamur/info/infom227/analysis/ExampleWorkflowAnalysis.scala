@@ -31,7 +31,7 @@ abstract class ExampleWorkflowAnalysis[L](lattice: ExampleLattice[L]) {
 
       while (WL.nonEmpty) {
         val p = WL.head
-        WL -= WL.head
+        WL.remove(p)
 
         val res = controlFlowFunctions(p, abstractEnvironments(p)).get
 
