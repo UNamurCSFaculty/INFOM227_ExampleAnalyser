@@ -45,7 +45,7 @@ class TestExampleZeroAnalysis extends AnyFunSuite {
         )
       )
 
-    val result = ExampleZeroAnalysisWorklist().worklist(cfg)
+    val result = ExampleZeroAnalysisWorklist.worklist(cfg)
 
     assert(expected === result)
   }
@@ -90,7 +90,7 @@ class TestExampleZeroAnalysis extends AnyFunSuite {
         )
       )
 
-    val result = ExampleZeroAnalysisWorklist().worklist(cfg)
+    val result = ExampleZeroAnalysisWorklist.worklist(cfg)
 
     assert(expected === result)
   }
@@ -130,8 +130,94 @@ class TestExampleZeroAnalysis extends AnyFunSuite {
         )
       )
 
-    val result = ExampleZeroAnalysisWorklist().worklist(cfg)
+    val result = ExampleZeroAnalysisWorklist.worklist(cfg)
 
     assert(expected === result)
+  }
+
+  test("simple zero analysis results interpretation without error") {
+    val code =
+      """
+    int x;
+    int y;
+    int z;
+    x = 5;
+    y = 2;
+    z = x / y;
+    """
+
+    val expected = Success(List.empty)
+
+    val charStream = CharStreams.fromString(code)
+
+    val messagesOption = for {
+      cst <- ExampleParser.parse(charStream)
+      ast <- ExampleAstBuilder.build(cst)
+      cfg = ExampleCfgBuilder.build(ast)
+      results <- ExampleZeroAnalysisWorklist.worklist(cfg)
+      messages <- ExampleZeroAnalysisResultsInterpreter.interpret(cfg, results)
+    } yield messages
+
+    assert(expected === messagesOption)
+  }
+
+  test("simple zero analysis results interpretation with warning") {
+    val code =
+      """
+    int x;
+    int y;
+    int z;
+    x = 5;
+    y = x - x;
+    z = x / y;
+    """
+
+    val expected = Success(
+      List(
+        (7, ExampleErrorMessageType.Warning, "Possible division by zero !")
+      )
+    )
+
+    val charStream = CharStreams.fromString(code)
+
+    val messagesOption = for {
+      cst <- ExampleParser.parse(charStream)
+      ast <- ExampleAstBuilder.build(cst)
+      cfg = ExampleCfgBuilder.build(ast)
+      results <- ExampleZeroAnalysisWorklist.worklist(cfg)
+      messages <- ExampleZeroAnalysisResultsInterpreter.interpret(cfg, results)
+    } yield messages
+
+    assert(expected === messagesOption)
+  }
+
+  test("simple zero analysis results interpretation with error") {
+    val code =
+      """
+    int x;
+    int y;
+    int z;
+    x = 5;
+    y = 0;
+    z = x / y;
+    """
+
+    val expected = Success(
+      List(
+        (7, ExampleErrorMessageType.Error, "Division by zero detected !")
+      )
+    )
+
+    val charStream = CharStreams.fromString(code)
+
+    val messagesOption = for {
+      cst <- ExampleParser.parse(charStream)
+      ast <- ExampleAstBuilder.build(cst)
+      cfg = ExampleCfgBuilder.build(ast)
+      results <- ExampleZeroAnalysisWorklist.worklist(cfg)
+      messages <- ExampleZeroAnalysisResultsInterpreter.interpret(cfg, results)
+    } yield messages
+
+    assert(expected === messagesOption)
   }
 }

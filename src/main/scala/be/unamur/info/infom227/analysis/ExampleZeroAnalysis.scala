@@ -220,7 +220,7 @@ private class ConditionUpdate() extends ExampleExpressionVisitor[Try[Map[String,
   }
 }
 
-class ExampleZeroAnalysisWorklist extends ExampleWorklist(ExampleZeroAnalysisAbstractValue.lattice) {
+object ExampleZeroAnalysisWorklist extends ExampleWorklist(ExampleZeroAnalysisAbstractValue.lattice) {
   override def controlFlowFunctions(p: ExampleProgramPoint, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]] = {
     p.statement.accept(ExampleZeroAnalysisFlowFunctions(), abstractEnvironment)
   }
@@ -229,3 +229,19 @@ class ExampleZeroAnalysisWorklist extends ExampleWorklist(ExampleZeroAnalysisAbs
     condition.accept(ConditionUpdate(), abstractEnvironment)
   }
 }
+
+object ExampleZeroAnalysisResultsInterpreter extends ExampleResultsInterpreter[ExampleZeroAnalysisAbstractValue](
+  (p, results) => {
+    p.statement match
+      case ExampleAssignStatement(_, _, _, ExampleIntegerBinaryOperation(ExampleIntegerBinaryOperator.Div, ExampleIntegerVariable(_), ExampleIntegerVariable(z))) =>
+        results
+          .get(p)
+          .flatMap(_.abstractValues.get(z))
+          .flatMap {
+            case ExampleZeroAnalysisAbstractValue.Z => Some(ExampleErrorMessageType.Error, "Division by zero detected !")
+            case ExampleZeroAnalysisAbstractValue.U => Some(ExampleErrorMessageType.Warning, "Possible division by zero !")
+            case _ => None
+          }
+      case _ => None
+  }
+)
