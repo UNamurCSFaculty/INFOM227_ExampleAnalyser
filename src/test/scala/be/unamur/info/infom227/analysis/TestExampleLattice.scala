@@ -47,6 +47,7 @@ class TestExampleLattice extends AnyFunSuite {
     assert(!SignAnalysisAbstractValue.lattice.includes(SignAnalysisAbstractValue.Bottom, SignAnalysisAbstractValue.U))
     assert(!SignAnalysisAbstractValue.lattice.includes(SignAnalysisAbstractValue.Nz, SignAnalysisAbstractValue.Z))
     assert(SignAnalysisAbstractValue.lattice.includes(SignAnalysisAbstractValue.U, SignAnalysisAbstractValue.Z))
+    assert(SignAnalysisAbstractValue.lattice.includes(SignAnalysisAbstractValue.Z, SignAnalysisAbstractValue.Z))
     assert(SignAnalysisAbstractValue.lattice.includes(SignAnalysisAbstractValue.Gte, SignAnalysisAbstractValue.Z))
     assert(SignAnalysisAbstractValue.lattice.includes(SignAnalysisAbstractValue.Gte, SignAnalysisAbstractValue.Gt))
   }
