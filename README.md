@@ -187,3 +187,8 @@ With these semantic rules, it is now possible to perform our semantic analysis. 
 ### Abstract Syntax Tree
 
 In our example, the AST is defined using Scala classes that allow easy pattern matching and the use of visitors. These include [sequences](src/main/scala/be/unamur/info/infom227/ast/ExampleSequence.scala), [instructions](src/main/scala/be/unamur/info/infom227/ast/ExampleStatement.scala), [types](src/main/scala/be/unamur/info/infom227/ast/ExampleType.scala) and [expressions](src/main/scala/be/unamur/info/infom227/ast/ExampleExpression.scala). Regarding the [visitors](src/main/scala/be/unamur/info/infom227/ast/ExampleAstVisitors.scala), there is one for each type of AST class, as this allows us to return different types depending on what we need and not necessarily have to visit everything every time. In addition, a `data` parameter has been added because we often need to pass data from one node to another, and this parameter makes this easier.
+
+
+## Interpreter
+
+With our AST and our visitors, it's very easy to create an interpreter for our language that will follow the semantics defined earlier. All we need to do is create [a class that will represent the environment](src/main/scala/be/unamur/info/infom227/interpreter/ExampleEnvironment.scala) and then [implement the different rules](src/main/scala/be/unamur/info/infom227/interpreter/ExampleInterpreter.scala) using our visitors.
