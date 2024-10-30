@@ -24,12 +24,12 @@ class TestExampleZeroAnalysis extends AnyFunSuite {
 
     val charStream = CharStreams.fromString(code)
 
-    val astOption = for {
+    val tryAst = for {
       cst <- ExampleParser.parse(charStream)
       ast <- ExampleAstBuilder.build(cst)
     } yield ast
 
-    val (cfg, expected) = astOption match
+    val (cfg, expected) = tryAst match
       case Failure(exception) => fail(exception)
       case Success(program) => (
         ExampleCfgBuilder.build(program),
@@ -67,12 +67,12 @@ class TestExampleZeroAnalysis extends AnyFunSuite {
 
     val charStream = CharStreams.fromString(code)
 
-    val astOption = for {
+    val tryAst = for {
       cst <- ExampleParser.parse(charStream)
       ast <- ExampleAstBuilder.build(cst)
     } yield ast
 
-    val (cfg, expected) = astOption match
+    val (cfg, expected) = tryAst match
       case Failure(exception) => fail(exception)
       case Success(program) => (
         ExampleCfgBuilder.build(program),
@@ -109,12 +109,12 @@ class TestExampleZeroAnalysis extends AnyFunSuite {
 
     val charStream = CharStreams.fromString(code)
 
-    val astOption = for {
+    val tryAst = for {
       cst <- ExampleParser.parse(charStream)
       ast <- ExampleAstBuilder.build(cst)
     } yield ast
 
-    val (cfg, expected) = astOption match
+    val (cfg, expected) = tryAst match
       case Failure(exception) => fail(exception)
       case Success(program) => (
         ExampleCfgBuilder.build(program),
@@ -150,7 +150,7 @@ class TestExampleZeroAnalysis extends AnyFunSuite {
 
     val charStream = CharStreams.fromString(code)
 
-    val messagesOption = for {
+    val tryMessages = for {
       cst <- ExampleParser.parse(charStream)
       ast <- ExampleAstBuilder.build(cst)
       cfg = ExampleCfgBuilder.build(ast)
@@ -158,7 +158,7 @@ class TestExampleZeroAnalysis extends AnyFunSuite {
       messages <- ExampleZeroAnalysisResultsInterpreter.interpret(cfg, results)
     } yield messages
 
-    assert(expected === messagesOption)
+    assert(expected === tryMessages)
   }
 
   test("simple zero analysis results interpretation with warning") {
@@ -180,7 +180,7 @@ class TestExampleZeroAnalysis extends AnyFunSuite {
 
     val charStream = CharStreams.fromString(code)
 
-    val messagesOption = for {
+    val tryMessages = for {
       cst <- ExampleParser.parse(charStream)
       ast <- ExampleAstBuilder.build(cst)
       cfg = ExampleCfgBuilder.build(ast)
@@ -188,7 +188,7 @@ class TestExampleZeroAnalysis extends AnyFunSuite {
       messages <- ExampleZeroAnalysisResultsInterpreter.interpret(cfg, results)
     } yield messages
 
-    assert(expected === messagesOption)
+    assert(expected === tryMessages)
   }
 
   test("simple zero analysis results interpretation with error") {
@@ -210,7 +210,7 @@ class TestExampleZeroAnalysis extends AnyFunSuite {
 
     val charStream = CharStreams.fromString(code)
 
-    val messagesOption = for {
+    val tryMessages = for {
       cst <- ExampleParser.parse(charStream)
       ast <- ExampleAstBuilder.build(cst)
       cfg = ExampleCfgBuilder.build(ast)
@@ -218,6 +218,6 @@ class TestExampleZeroAnalysis extends AnyFunSuite {
       messages <- ExampleZeroAnalysisResultsInterpreter.interpret(cfg, results)
     } yield messages
 
-    assert(expected === messagesOption)
+    assert(expected === tryMessages)
   }
 }
