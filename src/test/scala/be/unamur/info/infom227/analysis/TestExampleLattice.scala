@@ -2,65 +2,67 @@ package be.unamur.info.infom227.analysis
 
 import org.scalatest.funsuite.AnyFunSuite
 
-enum SignAnalysisLattice:
+enum SignAnalysisAbstractValue:
   case Lt, Gt, Z, Lte, Gte, Nz, U, Bottom
+
+object SignAnalysisAbstractValue {
+  val lattice: ExampleLattice[SignAnalysisAbstractValue] = ExampleFiniteSizeLattice(
+    Set(
+      (SignAnalysisAbstractValue.Bottom, SignAnalysisAbstractValue.Lt),
+      (SignAnalysisAbstractValue.Bottom, SignAnalysisAbstractValue.Z),
+      (SignAnalysisAbstractValue.Bottom, SignAnalysisAbstractValue.Gt),
+      (SignAnalysisAbstractValue.Lt, SignAnalysisAbstractValue.Lte),
+      (SignAnalysisAbstractValue.Lt, SignAnalysisAbstractValue.Nz),
+      (SignAnalysisAbstractValue.Z, SignAnalysisAbstractValue.Lte),
+      (SignAnalysisAbstractValue.Z, SignAnalysisAbstractValue.Gte),
+      (SignAnalysisAbstractValue.Gt, SignAnalysisAbstractValue.Nz),
+      (SignAnalysisAbstractValue.Gt, SignAnalysisAbstractValue.Gte),
+      (SignAnalysisAbstractValue.Lte, SignAnalysisAbstractValue.U),
+      (SignAnalysisAbstractValue.Nz, SignAnalysisAbstractValue.U),
+      (SignAnalysisAbstractValue.Gte, SignAnalysisAbstractValue.U),
+    )
+  )
+}
 
 class TestExampleLattice extends AnyFunSuite {
 
-  private val lattice = ExampleFiniteSizeLattice(
-    Set(
-      (SignAnalysisLattice.Bottom, SignAnalysisLattice.Lt),
-      (SignAnalysisLattice.Bottom, SignAnalysisLattice.Z),
-      (SignAnalysisLattice.Bottom, SignAnalysisLattice.Gt),
-      (SignAnalysisLattice.Lt, SignAnalysisLattice.Lte),
-      (SignAnalysisLattice.Lt, SignAnalysisLattice.Nz),
-      (SignAnalysisLattice.Z, SignAnalysisLattice.Lte),
-      (SignAnalysisLattice.Z, SignAnalysisLattice.Gte),
-      (SignAnalysisLattice.Gt, SignAnalysisLattice.Nz),
-      (SignAnalysisLattice.Gt, SignAnalysisLattice.Gte),
-      (SignAnalysisLattice.Lte, SignAnalysisLattice.U),
-      (SignAnalysisLattice.Nz, SignAnalysisLattice.U),
-      (SignAnalysisLattice.Gte, SignAnalysisLattice.U),
-    )
-  )
-
   test("valid bottom value") {
-    val expected = Some(SignAnalysisLattice.Bottom)
+    val expected = Some(SignAnalysisAbstractValue.Bottom)
 
-    val result = lattice.bottom
+    val result = SignAnalysisAbstractValue.lattice.bottom
 
     assert(expected == result)
   }
 
   test("valid top value") {
-    val expected = Some(SignAnalysisLattice.U)
+    val expected = Some(SignAnalysisAbstractValue.U)
 
-    val result = lattice.top
+    val result = SignAnalysisAbstractValue.lattice.top
 
     assert(expected == result)
   }
 
   test("valid included values") {
-    assert(!lattice.includes(SignAnalysisLattice.Bottom, SignAnalysisLattice.Z))
-    assert(!lattice.includes(SignAnalysisLattice.Bottom, SignAnalysisLattice.U))
-    assert(!lattice.includes(SignAnalysisLattice.Nz, SignAnalysisLattice.Z))
-    assert(lattice.includes(SignAnalysisLattice.U, SignAnalysisLattice.Z))
-    assert(lattice.includes(SignAnalysisLattice.Gte, SignAnalysisLattice.Z))
-    assert(lattice.includes(SignAnalysisLattice.Gte, SignAnalysisLattice.Gt))
+    assert(!SignAnalysisAbstractValue.lattice.includes(SignAnalysisAbstractValue.Bottom, SignAnalysisAbstractValue.Z))
+    assert(!SignAnalysisAbstractValue.lattice.includes(SignAnalysisAbstractValue.Bottom, SignAnalysisAbstractValue.U))
+    assert(!SignAnalysisAbstractValue.lattice.includes(SignAnalysisAbstractValue.Nz, SignAnalysisAbstractValue.Z))
+    assert(SignAnalysisAbstractValue.lattice.includes(SignAnalysisAbstractValue.U, SignAnalysisAbstractValue.Z))
+    assert(SignAnalysisAbstractValue.lattice.includes(SignAnalysisAbstractValue.Gte, SignAnalysisAbstractValue.Z))
+    assert(SignAnalysisAbstractValue.lattice.includes(SignAnalysisAbstractValue.Gte, SignAnalysisAbstractValue.Gt))
   }
 
   test("valid join values") {
-    assert(lattice.join(SignAnalysisLattice.Bottom, SignAnalysisLattice.Bottom) == Some(SignAnalysisLattice.Bottom))
-    assert(lattice.join(SignAnalysisLattice.Bottom, SignAnalysisLattice.Lt) == Some(SignAnalysisLattice.Lt))
-    assert(lattice.join(SignAnalysisLattice.Bottom, SignAnalysisLattice.Z) == Some(SignAnalysisLattice.Z))
-    assert(lattice.join(SignAnalysisLattice.Bottom, SignAnalysisLattice.Gt) == Some(SignAnalysisLattice.Gt))
-    assert(lattice.join(SignAnalysisLattice.Bottom, SignAnalysisLattice.Nz) == Some(SignAnalysisLattice.Nz))
-    assert(lattice.join(SignAnalysisLattice.Z, SignAnalysisLattice.Z) == Some(SignAnalysisLattice.Z))
-    assert(lattice.join(SignAnalysisLattice.Z, SignAnalysisLattice.U) == Some(SignAnalysisLattice.U))
-    assert(lattice.join(SignAnalysisLattice.U, SignAnalysisLattice.Z) == Some(SignAnalysisLattice.U))
-    assert(lattice.join(SignAnalysisLattice.Gt, SignAnalysisLattice.Lte) == Some(SignAnalysisLattice.U))
-    assert(lattice.join(SignAnalysisLattice.Lte, SignAnalysisLattice.Gt) == Some(SignAnalysisLattice.U))
-    assert(lattice.join(SignAnalysisLattice.Gt, SignAnalysisLattice.Lt) == Some(SignAnalysisLattice.Nz))
-    assert(lattice.join(SignAnalysisLattice.Lt, SignAnalysisLattice.Gt) == Some(SignAnalysisLattice.Nz))
+    assert(SignAnalysisAbstractValue.lattice.join(SignAnalysisAbstractValue.Bottom, SignAnalysisAbstractValue.Bottom) == Some(SignAnalysisAbstractValue.Bottom))
+    assert(SignAnalysisAbstractValue.lattice.join(SignAnalysisAbstractValue.Bottom, SignAnalysisAbstractValue.Lt) == Some(SignAnalysisAbstractValue.Lt))
+    assert(SignAnalysisAbstractValue.lattice.join(SignAnalysisAbstractValue.Bottom, SignAnalysisAbstractValue.Z) == Some(SignAnalysisAbstractValue.Z))
+    assert(SignAnalysisAbstractValue.lattice.join(SignAnalysisAbstractValue.Bottom, SignAnalysisAbstractValue.Gt) == Some(SignAnalysisAbstractValue.Gt))
+    assert(SignAnalysisAbstractValue.lattice.join(SignAnalysisAbstractValue.Bottom, SignAnalysisAbstractValue.Nz) == Some(SignAnalysisAbstractValue.Nz))
+    assert(SignAnalysisAbstractValue.lattice.join(SignAnalysisAbstractValue.Z, SignAnalysisAbstractValue.Z) == Some(SignAnalysisAbstractValue.Z))
+    assert(SignAnalysisAbstractValue.lattice.join(SignAnalysisAbstractValue.Z, SignAnalysisAbstractValue.U) == Some(SignAnalysisAbstractValue.U))
+    assert(SignAnalysisAbstractValue.lattice.join(SignAnalysisAbstractValue.U, SignAnalysisAbstractValue.Z) == Some(SignAnalysisAbstractValue.U))
+    assert(SignAnalysisAbstractValue.lattice.join(SignAnalysisAbstractValue.Gt, SignAnalysisAbstractValue.Lte) == Some(SignAnalysisAbstractValue.U))
+    assert(SignAnalysisAbstractValue.lattice.join(SignAnalysisAbstractValue.Lte, SignAnalysisAbstractValue.Gt) == Some(SignAnalysisAbstractValue.U))
+    assert(SignAnalysisAbstractValue.lattice.join(SignAnalysisAbstractValue.Gt, SignAnalysisAbstractValue.Lt) == Some(SignAnalysisAbstractValue.Nz))
+    assert(SignAnalysisAbstractValue.lattice.join(SignAnalysisAbstractValue.Lt, SignAnalysisAbstractValue.Gt) == Some(SignAnalysisAbstractValue.Nz))
   }
 }
