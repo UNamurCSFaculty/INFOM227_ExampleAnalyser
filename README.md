@@ -10,6 +10,78 @@ The analyser has been implemented in [Scala](https://www.scala-lang.org/) for se
 - Scala can treat [errors as values](https://en.wikipedia.org/wiki/Result_type) and this makes the management of compilation errors much clearer.
 
 
+## Requirements
+
+The application requires:
+
+- [Java](https://adoptium.net/) >= 17
+
+
+## Download
+
+You can download the application on the [downloads page](https://github.com/UNamurCSFaculty/INFOM227_ExampleAnalyser/releases).
+
+
+## Execution
+
+You can execute a program using the application by running the following command:
+
+```bash
+java -jar ExampleAnalyser-X.X-SNAPSHOT-all.jar run <path-to-your-program>
+```
+
+You can run a zero analysis on a program using the application by running the following command:
+
+```bash
+java -jar ExampleAnalyser-X.X-SNAPSHOT-all.jar zero-analysis <path-to-your-program>
+```
+
+
+## Setting up a development environment
+
+### Requirements
+
+The application requires:
+
+- [Jdk](https://adoptium.net/) >= 17
+
+
+### Installation & Build
+
+You can install the project using [Gradle](https://gradle.org/) and build the application with the following commands:
+
+#### Windows
+
+```bat
+./gradlew.bat build
+```
+
+#### Linux & MacOS
+
+```bash
+./gradlew build
+```
+
+The application will be built in the `build/libs/ExampleAnalyser-X.X-SNAPSHOT-all.jar` file.
+
+
+### Tests
+
+You can run the tests of the project using [Gradle](https://gradle.org/) with the following commands:
+
+#### Windows
+
+```bat
+./gradlew.bat test
+```
+
+#### Linux & MacOS
+
+```bash
+./gradlew test
+```
+
+
 ## Syntax
 
 The syntax of a programming language determines what constitutes a valid program in terms of text. In almost all cases for programming languages, this syntax is defined using a [Context-free grammar](https://en.wikipedia.org/wiki/Context-free_grammar). In the course and in this example, the grammars are defined formally using the [EBNF (extended Backus-Naur form)](https://en.wikipedia.org/wiki/Extended_Backus–Naur_form) notation.
