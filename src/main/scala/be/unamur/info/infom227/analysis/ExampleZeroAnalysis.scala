@@ -123,7 +123,7 @@ private class ExampleZeroAnalysisFlowFunctions extends
   }
 }
 
-private class ConditionUpdate() extends ExampleExpressionVisitor[Try[Map[String, ExampleZeroAnalysisAbstractValue]], ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]] {
+private class ConditionUpdateRules() extends ExampleExpressionVisitor[Try[Map[String, ExampleZeroAnalysisAbstractValue]], ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]] {
 
   override def visitExampleIntegerConstant(node: ExampleIntegerConstant, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[Map[String, ExampleZeroAnalysisAbstractValue]] = {
     Failure(NotImplementedError())
@@ -226,7 +226,7 @@ object ExampleZeroAnalysisWorklist extends ExampleWorklist(ExampleZeroAnalysisAb
   }
 
   override def conditionUpdate(condition: ExampleBooleanExpression, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[Map[String, ExampleZeroAnalysisAbstractValue]] = {
-    condition.accept(ConditionUpdate(), abstractEnvironment)
+    condition.accept(ConditionUpdateRules(), abstractEnvironment)
   }
 }
 
