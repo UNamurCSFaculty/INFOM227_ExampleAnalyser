@@ -189,6 +189,10 @@ With these semantic rules, it is now possible to perform our semantic analysis. 
 
 In our example, the AST is defined using Scala classes that allow easy pattern matching and the use of visitors. These include [sequences](src/main/scala/be/unamur/info/infom227/ast/ExampleSequence.scala), [instructions](src/main/scala/be/unamur/info/infom227/ast/ExampleStatement.scala), [types](src/main/scala/be/unamur/info/infom227/ast/ExampleType.scala) and [expressions](src/main/scala/be/unamur/info/infom227/ast/ExampleExpression.scala). Regarding the [visitors](src/main/scala/be/unamur/info/infom227/ast/ExampleAstVisitors.scala), there is one for each type of AST class, as this allows us to return different types depending on what we need and not necessarily have to visit everything every time. In addition, a `data` parameter has been added because we often need to pass data from one node to another, and this parameter makes this easier.
 
+Here is what the AST looks like after being built from the CST mentioned above:
+
+![AST Example](docs/images/AST_example.png)
+
 
 ## Interpreter
 
