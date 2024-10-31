@@ -278,7 +278,7 @@ These control-flow functions are almost the same as the ones in the course. It w
 
 ### Condition update rules
 
-The Worklist algorithm also requires some rules to update the abstract environments according to the boolean expressions in the $COND(p, p')$ function. Here are the rules that we will use in our analysis:
+Moreover, the Worklist algorithm also requires some rules to update the abstract environments according to the boolean expressions in the $COND(p, p')$ function. Here are the rules that we will use in our analysis:
 
 $$
 \begin{align}
@@ -311,3 +311,15 @@ $$
 & g[[ E ]] (\phi) = & \phi & \quad if & \text{E is not defined in the other rules} & \\
 \end{align}
 $$
+
+
+### Results interpretation
+
+Finally, we can define processing rules in order to interpret the results of the analysis:
+
+| *Line (PP)* | *Instruction (I)* | *Condition (C)*     | *Type (T)* | *Message (M)*                 |
+|-------------|-------------------|---------------------|------------|-------------------------------|
+| p           | x = y / Z         | $\phi_{p-1}(z) = Z$ | Error      | "Division by zero detected !" |
+| p           | x = y / Z         | $\phi_{p-1}(z) = Z$ | Warning    | "Possible division by zero !" |
+
+These rules are the same as the ones in the course.
