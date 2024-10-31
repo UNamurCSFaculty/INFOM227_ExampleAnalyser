@@ -223,6 +223,11 @@ with:
 
 Next, we need to convert our AST into a [CFG (Control-flow graph)](https://en.wikipedia.org/wiki/Control-flow_graph). The code that achieves this can be found [here](src/main/scala/be/unamur/info/infom227/cfg/ExampleCfgBuilder.scala).
 
+A CFG is composed of the following elements:
+
+- $PRED(p)$ : A function which returns the predecessors of the program point $p$.
+- $SUCC(p)$ : A function which returns the successors of the program point $p$.
+- $COND(p1, p2)$ : A function which returns a boolean expression that must be $True$ to go from the program point $p1$ to the program point $p2$.
 
 ### Abstract environment & Control-Flow Functions
 
