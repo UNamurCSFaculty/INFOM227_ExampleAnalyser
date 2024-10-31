@@ -7,7 +7,7 @@ import scala.util.Try
 enum ExampleErrorMessageType:
   case Error, Warning
 
-abstract class ExampleResultsInterpreter[L](rules: (ExampleProgramPoint, Map[ExampleProgramPoint, ExampleAbstractEnvironment[String, L]]) => Option[(ExampleErrorMessageType, String)]) {
+abstract class ExampleResultsInterpreter[L](processingRules: (ExampleProgramPoint, Map[ExampleProgramPoint, ExampleAbstractEnvironment[String, L]]) => Option[(ExampleErrorMessageType, String)]) {
   def interpret(cfg: ExampleCfg, results: Map[ExampleProgramPoint, ExampleAbstractEnvironment[String, L]]): Try[List[(Int, ExampleErrorMessageType, String)]] = {
     Try {
       val entryPoint = cfg.entryPoint.get
@@ -20,7 +20,7 @@ abstract class ExampleResultsInterpreter[L](rules: (ExampleProgramPoint, Map[Exa
         val programPoint = programPointToInterpret.head
         programPointToInterpret.remove(programPoint)
 
-        rules(programPoint, results).map((messageType, message) =>
+        processingRules(programPoint, results).map((messageType, message) =>
           messages.append((programPoint.statement.lineNumber, messageType, message))
         )
 
