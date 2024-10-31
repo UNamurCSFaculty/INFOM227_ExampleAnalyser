@@ -197,7 +197,7 @@ With our AST and our visitors, it's very easy to create an interpreter for our l
 
 ## Zero Analysis
 
-In this section, we will define a Zero Analysis similar to the one used in the course. The file containing the entire analysis code is available [here](src/main/scala/be/unamur/info/infom227/analysis/ExampleZeroAnalysis.scala).
+In this section, we will define a Zero Analysis, similar to the one used in the course, by using the Worklist algorithm implemented [here](src/main/scala/be/unamur/info/infom227/analysis/ExampleWorklist.scala). The file containing the entire analysis code is available [here](src/main/scala/be/unamur/info/infom227/analysis/ExampleZeroAnalysis.scala).
 
 
 ### Abstract values & Lattice
@@ -227,9 +227,9 @@ A CFG is composed of the following elements:
 
 - $PRED(p)$ : A function which returns the predecessors of the program point $p$.
 - $SUCC(p)$ : A function which returns the successors of the program point $p$.
-- $COND(p1, p2)$ : A function which returns a boolean expression that must be $True$ to go from the program point $p1$ to the program point $p2$.
+- $COND(p, p')$ : A function which returns a boolean expression that must be $True$ to go from the program point $p$ to the program point $p'$.
 
-### Abstract environment & Control-Flow Functions
+### Abstract environment & Control-flow functions
 
 After that, we can define our abstract environment:
 
@@ -246,10 +246,10 @@ Next, we can define our control-flow functions:
 $$
 \begin{align}
 & fg [[ p ]] (\phi) = & \phi[x \mapsto Z] & \quad if & P[p] \equiv int\ x & \\
-& fg [[ p ]] (\phi) = & \phi[x \mapsto NZ] & \quad if & P[p] \equiv bool\ x & \\
-& fg [[ p ]] (\phi) = & f [[ P[p] ]] (\phi) & \quad if & P[p] \equiv x = E & \\
-& fg [[ p ]] (\phi) = & \phi[x \mapsto U] & \quad if & P[p] \equiv x = \{S; E\} & \\
-& fg [[ p ]] (\phi) = & \phi & \quad if & P[p] \equiv while (E) \lor P[p] \equiv if (E) \lor P[p] \equiv print \ E  & \\
+& & \phi[x \mapsto NZ] & \quad if & P[p] \equiv bool\ x & \\
+& & f [[ P[p] ]] (\phi) & \quad if & P[p] \equiv x = E & \\
+& & \phi[x \mapsto U] & \quad if & P[p] \equiv x = \{S; E\} & \\
+& & \phi & \quad if & P[p] \equiv while (E) \lor P[p] \equiv if (E) \lor P[p] \equiv print \ E  & \\
 \end{align}
 $$
 
@@ -274,3 +274,40 @@ $$
 $$
 
 These control-flow functions are almost the same as the ones in the course. It was a choice to make them not that precise.
+
+
+### Condition update rules
+
+The Worklist algorithm also requires some rules to update the abstract environments according to the boolean expressions in the $COND(p, p')$ function. Here are the rules that we will use in our analysis:
+
+$$
+\begin{align}
+& \phi [ COND(p, p') ] = g[[ COND(p, p') ]] (\phi) & \\
+\end{align}
+$$
+
+with:
+
+$$
+\begin{align}
+& g[[ y < c ]] (\phi) = & \phi[y \mapsto NZ] & \quad if & c \leq 0  & \\
+& & \phi[y \mapsto U] & \quad if & c > 0 & \\
+& g[[ c < y ]] (\phi) = & g[[ y > c ]] (\phi) & & & \\
+& g[[ y > c ]] (\phi) = & \phi[y \mapsto NZ] & \quad if & c \geq 0  & \\
+& & \phi[y \mapsto U] & \quad if & c < 0 & \\
+& g[[ c > y ]] (\phi) = & g[[ y < c ]] (\phi) & & & \\
+& g[[ y <= c ]] (\phi) = & \phi[y \mapsto NZ] & \quad if & c < 0  & \\
+& & \phi[y \mapsto U] & \quad if & c \geq 0 & \\
+& g[[ c <= y ]] (\phi) = & g[[ y >= c ]] (\phi) & & & \\
+& g[[ y >= c ]] (\phi) = & \phi[y \mapsto NZ] & \quad if & c > 0  & \\
+& & \phi[y \mapsto U] & \quad if & c \leq 0 & \\
+& g[[ c >= y ]] (\phi) = & g[[ y <= c ]] (\phi) & & & \\
+& g[[ y == c ]] (\phi) = & \phi[y \mapsto Z] & \quad if & c = 0  & \\
+& & \phi[y \mapsto NZ] & \quad if & c \neq 0  & \\
+& g[[ c == y ]] (\phi) = & g[[ y == c ]] (\phi) & & & \\
+& g[[ y\ != c ]] (\phi) = & \phi[y \mapsto NZ] & \quad if & c = 0  & \\
+& & \phi[y \mapsto U] & \quad if & c \neq 0  & \\
+& g[[ c\ != y ]] (\phi) = & g[[ y\ != c ]] (\phi) & & & \\
+& g[[ E ]] (\phi) = & \phi & \quad if & \text{E is not defined in the other rules} & \\
+\end{align}
+$$
