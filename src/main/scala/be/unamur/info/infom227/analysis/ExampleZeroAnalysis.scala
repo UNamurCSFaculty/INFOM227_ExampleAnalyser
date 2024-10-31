@@ -103,23 +103,23 @@ private class ExampleZeroAnalysisFlowFunctions extends
   }
 
   override def visitExampleBooleanUnaryOperation(node: ExampleBooleanUnaryOperation, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[ExampleZeroAnalysisAbstractValue] = {
-    Success(ExampleZeroAnalysisAbstractValue.NZ)
+    Success(ExampleZeroAnalysisAbstractValue.U)
   }
 
   override def visitExampleBooleanBinaryOperation(node: ExampleBooleanBinaryOperation, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[ExampleZeroAnalysisAbstractValue] = {
-    Success(ExampleZeroAnalysisAbstractValue.NZ)
+    Success(ExampleZeroAnalysisAbstractValue.U)
   }
 
   override def visitExampleBooleanEqualComparisonOperation(node: ExampleBooleanEqualComparisonOperation, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[ExampleZeroAnalysisAbstractValue] = {
-    Success(ExampleZeroAnalysisAbstractValue.NZ)
+    Success(ExampleZeroAnalysisAbstractValue.U)
   }
 
   override def visitExampleIntegerComparisonOperation(node: ExampleIntegerComparisonOperation, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[ExampleZeroAnalysisAbstractValue] = {
-    Success(ExampleZeroAnalysisAbstractValue.NZ)
+    Success(ExampleZeroAnalysisAbstractValue.U)
   }
 
   override def visitExampleIntegerEqualComparisonOperation(node: ExampleIntegerEqualComparisonOperation, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[ExampleZeroAnalysisAbstractValue] = {
-    Success(ExampleZeroAnalysisAbstractValue.NZ)
+    Success(ExampleZeroAnalysisAbstractValue.U)
   }
 }
 
