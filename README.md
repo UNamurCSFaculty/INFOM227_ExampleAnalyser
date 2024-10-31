@@ -323,9 +323,9 @@ $$
 
 Finally, we can define processing rules in order to interpret the results of the analysis:
 
-| *Line (PP)* | *Instruction (I)* | *Condition (C)*     | *Type (T)* | *Message (M)*                 |
-|-------------|-------------------|---------------------|------------|-------------------------------|
-| p           | x = y / z         | $\phi_{p-1}(z) = Z$ | Error      | "Division by zero detected !" |
-| p           | x = y / z         | $\phi_{p-1}(z) = Z$ | Warning    | "Possible division by zero !" |
+| *Line (PP)* | *Instruction (I)* | *Condition (C)* | *Type (T)* | *Message (M)*                 |
+|-------------|-------------------|-----------------|------------|-------------------------------|
+| p           | x = y / z         | $\phi_p(z) = Z$ | Error      | "Division by zero detected !" |
+| p           | x = y / z         | $\phi_p(z) = Z$ | Warning    | "Possible division by zero !" |
 
 These rules are the same as the ones in the course.
