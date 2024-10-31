@@ -257,7 +257,7 @@ with:
 
 $$
 \begin{align}
-& f [[ x = 0 ]] (\phi) = & \phi[x \mapsto Z] & &  & \\
+& f [[ x = 0 ]] (\phi) = & \phi[x \mapsto Z] & & & \\
 & f [[ x = c ]] (\phi) = & \phi[x \mapsto NZ] & \quad if & c \in \mathbb{Z}_0 \cup \{True, False\} & \\
 & f [[ x = y ]] (\phi) = & \phi[x \mapsto \phi(y)] & \quad if & y \in < Var > & \\
 & f [[ x = c + d ]] (\phi) = & \phi[x \mapsto Z] & \quad if & c = -d & \\
@@ -268,8 +268,8 @@ $$
 & & \phi[x \mapsto NZ] & \quad if & \phi(y) = Z \wedge c \neq 0 & \\
 & & \phi[x \mapsto NZ] & \quad if & \phi(y) = NZ \wedge c = 0 & \\
 & & \phi[x \mapsto U] & \quad otherwise & & \\
-& f [[ x = c + y ]](\phi) = & f [[ x = y + c ]] (\phi) & & & \\
-& f [[ x = y \oplus z ]](\phi) = & \phi[x \mapsto U] & \quad if & \oplus \neq + & \\
+& f [[ x = c + y ]] (\phi) = & f [[ x = y + c ]] (\phi) & & & \\
+& f [[ x = y \oplus z ]] (\phi) = & \phi[x \mapsto U] & \quad if & \oplus \neq + & \\
 \end{align}
 $$
 
