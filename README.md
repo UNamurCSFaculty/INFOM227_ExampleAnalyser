@@ -282,7 +282,9 @@ These control-flow functions are almost the same as the ones in the course. It w
 
 ### Condition update rules
 
-Moreover, the Worklist algorithm also requires some rules to update the abstract environments according to the boolean expressions in the $COND(p, p')$ function. Here are the rules that we will use in our analysis:
+Moreover, the Worklist algorithm also requires some rules to update the abstract environments according to the boolean expressions in the $COND(p, p')$ function.
+
+Here are the rules that we will use in our analysis:
 
 $$
 \begin{align}
