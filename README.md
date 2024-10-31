@@ -171,6 +171,7 @@ $$
 
 with:
 
+- The notation $< Var >$ corresponds to the set of variables in the program.
 - The symbol $\oplus$ corresponds to the operators `+`, `-`, `*`, `/`, `<`, `>`, `<=`, `>=`, `!=`, `==`, `and` and `or` with their mathematical semantics.
 - The symbol $\mathcal{E}$ corresponds to the set of all possible environments.
 - The symbol $\sigma$, with $\sigma \in \mathcal{E}$ and $\sigma : < Var > \mapsto \mathbb{Z} \cup \{True, False\}$, corresponds to the environment of the function currently being executed.
@@ -192,3 +193,79 @@ In our example, the AST is defined using Scala classes that allow easy pattern m
 ## Interpreter
 
 With our AST and our visitors, it's very easy to create an interpreter for our language that will follow the semantics defined earlier. All we need to do is create [a class that will represent the environment](src/main/scala/be/unamur/info/infom227/interpreter/ExampleEnvironment.scala) and then [implement the different rules](src/main/scala/be/unamur/info/infom227/interpreter/ExampleInterpreter.scala) using our visitors.
+
+
+## Zero Analysis
+
+In this section, we will define a Zero Analysis similar to the one used in the course. The file containing the entire analysis code is available [here](src/main/scala/be/unamur/info/infom227/analysis/ExampleZeroAnalysis.scala).
+
+
+### Abstract values & Lattice
+
+First, we need to define the set of abstract values $L$ that we are going to use, and the lattice that is used to order these values:
+
+$$
+L = \{Bottom, Z, NZ, U\}
+$$
+
+with:
+
+- $Bottom$ representing the fact that there is no value assigned yet.
+- $Z$ representing zero.
+- $NZ$ representing any value different from zero
+- $U$ representing the fact
+  that it is not known whether the value is zero or different from zero.
+
+![Zero analysis lattice](docs/images/ZeroAnalysisLattice.png)
+
+
+### Control-flow graph
+
+Next, we need to convert our AST into a [CFG (Control-flow graph)](https://en.wikipedia.org/wiki/Control-flow_graph). The code that achieves this can be found [here](src/main/scala/be/unamur/info/infom227/cfg/ExampleCfgBuilder.scala).
+
+
+### Abstract environment & Control-Flow Functions
+
+After that, we can define our abstract environment:
+
+$$
+\phi: < Var > \mapsto L
+$$
+
+with:
+
+- The notation $< Var >$ corresponds to the set of variables in the program.
+
+Next, we can define our control-flow functions:
+
+$$
+\begin{align}
+& fg [[ p ]] (\phi) = & \phi[x \mapsto Z] & \quad if & P[p] \equiv int\ x & \\
+& fg [[ p ]] (\phi) = & \phi[x \mapsto NZ] & \quad if & P[p] \equiv bool\ x & \\
+& fg [[ p ]] (\phi) = & f [[ P[p] ]] (\phi) & \quad if & P[p] \equiv x = E & \\
+& fg [[ p ]] (\phi) = & \phi[x \mapsto U] & \quad if & P[p] \equiv x = \{S; E\} & \\
+& fg [[ p ]] (\phi) = & \phi & \quad if & P[p] \equiv while (E) \lor P[p] \equiv if (E) \lor P[p] \equiv print \ E  & \\
+\end{align}
+$$
+
+with:
+
+$$
+\begin{align}
+& f [[ x = 0 ]] (\phi) = & \phi[x \mapsto Z] & &  & \\
+& f [[ x = c ]] (\phi) = & \phi[x \mapsto NZ] & \quad if & c \in \mathbb{Z}_0 \cup \{True, False\} & \\
+& f [[ x = y ]] (\phi) = & \phi[x \mapsto \phi(y)] & \quad if & y \in < Var > & \\
+& f [[ x = c + d ]] (\phi) = & \phi[x \mapsto Z] & \quad if & c = -d & \\
+& & \phi[x \mapsto U] & \quad otherwise & & \\
+& f [[ x = y + z ]] (\phi) = & \phi[x \mapsto Z] & \quad if & \phi(y) = \phi(z) = Z & \\
+& & \phi[x \mapsto U] & \quad otherwise & & \\
+& f [[ x = y + c ]] (\phi) = & \phi[x \mapsto Z] & \quad if & \phi(y) = Z \wedge c = 0 & \\
+& & \phi[x \mapsto NZ] & \quad if & \phi(y) = Z \wedge c \neq 0 & \\
+& & \phi[x \mapsto NZ] & \quad if & \phi(y) = NZ \wedge c = 0 & \\
+& & \phi[x \mapsto U] & \quad otherwise & & \\
+& f [[ x = c + y ]](\phi) = & f [[ x = y + c ]] (\phi) & & & \\
+& f [[ x = y \oplus z ]](\phi) = & \phi[x \mapsto U] & \quad if & \oplus \neq + & \\
+\end{align}
+$$
+
+These control-flow functions are almost the same as the ones in the course. It was a choice to make them not that precise.
