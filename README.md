@@ -27,13 +27,13 @@ You can download the application on the [downloads page](https://github.com/UNam
 You can execute a program using the application by running the following command:
 
 ```bash
-java -jar ExampleAnalyser-X.X-SNAPSHOT-all.jar run <path-to-your-program>
+java -jar ExampleAnalyser-X.X.X-all.jar run <path-to-your-program>
 ```
 
 You can run a zero analysis on a program using the application by running the following command:
 
 ```bash
-java -jar ExampleAnalyser-X.X-SNAPSHOT-all.jar zero-analysis <path-to-your-program>
+java -jar ExampleAnalyser-X.X.X-all.jar zero-analysis <path-to-your-program>
 ```
 
 
@@ -62,7 +62,7 @@ You can install the project using [Gradle](https://gradle.org/) and build the ap
 ./gradlew build
 ```
 
-The application will be built in the `build/libs/ExampleAnalyser-X.X-SNAPSHOT-all.jar` file.
+The application will be built in the `build/libs/ExampleAnalyser-X.X.X-all.jar` file.
 
 
 ### Tests
