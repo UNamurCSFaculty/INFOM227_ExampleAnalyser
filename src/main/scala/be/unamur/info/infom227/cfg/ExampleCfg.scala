@@ -1,8 +1,8 @@
 package be.unamur.info.infom227.cfg
 
-import be.unamur.info.infom227.ast.ExampleBooleanExpression
+import be.unamur.info.infom227.ast.{ExampleBooleanExpression, ExampleType}
 
-case class ExampleCfg(edges: Map[(ExampleProgramPoint, ExampleProgramPoint), ExampleBooleanExpression]) {
+case class ExampleCfg(variables: Map[String, ExampleType], edges: Map[(ExampleProgramPoint, ExampleProgramPoint), ExampleBooleanExpression]) {
 
   def succ(programPoint: ExampleProgramPoint): Set[ExampleProgramPoint] = {
     edges.keys.filter(_._1 == programPoint).map(_._2).toSet

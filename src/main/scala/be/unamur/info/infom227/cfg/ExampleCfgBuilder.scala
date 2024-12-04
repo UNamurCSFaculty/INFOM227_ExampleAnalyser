@@ -4,10 +4,14 @@ import be.unamur.info.infom227.ast.*
 
 
 object ExampleCfgBuilder {
-  def build(sequenceAst: ExampleSequence): ExampleCfg = {
-    val (_, edges) = sequenceAst.accept(ExampleCfgBuilder(), Set.empty)
+  def build(scopeAst: ExampleProgram | ExampleScope): ExampleCfg = {
+    val (_, edges) = scopeAst.accept(ExampleCfgBuilder(), Set.empty)
 
     ExampleCfg(
+      scopeAst match {
+        case ExampleProgram(scope) => scope.variables
+        case ExampleScope(variables, _*) => variables
+      },
       edges.flatMap((startEdges, endProgramPoint) =>
         startEdges.map((startProgramPoint, condition) =>
           (startProgramPoint, endProgramPoint) -> condition

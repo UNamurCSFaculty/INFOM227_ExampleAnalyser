@@ -38,15 +38,17 @@ private class ExampleAstBuilder(private var symbolTable: Option[ExampleSymbolTab
   }
 
   override def visitScope(ctx: ExampleGrammarParser.ScopeContext): Try[ExampleScope] = {
-    for {
-      declareStatements <- ctx
-        .declareStatement
-        .asScala
-        .iterator
-        .map(stmt => visitDeclareStatement(stmt))
-        .toTry
-      exampleStatements <- visitStatements(ctx.statements)
-    } yield ExampleScope(declareStatements.toList ++ exampleStatements.statements *)
+    withScope(symbolTable =>
+      for {
+        declareStatements <- ctx
+          .declareStatement
+          .asScala
+          .iterator
+          .map(stmt => visitDeclareStatement(stmt))
+          .toTry
+        exampleStatements <- visitStatements(ctx.statements)
+      } yield ExampleScope(symbolTable.variables, declareStatements.toList ++ exampleStatements.statements *)
+    )
   }
 
   override def visitStatements(ctx: ExampleGrammarParser.StatementsContext): Try[ExampleStatements] = {
@@ -102,7 +104,7 @@ private class ExampleAstBuilder(private var symbolTable: Option[ExampleSymbolTab
         } else {
           for {
             expression <- visitExpression(ctx.expression)
-          } yield (expression, ExampleScope())
+          } yield (expression, ExampleScope(Map.empty))
         }
         _ <- if (exampleType == expression.exampleType) {
           Success(())

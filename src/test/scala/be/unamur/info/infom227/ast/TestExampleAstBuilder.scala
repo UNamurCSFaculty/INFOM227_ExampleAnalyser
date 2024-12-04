@@ -20,9 +20,10 @@ class TestExampleAstBuilder extends AnyFunSuite {
     val expected = Success(
       ExampleProgram(
         ExampleScope(
+          Map(("a", ExampleInt), ("b", ExampleInt)),
           ExampleDeclareStatement(2, "a", ExampleInt),
           ExampleDeclareStatement(3, "b", ExampleInt),
-          ExampleAssignStatement(4, "a", ExampleScope(), ExampleIntegerBinaryOperation(
+          ExampleAssignStatement(4, "a", ExampleScope(Map.empty), ExampleIntegerBinaryOperation(
             ExampleIntegerBinaryOperator.Div,
             ExampleIntegerBinaryOperation(
               ExampleIntegerBinaryOperator.Mul,
@@ -31,7 +32,7 @@ class TestExampleAstBuilder extends AnyFunSuite {
             ),
             ExampleIntegerConstant(5)
           )),
-          ExampleAssignStatement(5, "b", ExampleScope(), ExampleIntegerBinaryOperation(
+          ExampleAssignStatement(5, "b", ExampleScope(Map.empty), ExampleIntegerBinaryOperation(
             ExampleIntegerBinaryOperator.Sub,
             ExampleIntegerBinaryOperation(
               ExampleIntegerBinaryOperator.Add,
@@ -71,13 +72,15 @@ class TestExampleAstBuilder extends AnyFunSuite {
     val expected = Success(
       ExampleProgram(
         ExampleScope(
+          Map(("a", ExampleInt)),
           ExampleDeclareStatement(2, "a", ExampleInt),
           ExampleAssignStatement(
             3,
             "a",
             ExampleScope(
+              Map(("b", ExampleInt)),
               ExampleDeclareStatement(4, "b", ExampleInt),
-              ExampleAssignStatement(5, "b", ExampleScope(), ExampleIntegerBinaryOperation(
+              ExampleAssignStatement(5, "b", ExampleScope(Map.empty), ExampleIntegerBinaryOperation(
                 ExampleIntegerBinaryOperator.Sub,
                 ExampleIntegerBinaryOperation(
                   ExampleIntegerBinaryOperator.Add,
@@ -124,8 +127,9 @@ class TestExampleAstBuilder extends AnyFunSuite {
     val expected = Success(
       ExampleProgram(
         ExampleScope(
+          Map(("a", ExampleInt)),
           ExampleDeclareStatement(2, "a", ExampleInt),
-          ExampleAssignStatement(3, "a", ExampleScope(), ExampleIntegerBinaryOperation(
+          ExampleAssignStatement(3, "a", ExampleScope(Map.empty), ExampleIntegerBinaryOperation(
             ExampleIntegerBinaryOperator.Add,
             ExampleIntegerBinaryOperation(
               ExampleIntegerBinaryOperator.Mul,
@@ -164,14 +168,15 @@ class TestExampleAstBuilder extends AnyFunSuite {
     val expected = Success(
       ExampleProgram(
         ExampleScope(
+          Map(("a", ExampleInt), ("b", ExampleBool)),
           ExampleDeclareStatement(2, "a", ExampleInt),
           ExampleDeclareStatement(3, "b", ExampleBool),
-          ExampleAssignStatement(4, "a", ExampleScope(), ExampleIntegerBinaryOperation(
+          ExampleAssignStatement(4, "a", ExampleScope(Map.empty), ExampleIntegerBinaryOperation(
             ExampleIntegerBinaryOperator.Add,
             ExampleIntegerConstant(1),
             ExampleIntegerConstant(2)
           )),
-          ExampleAssignStatement(5, "b", ExampleScope(), ExampleBooleanUnaryOperation(
+          ExampleAssignStatement(5, "b", ExampleScope(Map.empty), ExampleBooleanUnaryOperation(
             ExampleBooleanUnaryOperator.Neg,
             ExampleIntegerEqualComparisonOperation(
               ExampleEqualComparisonOperator.Eq,
@@ -206,6 +211,7 @@ class TestExampleAstBuilder extends AnyFunSuite {
     val expected = Success(
       ExampleProgram(
         ExampleScope(
+          Map.empty,
           ExampleIfStatement(
             2,
             ExampleBooleanConstant(true),
@@ -247,6 +253,7 @@ class TestExampleAstBuilder extends AnyFunSuite {
     val expected = Success(
       ExampleProgram(
         ExampleScope(
+          Map.empty,
           ExampleWhileStatement(
             2,
             ExampleBooleanConstant(true),

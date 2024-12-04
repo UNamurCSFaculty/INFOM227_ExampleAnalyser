@@ -5,7 +5,11 @@ import scala.util.{Failure, Success, Try}
 
 class ExampleSymbolTable(private val parentSymbolTableOption: Option[ExampleSymbolTable] = None) {
 
-  private val symbols = mutable.HashMap[String, ExampleType]()
+  private val symbols = mutable.Map[String, ExampleType]()
+
+  def variables: Map[String, ExampleType] = {
+    symbols.toMap
+  }
 
   def get(name: String, recursive: Boolean = true): Try[ExampleType] = {
     symbols.get(name) match {

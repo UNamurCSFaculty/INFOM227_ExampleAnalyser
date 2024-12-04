@@ -31,6 +31,7 @@ class TestExampleCfgBuilder extends AnyFunSuite {
       case Failure(exception) => fail(exception)
 
     val expected = ExampleCfg(
+      Map(("a", ExampleInt)),
       Map(
         (pp(ast, 2), pp(ast, 3)) -> ExampleBooleanConstant(true),
         (pp(ast, 3), pp(ast, 4)) -> ExampleBooleanConstant(true),
@@ -64,6 +65,7 @@ class TestExampleCfgBuilder extends AnyFunSuite {
       case Failure(exception) => fail(exception)
 
     val expected = ExampleCfg(
+      Map(("a", ExampleInt)),
       Map(
         (pp(ast, 2), pp(ast, 3)) -> ExampleBooleanConstant(true),
         (pp(ast, 3), pp(ast, 4)) -> ExampleIntegerEqualComparisonOperation(ExampleEqualComparisonOperator.Eq, ExampleIntegerVariable("a"), ExampleIntegerConstant(0)),
@@ -102,6 +104,7 @@ class TestExampleCfgBuilder extends AnyFunSuite {
       case Failure(exception) => fail(exception)
 
     val expected = ExampleCfg(
+      Map(("a", ExampleInt)),
       Map(
         (pp(ast, 2), pp(ast, 3)) -> ExampleBooleanConstant(true),
         (pp(ast, 3), pp(ast, 4)) -> ExampleIntegerEqualComparisonOperation(ExampleEqualComparisonOperator.Eq, ExampleIntegerVariable("a"), ExampleIntegerConstant(0)),

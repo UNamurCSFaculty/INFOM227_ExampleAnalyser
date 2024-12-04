@@ -10,7 +10,7 @@ case class ExampleProgram(scope: ExampleScope) extends ExampleSequence {
   }
 }
 
-case class ExampleScope(statements: ExampleStatement*) extends ExampleSequence {
+case class ExampleScope(variables: Map[String, ExampleType], statements: ExampleStatement*) extends ExampleSequence {
   override def accept[T, E](visitor: ExampleSequenceVisitor[T, E], environment: E): T = {
     visitor.visitExampleScope(this, environment)
   }
