@@ -7,9 +7,9 @@ import scala.util.Try
 
 
 abstract class ExampleWorklist[L](lattice: ExampleLattice[L]) {
-  def controlFlowFunctions(p: ExampleProgramPoint, abstractEnvironment: ExampleAbstractEnvironment[String, L]): Try[ExampleAbstractEnvironment[String, L]]
+  def controlFlowFunction(p: ExampleProgramPoint, abstractEnvironment: ExampleAbstractEnvironment[String, L]): Try[ExampleAbstractEnvironment[String, L]]
 
-  def conditionUpdate(condition: ExampleBooleanExpression, abstractEnvironment: ExampleAbstractEnvironment[String, L]): Try[Map[String, L]]
+  def conditionUpdateFunction(condition: ExampleBooleanExpression, abstractEnvironment: ExampleAbstractEnvironment[String, L]): Try[Map[String, L]]
 
   private def getVariables(cfg: ExampleCfg, programPoint: ExampleProgramPoint): Set[String] = {
     programPoint.statement match
@@ -33,12 +33,12 @@ abstract class ExampleWorklist[L](lattice: ExampleLattice[L]) {
         val p = WL.head
         WL.remove(p)
 
-        val res = controlFlowFunctions(p, abstractEnvironments(p)).get
+        val res = controlFlowFunction(p, abstractEnvironments(p)).get
 
         for (r <- cfg.succ(p)) {
           val cond = cfg.cond(p, r).get
 
-          val resCond = res.set(conditionUpdate(cond, res).get)
+          val resCond = res.set(conditionUpdateFunction(cond, res).get)
 
           if (!abstractEnvironments(r).includes(resCond)) {
             abstractEnvironments(r) = abstractEnvironments(r).join(resCond).get

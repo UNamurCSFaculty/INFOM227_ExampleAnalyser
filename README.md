@@ -233,7 +233,7 @@ A CFG is composed of the following elements:
 - $SUCC(p)$ : A function which returns the successors of the program point $p$.
 - $COND(p, p')$ : A function which returns a boolean expression that must be $True$ to go from the program point $p$ to the program point $p'$.
 
-### Abstract environment & Control-flow functions
+### Abstract environment & Control-flow function
 
 After that, we can define our abstract environment:
 
@@ -245,7 +245,7 @@ with:
 
 - The notation $< Var >$ corresponds to the set of variables in the program.
 
-Next, we can define our control-flow functions:
+Next, we can define our control-flow function by specifying its instances:
 
 $$
 \begin{align}
@@ -277,47 +277,46 @@ $$
 \end{align}
 $$
 
-These control-flow functions are almost the same as the ones in the course. It was a choice to make them not that precise.
+These control-flow function instances are almost the same as the ones in the course. It was a choice to make them not that precise.
 
 
-### Condition update rules
+### Condition update function
 
-Moreover, the Worklist algorithm also requires some rules to update the abstract environments according to the boolean expressions in the $COND(p, p')$ function.
+Moreover, the Worklist algorithm also requires a function to update the abstract environments according to the boolean expressions in the $COND(p, p')$ function.
 
-Here are the rules that we will use in our analysis:
-
-$$
-\begin{align}
-& \phi [ COND(p, p') ] = g[[ COND(p, p') ]] (\phi) & \\
-\end{align}
-$$
-
-with:
+Here are the function instances that we will use in our analysis:
 
 $$
 \begin{align}
-& g[[ y < c ]] (\phi) = & \phi[y \mapsto NZ] & \quad if & c \leq 0  & \\
+& cg[[ y < c ]] (\phi) = & \phi[y \mapsto NZ] & \quad if & c \leq 0  & \\
 & & \phi[y \mapsto U] & \quad if & c > 0 & \\
-& g[[ c < y ]] (\phi) = & g[[ y > c ]] (\phi) & & & \\
-& g[[ y > c ]] (\phi) = & \phi[y \mapsto NZ] & \quad if & c \geq 0  & \\
+& cg[[ c < y ]] (\phi) = & cg[[ y > c ]] (\phi) & & & \\
+& cg[[ y > c ]] (\phi) = & \phi[y \mapsto NZ] & \quad if & c \geq 0  & \\
 & & \phi[y \mapsto U] & \quad if & c < 0 & \\
-& g[[ c > y ]] (\phi) = & g[[ y < c ]] (\phi) & & & \\
-& g[[ y <= c ]] (\phi) = & \phi[y \mapsto NZ] & \quad if & c < 0  & \\
+& cg[[ c > y ]] (\phi) = & cg[[ y < c ]] (\phi) & & & \\
+& cg[[ y <= c ]] (\phi) = & \phi[y \mapsto NZ] & \quad if & c < 0  & \\
 & & \phi[y \mapsto U] & \quad if & c \geq 0 & \\
-& g[[ c <= y ]] (\phi) = & g[[ y >= c ]] (\phi) & & & \\
-& g[[ y >= c ]] (\phi) = & \phi[y \mapsto NZ] & \quad if & c > 0  & \\
+& cg[[ c <= y ]] (\phi) = & cg[[ y >= c ]] (\phi) & & & \\
+& cg[[ y >= c ]] (\phi) = & \phi[y \mapsto NZ] & \quad if & c > 0  & \\
 & & \phi[y \mapsto U] & \quad if & c \leq 0 & \\
-& g[[ c >= y ]] (\phi) = & g[[ y <= c ]] (\phi) & & & \\
-& g[[ y == c ]] (\phi) = & \phi[y \mapsto Z] & \quad if & c = 0  & \\
+& cg[[ c >= y ]] (\phi) = & cg[[ y <= c ]] (\phi) & & & \\
+& cg[[ y == c ]] (\phi) = & \phi[y \mapsto Z] & \quad if & c = 0  & \\
 & & \phi[y \mapsto NZ] & \quad if & c \neq 0  & \\
-& g[[ c == y ]] (\phi) = & g[[ y == c ]] (\phi) & & & \\
-& g[[ y\ != c ]] (\phi) = & \phi[y \mapsto NZ] & \quad if & c = 0  & \\
+& cg[[ c == y ]] (\phi) = & cg[[ y == c ]] (\phi) & & & \\
+& cg[[ y\ != c ]] (\phi) = & \phi[y \mapsto NZ] & \quad if & c = 0  & \\
 & & \phi[y \mapsto U] & \quad if & c \neq 0  & \\
-& g[[ c\ != y ]] (\phi) = & g[[ y\ != c ]] (\phi) & & & \\
-& g[[ E ]] (\phi) = & \phi & \quad if & \text{E is not defined in the other rules} & \\
+& cg[[ c\ != y ]] (\phi) = & cg[[ y\ != c ]] (\phi) & & & \\
+& cg[[ E ]] (\phi) = & \phi & \quad if & \text{E is not defined in the other instances} & \\
 \end{align}
 $$
 
+In addition, the $cg$ function can also be written as follows:
+
+$$
+\begin{align}
+& \phi [ COND(p, p') ] = cg[[ COND(p, p') ]] (\phi) & \\
+\end{align}
+$$
 
 ### Results interpretation
 

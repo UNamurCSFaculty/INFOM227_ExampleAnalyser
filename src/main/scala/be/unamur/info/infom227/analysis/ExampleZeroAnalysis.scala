@@ -21,7 +21,7 @@ object ExampleZeroAnalysisAbstractValue {
   }
 }
 
-private class ExampleZeroAnalysisFlowFunctions extends
+private class ExampleZeroAnalysisFlowFunction extends
   ExampleStatementVisitor[Try[ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]], ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]],
   ExampleExpressionVisitor[Try[ExampleZeroAnalysisAbstractValue], ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]] {
 
@@ -123,7 +123,7 @@ private class ExampleZeroAnalysisFlowFunctions extends
   }
 }
 
-private class ConditionUpdateRules() extends ExampleExpressionVisitor[Try[Map[String, ExampleZeroAnalysisAbstractValue]], ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]] {
+private class ConditionUpdateFunction() extends ExampleExpressionVisitor[Try[Map[String, ExampleZeroAnalysisAbstractValue]], ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]] {
 
   override def visitExampleIntegerConstant(node: ExampleIntegerConstant, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[Map[String, ExampleZeroAnalysisAbstractValue]] = {
     Failure(NotImplementedError())
@@ -221,12 +221,12 @@ private class ConditionUpdateRules() extends ExampleExpressionVisitor[Try[Map[St
 }
 
 object ExampleZeroAnalysisWorklist extends ExampleWorklist(ExampleZeroAnalysisAbstractValue.lattice) {
-  override def controlFlowFunctions(p: ExampleProgramPoint, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]] = {
-    p.statement.accept(ExampleZeroAnalysisFlowFunctions(), abstractEnvironment)
+  override def controlFlowFunction(p: ExampleProgramPoint, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]] = {
+    p.statement.accept(ExampleZeroAnalysisFlowFunction(), abstractEnvironment)
   }
 
-  override def conditionUpdate(condition: ExampleBooleanExpression, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[Map[String, ExampleZeroAnalysisAbstractValue]] = {
-    condition.accept(ConditionUpdateRules(), abstractEnvironment)
+  override def conditionUpdateFunction(condition: ExampleBooleanExpression, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[Map[String, ExampleZeroAnalysisAbstractValue]] = {
+    condition.accept(ConditionUpdateFunction(), abstractEnvironment)
   }
 }
 
