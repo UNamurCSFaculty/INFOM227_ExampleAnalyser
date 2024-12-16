@@ -100,7 +100,7 @@ $$
 & \langle program \rangle ::= \langle scope \rangle \\
 & \langle scope \rangle ::= \langle declareStatement \rangle* \quad \langle statements \rangle \\
 & \langle statements \rangle ::= \langle statement \rangle* \\
-& \langle statement \rangle ::= \langle declareStatement \rangle | \langle assignStatement \rangle | \langle printStatement \rangle) | \langle ifStatement \rangle) | \langle whileStatement \rangle \\
+& \langle statement \rangle ::= \langle assignStatement \rangle | \langle printStatement \rangle) | \langle ifStatement \rangle) | \langle whileStatement \rangle \\
 & \langle declareStatement \rangle ::= \langle type \rangle \quad \langle IDENTIFIER \rangle ';' \\
 & \langle assignStatement \rangle ::= \langle IDENTIFIER \rangle '=' (\langle expression \rangle | '\{' \langle scope \rangle \langle expression \rangle '\}') ';' \\
 & \langle printStatement \rangle ::= 'print' \quad \langle expression \rangle ';' \\
