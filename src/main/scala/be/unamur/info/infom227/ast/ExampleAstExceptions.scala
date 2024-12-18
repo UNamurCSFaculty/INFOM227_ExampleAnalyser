@@ -17,6 +17,6 @@ class UnsupportedRuleException(
                                 private val cause: Throwable
                               ) extends CannotBuildAstException(message, context, cause)
 
-class MissingContextException(
+class MissingScopeException(
                                private val message: String
                              ) extends CannotBuildAstException(message)
