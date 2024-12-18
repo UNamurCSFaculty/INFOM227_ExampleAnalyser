@@ -17,7 +17,7 @@ private class ExampleAstBuilder(private var symbolTable: Option[ExampleSymbolTab
   private def withScope[T](function: ExampleSymbolTable => Try[T]): Try[T] = {
     symbolTable match
       case Some(symbolTable) => function(symbolTable)
-      case None => Failure(MissingContextException("No symbol table", null, null))
+      case None => Failure(MissingContextException("No symbol table"))
   }
 
   private def newScope[T](function: ExampleSymbolTable => Try[T]): Try[T] = {

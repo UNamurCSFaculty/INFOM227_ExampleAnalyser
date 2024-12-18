@@ -18,7 +18,5 @@ class UnsupportedRuleException(
                               ) extends CannotBuildAstException(message, context, cause)
 
 class MissingContextException(
-                               private val message: String,
-                               private val line: Integer,
-                               private val cause: Throwable
-                             ) extends CannotBuildAstException(message, line, cause)
+                               private val message: String
+                             ) extends CannotBuildAstException(message)
