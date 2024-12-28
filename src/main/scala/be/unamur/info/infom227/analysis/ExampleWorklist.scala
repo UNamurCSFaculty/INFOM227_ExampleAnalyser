@@ -9,7 +9,7 @@ import scala.util.Try
 abstract class ExampleWorklist[L](lattice: ExampleLattice[L]) {
   def controlFlowFunction(p: ExampleProgramPoint, abstractEnvironment: ExampleAbstractEnvironment[String, L]): Try[ExampleAbstractEnvironment[String, L]]
 
-  def conditionUpdateFunction(condition: ExampleBooleanExpression, abstractEnvironment: ExampleAbstractEnvironment[String, L]): Try[Map[String, L]]
+  def conditionUpdateFunction(condition: ExampleBooleanExpression, abstractEnvironment: ExampleAbstractEnvironment[String, L]): Try[Option[Map[String, L]]]
 
   def worklist(cfg: ExampleCfg): Try[Map[ExampleProgramPoint, ExampleAbstractEnvironment[String, L]]] = {
     Try {
@@ -31,13 +31,16 @@ abstract class ExampleWorklist[L](lattice: ExampleLattice[L]) {
         for (r <- cfg.succ(p)) {
           val cond = cfg.cond(p, r).get
 
-          val resCond = res.set(conditionUpdateFunction(cond, res).get)
+          conditionUpdateFunction(cond, res).get match
+            case None => // Special case to ignore unreachable code
+            case Some(abstractVariables) =>
+              val resCond = res.set(abstractVariables)
 
-          if (!abstractEnvironments(r).includes(resCond)) {
-            abstractEnvironments(r) = abstractEnvironments(r).join(resCond).get
+              if (!abstractEnvironments(r).includes(resCond)) {
+                abstractEnvironments(r) = abstractEnvironments(r).join(resCond).get
 
-            WL.add(r)
-          }
+                WL.add(r)
+              }
         }
       }
 

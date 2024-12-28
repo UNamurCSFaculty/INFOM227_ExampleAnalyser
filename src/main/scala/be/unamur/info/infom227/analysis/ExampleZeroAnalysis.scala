@@ -123,100 +123,117 @@ private class ExampleZeroAnalysisFlowFunction extends
   }
 }
 
-private class ConditionUpdateFunction() extends ExampleExpressionVisitor[Try[Map[String, ExampleZeroAnalysisAbstractValue]], ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]] {
+private class ConditionUpdateFunction() extends ExampleExpressionVisitor[Try[Option[Map[String, ExampleZeroAnalysisAbstractValue]]], ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]] {
 
-  override def visitExampleIntegerConstant(node: ExampleIntegerConstant, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[Map[String, ExampleZeroAnalysisAbstractValue]] = {
+  private def checkUnsatisfiable(abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue], variable: String, abstractValue: ExampleZeroAnalysisAbstractValue): Option[Map[String, ExampleZeroAnalysisAbstractValue]] = {
+    for {
+      bottom <- abstractEnvironment.lattice.bottom
+      abstractEnvironmentAbstractValue <- abstractEnvironment.abstractValues.get(variable)
+      newAbstractValue <- if (abstractEnvironmentAbstractValue == bottom) {
+        Some(abstractValue)
+      } else {
+        abstractEnvironment.lattice.meet(abstractEnvironmentAbstractValue, abstractValue)
+      }
+      if newAbstractValue != bottom  // Yield None if the condition is unsatisfiable
+    } yield Map(variable -> newAbstractValue)
+  }
+
+  override def visitExampleIntegerConstant(node: ExampleIntegerConstant, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[Option[Map[String, ExampleZeroAnalysisAbstractValue]]] = {
     Failure(NotImplementedError())
   }
 
-  override def visitExampleIntegerVariable(node: ExampleIntegerVariable, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[Map[String, ExampleZeroAnalysisAbstractValue]] = {
+  override def visitExampleIntegerVariable(node: ExampleIntegerVariable, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[Option[Map[String, ExampleZeroAnalysisAbstractValue]]] = {
     Failure(NotImplementedError())
   }
 
-  override def visitExampleIntegerUnaryOperation(node: ExampleIntegerUnaryOperation, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[Map[String, ExampleZeroAnalysisAbstractValue]] = {
+  override def visitExampleIntegerUnaryOperation(node: ExampleIntegerUnaryOperation, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[Option[Map[String, ExampleZeroAnalysisAbstractValue]]] = {
     Failure(NotImplementedError())
   }
 
-  override def visitExampleIntegerBinaryOperation(node: ExampleIntegerBinaryOperation, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[Map[String, ExampleZeroAnalysisAbstractValue]] = {
+  override def visitExampleIntegerBinaryOperation(node: ExampleIntegerBinaryOperation, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[Option[Map[String, ExampleZeroAnalysisAbstractValue]]] = {
     Failure(NotImplementedError())
   }
 
-  override def visitExampleBooleanConstant(node: ExampleBooleanConstant, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[Map[String, ExampleZeroAnalysisAbstractValue]] = {
-    Success(Map.empty)
+  override def visitExampleBooleanConstant(node: ExampleBooleanConstant, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[Option[Map[String, ExampleZeroAnalysisAbstractValue]]] = {
+    if (node.value) {
+      Success(Some(Map.empty))
+    } else {
+      Success(None)
+    }
   }
 
-  override def visitExampleBooleanVariable(node: ExampleBooleanVariable, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[Map[String, ExampleZeroAnalysisAbstractValue]] = {
-    Success(Map.empty)
+  override def visitExampleBooleanVariable(node: ExampleBooleanVariable, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[Option[Map[String, ExampleZeroAnalysisAbstractValue]]] = {
+    Success(Some(Map.empty))
   }
 
-  override def visitExampleBooleanUnaryOperation(node: ExampleBooleanUnaryOperation, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[Map[String, ExampleZeroAnalysisAbstractValue]] = {
-    Success(Map.empty)
+  override def visitExampleBooleanUnaryOperation(node: ExampleBooleanUnaryOperation, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[Option[Map[String, ExampleZeroAnalysisAbstractValue]]] = {
+    Success(Some(Map.empty))
   }
 
-  override def visitExampleBooleanBinaryOperation(node: ExampleBooleanBinaryOperation, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[Map[String, ExampleZeroAnalysisAbstractValue]] = {
-    Success(Map.empty)
+  override def visitExampleBooleanBinaryOperation(node: ExampleBooleanBinaryOperation, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[Option[Map[String, ExampleZeroAnalysisAbstractValue]]] = {
+    Success(Some(Map.empty))
   }
 
-  override def visitExampleBooleanEqualComparisonOperation(node: ExampleBooleanEqualComparisonOperation, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[Map[String, ExampleZeroAnalysisAbstractValue]] = {
-    Success(Map.empty)
+  override def visitExampleBooleanEqualComparisonOperation(node: ExampleBooleanEqualComparisonOperation, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[Option[Map[String, ExampleZeroAnalysisAbstractValue]]] = {
+    Success(Some(Map.empty))
   }
 
-  override def visitExampleIntegerComparisonOperation(node: ExampleIntegerComparisonOperation, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[Map[String, ExampleZeroAnalysisAbstractValue]] = {
+  override def visitExampleIntegerComparisonOperation(node: ExampleIntegerComparisonOperation, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[Option[Map[String, ExampleZeroAnalysisAbstractValue]]] = {
     node match
       case ExampleIntegerComparisonOperation(ExampleIntegerComparisonOperator.Lt, ExampleIntegerVariable(y), ExampleIntegerConstant(c)) =>
         if (c <= 0) {
-          Success(Map(y -> ExampleZeroAnalysisAbstractValue.NZ))
+          Success(checkUnsatisfiable(abstractEnvironment, y, ExampleZeroAnalysisAbstractValue.NZ))
         } else {
-          Success(Map(y -> ExampleZeroAnalysisAbstractValue.U))
+          Success(checkUnsatisfiable(abstractEnvironment, y, ExampleZeroAnalysisAbstractValue.U))
         }
       case ExampleIntegerComparisonOperation(ExampleIntegerComparisonOperator.Lt, ExampleIntegerConstant(c), ExampleIntegerVariable(y)) =>
         visitExampleIntegerComparisonOperation(ExampleIntegerComparisonOperation(ExampleIntegerComparisonOperator.Gt, ExampleIntegerVariable(y), ExampleIntegerConstant(c)), abstractEnvironment)
       case ExampleIntegerComparisonOperation(ExampleIntegerComparisonOperator.Gt, ExampleIntegerVariable(y), ExampleIntegerConstant(c)) =>
         if (c >= 0) {
-          Success(Map(y -> ExampleZeroAnalysisAbstractValue.NZ))
+          Success(checkUnsatisfiable(abstractEnvironment, y, ExampleZeroAnalysisAbstractValue.NZ))
         } else {
-          Success(Map(y -> ExampleZeroAnalysisAbstractValue.U))
+          Success(checkUnsatisfiable(abstractEnvironment, y, ExampleZeroAnalysisAbstractValue.U))
         }
       case ExampleIntegerComparisonOperation(ExampleIntegerComparisonOperator.Gt, ExampleIntegerConstant(c), ExampleIntegerVariable(y)) =>
         visitExampleIntegerComparisonOperation(ExampleIntegerComparisonOperation(ExampleIntegerComparisonOperator.Lt, ExampleIntegerVariable(y), ExampleIntegerConstant(c)), abstractEnvironment)
       case ExampleIntegerComparisonOperation(ExampleIntegerComparisonOperator.Lte, ExampleIntegerVariable(y), ExampleIntegerConstant(c)) =>
         if (c < 0) {
-          Success(Map(y -> ExampleZeroAnalysisAbstractValue.NZ))
+          Success(checkUnsatisfiable(abstractEnvironment, y, ExampleZeroAnalysisAbstractValue.NZ))
         } else {
-          Success(Map(y -> ExampleZeroAnalysisAbstractValue.U))
+          Success(checkUnsatisfiable(abstractEnvironment, y, ExampleZeroAnalysisAbstractValue.U))
         }
       case ExampleIntegerComparisonOperation(ExampleIntegerComparisonOperator.Lte, ExampleIntegerConstant(c), ExampleIntegerVariable(y)) =>
         visitExampleIntegerComparisonOperation(ExampleIntegerComparisonOperation(ExampleIntegerComparisonOperator.Gte, ExampleIntegerVariable(y), ExampleIntegerConstant(c)), abstractEnvironment)
       case ExampleIntegerComparisonOperation(ExampleIntegerComparisonOperator.Gte, ExampleIntegerVariable(y), ExampleIntegerConstant(c)) =>
         if (c > 0) {
-          Success(Map(y -> ExampleZeroAnalysisAbstractValue.NZ))
+          Success(checkUnsatisfiable(abstractEnvironment, y, ExampleZeroAnalysisAbstractValue.NZ))
         } else {
-          Success(Map(y -> ExampleZeroAnalysisAbstractValue.U))
+          Success(checkUnsatisfiable(abstractEnvironment, y, ExampleZeroAnalysisAbstractValue.U))
         }
       case ExampleIntegerComparisonOperation(ExampleIntegerComparisonOperator.Gte, ExampleIntegerConstant(c), ExampleIntegerVariable(y)) =>
         visitExampleIntegerComparisonOperation(ExampleIntegerComparisonOperation(ExampleIntegerComparisonOperator.Lte, ExampleIntegerVariable(y), ExampleIntegerConstant(c)), abstractEnvironment)
-      case _ => Success(Map.empty)
+      case _ => Success(Some(Map.empty))
   }
 
-  override def visitExampleIntegerEqualComparisonOperation(node: ExampleIntegerEqualComparisonOperation, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[Map[String, ExampleZeroAnalysisAbstractValue]] = {
+  override def visitExampleIntegerEqualComparisonOperation(node: ExampleIntegerEqualComparisonOperation, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[Option[Map[String, ExampleZeroAnalysisAbstractValue]]] = {
     node match
       case ExampleIntegerEqualComparisonOperation(ExampleEqualComparisonOperator.Eq, ExampleIntegerVariable(y), ExampleIntegerConstant(c)) =>
         if (c == 0) {
-          Success(Map(y -> ExampleZeroAnalysisAbstractValue.Z))
+          Success(checkUnsatisfiable(abstractEnvironment, y, ExampleZeroAnalysisAbstractValue.Z))
         } else {
-          Success(Map(y -> ExampleZeroAnalysisAbstractValue.NZ))
+          Success(checkUnsatisfiable(abstractEnvironment, y, ExampleZeroAnalysisAbstractValue.NZ))
         }
       case ExampleIntegerEqualComparisonOperation(ExampleEqualComparisonOperator.Eq, ExampleIntegerConstant(c), ExampleIntegerVariable(y)) =>
         visitExampleIntegerEqualComparisonOperation(ExampleIntegerEqualComparisonOperation(ExampleEqualComparisonOperator.Eq, ExampleIntegerVariable(y), ExampleIntegerConstant(c)), abstractEnvironment)
       case ExampleIntegerEqualComparisonOperation(ExampleEqualComparisonOperator.Ne, ExampleIntegerVariable(y), ExampleIntegerConstant(c)) =>
         if (c == 0) {
-          Success(Map(y -> ExampleZeroAnalysisAbstractValue.NZ))
+          Success(checkUnsatisfiable(abstractEnvironment, y, ExampleZeroAnalysisAbstractValue.NZ))
         } else {
-          Success(Map(y -> ExampleZeroAnalysisAbstractValue.U))
+          Success(checkUnsatisfiable(abstractEnvironment, y, ExampleZeroAnalysisAbstractValue.U))
         }
       case ExampleIntegerEqualComparisonOperation(ExampleEqualComparisonOperator.Ne, ExampleIntegerConstant(c), ExampleIntegerVariable(y)) =>
         visitExampleIntegerEqualComparisonOperation(ExampleIntegerEqualComparisonOperation(ExampleEqualComparisonOperator.Ne, ExampleIntegerVariable(y), ExampleIntegerConstant(c)), abstractEnvironment)
-      case _ => Success(Map.empty)
+      case _ => Success(Some(Map.empty))
   }
 }
 
@@ -225,7 +242,7 @@ object ExampleZeroAnalysisWorklist extends ExampleWorklist(ExampleZeroAnalysisAb
     p.statement.accept(ExampleZeroAnalysisFlowFunction(), abstractEnvironment)
   }
 
-  override def conditionUpdateFunction(condition: ExampleBooleanExpression, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[Map[String, ExampleZeroAnalysisAbstractValue]] = {
+  override def conditionUpdateFunction(condition: ExampleBooleanExpression, abstractEnvironment: ExampleAbstractEnvironment[String, ExampleZeroAnalysisAbstractValue]): Try[Option[Map[String, ExampleZeroAnalysisAbstractValue]]] = {
     condition.accept(ConditionUpdateFunction(), abstractEnvironment)
   }
 }

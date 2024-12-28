@@ -288,23 +288,42 @@ Here are the function instances that we will use in our analysis:
 
 $$
 \begin{align}
-& cg[[ y < c ]] (\phi) = & \phi[y \mapsto NZ] & \quad if & c \leq 0  & \\
-& & \phi[y \mapsto U] & \quad if & c > 0 & \\
+& cg[[ False ]] (\phi) = & \bot & & \\
+& cg[[ y < c ]] (\phi) = & \phi[y \mapsto NZ] & \quad if & c \leq 0 \wedge \phi(y) = \bot & \\
+& & \phi[y \mapsto \phi(y) \sqcap NZ] & \quad if & c \leq 0 \wedge \phi(y) \neq \bot \wedge \phi(y) \sqcap NZ \neq \bot & \\
+& & \phi[y \mapsto U] & \quad if & c > 0 \wedge \phi(y) = \bot & \\
+& & \phi[y \mapsto \phi(y) \sqcap U] & \quad if & c > 0 \wedge \phi(y) \neq \bot \wedge \phi(y) \sqcap U \neq \bot & \\
+& & \bot & \quad otherwise & & \\
 & cg[[ c < y ]] (\phi) = & cg[[ y > c ]] (\phi) & & & \\
-& cg[[ y > c ]] (\phi) = & \phi[y \mapsto NZ] & \quad if & c \geq 0  & \\
-& & \phi[y \mapsto U] & \quad if & c < 0 & \\
+& cg[[ y > c ]] (\phi) = & \phi[y \mapsto NZ] & \quad if & c \geq 0 \wedge \phi(y) = \bot & \\
+& & \phi[y \mapsto \phi(y) \sqcap NZ] & \quad if & c \geq 0 \wedge \phi(y) \neq \bot \wedge \phi(y) \sqcap NZ \neq \bot & \\
+& & \phi[y \mapsto U] & \quad if & c < 0 \wedge \phi(y) = \bot & \\
+& & \phi[y \mapsto \phi(y) \sqcap U] & \quad if & c < 0 \wedge \phi(y) \neq \bot \wedge \phi(y) \sqcap U \neq \bot & \\
+& & \bot & \quad otherwise & & \\
 & cg[[ c > y ]] (\phi) = & cg[[ y < c ]] (\phi) & & & \\
-& cg[[ y <= c ]] (\phi) = & \phi[y \mapsto NZ] & \quad if & c < 0  & \\
-& & \phi[y \mapsto U] & \quad if & c \geq 0 & \\
+& cg[[ y <= c ]] (\phi) = & \phi[y \mapsto NZ] & \quad if & c < 0 \wedge \phi(y) = \bot & \\
+& & \phi[y \mapsto \phi(y) \sqcap NZ] & \quad if & c < 0 \wedge \phi(y) \neq \bot \wedge \phi(y) \sqcap NZ \neq \bot & \\
+& & \phi[y \mapsto U] & \quad if & c \geq 0 \wedge \phi(y) = \bot & \\
+& & \phi[y \mapsto \phi(y) \sqcap U] & \quad if & c \geq 0 \wedge \phi(y) \neq \bot \wedge \phi(y) \sqcap U \neq \bot & \\
+& & \bot & \quad otherwise & & \\
 & cg[[ c <= y ]] (\phi) = & cg[[ y >= c ]] (\phi) & & & \\
-& cg[[ y >= c ]] (\phi) = & \phi[y \mapsto NZ] & \quad if & c > 0  & \\
-& & \phi[y \mapsto U] & \quad if & c \leq 0 & \\
+& cg[[ y >= c ]] (\phi) = & \phi[y \mapsto NZ] & \quad if & c > 0 \wedge \phi(y) = \bot & \\
+& & \phi[y \mapsto \phi(y) \sqcap NZ] & \quad if & c > 0 \wedge \phi(y) \neq \bot \wedge \phi(y) \sqcap NZ \neq \bot & \\
+& & \phi[y \mapsto U] & \quad if & c \leq 0 \wedge \phi(y) = \bot & \\
+& & \phi[y \mapsto \phi(y) \sqcap U] & \quad if & c \leq 0 \wedge \phi(y) \neq \bot \wedge \phi(y) \sqcap U \neq \bot & \\
+& & \bot & \quad otherwise & & \\
 & cg[[ c >= y ]] (\phi) = & cg[[ y <= c ]] (\phi) & & & \\
-& cg[[ y == c ]] (\phi) = & \phi[y \mapsto Z] & \quad if & c = 0  & \\
-& & \phi[y \mapsto NZ] & \quad if & c \neq 0  & \\
+& cg[[ y == c ]] (\phi) = & \phi[y \mapsto Z] & \quad if & c = 0 \wedge \phi(y) = \bot & \\
+& & \phi[y \mapsto \phi(y) \sqcap Z] & \quad if & c = 0 \wedge \phi(y) \neq \bot \wedge \phi(y) \sqcap Z \neq \bot & \\
+& & \phi[y \mapsto NZ] & \quad if & c \neq 0 \wedge \phi(y) = \bot & \\
+& & \phi[y \mapsto \phi(y) \sqcap NZ] & \quad if & c \neq 0 \wedge \phi(y) \neq \bot \wedge \phi(y) \sqcap NZ \neq \bot & \\
+& & \bot & \quad otherwise & & \\
 & cg[[ c == y ]] (\phi) = & cg[[ y == c ]] (\phi) & & & \\
-& cg[[ y\ != c ]] (\phi) = & \phi[y \mapsto NZ] & \quad if & c = 0  & \\
-& & \phi[y \mapsto U] & \quad if & c \neq 0  & \\
+& cg[[ y\ != c ]] (\phi) = & \phi[y \mapsto NZ] & \quad if & c = 0 \wedge \phi(y) = \bot & \\
+& & \phi[y \mapsto \phi(y) \sqcap NZ] & \quad if & c = 0 \wedge \phi(y) \neq \bot \wedge \phi(y) \sqcap NZ \neq \bot & \\
+& & \phi[y \mapsto U] & \quad if & c \neq 0 \wedge \phi(y) = \bot & \\
+& & \phi[y \mapsto \phi(y) \sqcap U] & \quad if & c \neq 0 \wedge \phi(y) \neq \bot \wedge \phi(y) \sqcap U \neq \bot & \\
+& & \bot & \quad otherwise & & \\
 & cg[[ c\ != y ]] (\phi) = & cg[[ y\ != c ]] (\phi) & & & \\
 & cg[[ E ]] (\phi) = & \phi & \quad if & \text{E is not defined in the other instances} & \\
 \end{align}
