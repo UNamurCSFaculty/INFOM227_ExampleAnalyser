@@ -2,19 +2,16 @@ package be.unamur.info.infom227.analysis
 
 case class ExampleAbstractEnvironment[V, L](lattice: ExampleLattice[L], returnAbstractValueOption: Option[L] = None, abstractValues: Map[V, L] = Map.empty) {
   def join(other: ExampleAbstractEnvironment[V, L]): Option[ExampleAbstractEnvironment[V, L]] = {
-    (abstractValues.keys ++ other.abstractValues.keys).map(variable =>
-        (abstractValues.get(variable), other.abstractValues.get(variable)) match
-          case (Some(abstractValue), Some(otherAbstractValue)) => variable -> lattice.join(abstractValue, otherAbstractValue)
-          case (Some(abstractValue), None) => variable -> Some(abstractValue)
-          case (None, Some(otherAbstractValue)) => variable -> Some(otherAbstractValue)
-          case (None, None) => variable -> None
-      )
-      .toMap
+    (abstractValues.keys ++ other.abstractValues.keys)
       .foldLeft[Option[Map[V, L]]](Some(Map.empty)) {
-        case (acc, (variable, abstractValueOption)) =>
+        case (acc, variable) =>
           for {
             abstractEnvironment <- acc
-            abstractValue <- abstractValueOption
+            abstractValue <- (abstractValues.get(variable), other.abstractValues.get(variable)) match
+              case (Some(abstractValue), Some(otherAbstractValue)) => lattice.join(abstractValue, otherAbstractValue)
+              case (Some(abstractValue), None) => Some(abstractValue)
+              case (None, Some(otherAbstractValue)) => Some(otherAbstractValue)
+              case (None, None) => None
           } yield abstractEnvironment + (variable -> abstractValue)
       }
       .map(ExampleAbstractEnvironment(lattice, returnAbstractValueOption, _))
