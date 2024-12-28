@@ -66,4 +66,19 @@ class TestExampleLattice extends AnyFunSuite {
     assert(SignAnalysisAbstractValue.lattice.join(SignAnalysisAbstractValue.Gt, SignAnalysisAbstractValue.Lt) == Some(SignAnalysisAbstractValue.Nz))
     assert(SignAnalysisAbstractValue.lattice.join(SignAnalysisAbstractValue.Lt, SignAnalysisAbstractValue.Gt) == Some(SignAnalysisAbstractValue.Nz))
   }
+
+  test("valid meet values") {
+    assert(SignAnalysisAbstractValue.lattice.meet(SignAnalysisAbstractValue.U, SignAnalysisAbstractValue.U) == Some(SignAnalysisAbstractValue.U))
+    assert(SignAnalysisAbstractValue.lattice.meet(SignAnalysisAbstractValue.U, SignAnalysisAbstractValue.Lt) == Some(SignAnalysisAbstractValue.Lt))
+    assert(SignAnalysisAbstractValue.lattice.meet(SignAnalysisAbstractValue.U, SignAnalysisAbstractValue.Z) == Some(SignAnalysisAbstractValue.Z))
+    assert(SignAnalysisAbstractValue.lattice.meet(SignAnalysisAbstractValue.U, SignAnalysisAbstractValue.Gt) == Some(SignAnalysisAbstractValue.Gt))
+    assert(SignAnalysisAbstractValue.lattice.meet(SignAnalysisAbstractValue.U, SignAnalysisAbstractValue.Nz) == Some(SignAnalysisAbstractValue.Nz))
+    assert(SignAnalysisAbstractValue.lattice.meet(SignAnalysisAbstractValue.Z, SignAnalysisAbstractValue.Z) == Some(SignAnalysisAbstractValue.Z))
+    assert(SignAnalysisAbstractValue.lattice.meet(SignAnalysisAbstractValue.Z, SignAnalysisAbstractValue.Bottom) == Some(SignAnalysisAbstractValue.Bottom))
+    assert(SignAnalysisAbstractValue.lattice.meet(SignAnalysisAbstractValue.Bottom, SignAnalysisAbstractValue.Z) == Some(SignAnalysisAbstractValue.Bottom))
+    assert(SignAnalysisAbstractValue.lattice.meet(SignAnalysisAbstractValue.Gte, SignAnalysisAbstractValue.Lte) == Some(SignAnalysisAbstractValue.Z))
+    assert(SignAnalysisAbstractValue.lattice.meet(SignAnalysisAbstractValue.Lte, SignAnalysisAbstractValue.Gte) == Some(SignAnalysisAbstractValue.Z))
+    assert(SignAnalysisAbstractValue.lattice.meet(SignAnalysisAbstractValue.Gt, SignAnalysisAbstractValue.Lte) == Some(SignAnalysisAbstractValue.Bottom))
+    assert(SignAnalysisAbstractValue.lattice.meet(SignAnalysisAbstractValue.Lte, SignAnalysisAbstractValue.Gt) == Some(SignAnalysisAbstractValue.Bottom))
+  }
 }
