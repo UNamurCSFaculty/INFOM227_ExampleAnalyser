@@ -146,7 +146,7 @@ Once the syntactic analysis has been performed using ANTLR, it is then possible 
 
 ### Semantic rules
 
-The semantics of our language are defined by the [rules of inference](https://en.wikipedia.org/wiki/Rule_of_inference) below:
+The semantics of our language are defined by the [operational semantics](https://en.wikipedia.org/wiki/Operational_semantics) below that use some [rules of inference](https://en.wikipedia.org/wiki/Rule_of_inference):
 
 $$
 \begin{align}
