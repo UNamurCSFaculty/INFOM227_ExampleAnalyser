@@ -14,7 +14,7 @@ The analyser has been implemented in [Scala](https://www.scala-lang.org/) for se
 
 The application requires:
 
-- [Java](https://adoptium.net/) >= 17
+- [Java](https://adoptium.net/) >= 23
 
 
 ## Download
@@ -43,7 +43,7 @@ java -jar ExampleAnalyser-X.X.X-all.jar zero-analysis <path-to-your-program>
 
 The application requires:
 
-- [Jdk](https://adoptium.net/) >= 17
+- [Jdk](https://adoptium.net/) >= 23
 
 
 ### Installation & Build
