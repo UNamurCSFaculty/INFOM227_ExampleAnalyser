@@ -12,7 +12,7 @@ enum EqualComparisonOperator {
   }
 }
 
-enum IntegerBinaryOperator {
+enum ArithmeticBinaryOperator {
   case Add
   case Sub
   case Mul
@@ -52,7 +52,7 @@ sealed trait ArithmeticExpression extends Expression
 
 case class ArithmeticConstant(value: Int) extends ArithmeticExpression
 
-case class ArithmeticBinaryOperation(left: ArithmeticOperand, operator: IntegerBinaryOperator, right: ArithmeticOperand) extends ArithmeticExpression
+case class ArithmeticBinaryOperation(left: ArithmeticOperand, operator: ArithmeticBinaryOperator, right: ArithmeticOperand) extends ArithmeticExpression
 
 
 sealed trait BooleanExpression extends Expression {

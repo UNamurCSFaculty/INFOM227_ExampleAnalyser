@@ -120,10 +120,10 @@ def executeArithmeticExpression(environments: Environments[VariableType], arithm
         leftValue <- executeArithmeticExpression(environments, left)
         rightValue <- executeArithmeticExpression(environments, right)
         result <- operator match {
-          case IntegerBinaryOperator.Add => Success(leftValue + rightValue)
-          case IntegerBinaryOperator.Sub => Success(leftValue - rightValue)
-          case IntegerBinaryOperator.Mul => Success(leftValue * rightValue)
-          case IntegerBinaryOperator.Div =>
+          case ArithmeticBinaryOperator.Add => Success(leftValue + rightValue)
+          case ArithmeticBinaryOperator.Sub => Success(leftValue - rightValue)
+          case ArithmeticBinaryOperator.Mul => Success(leftValue * rightValue)
+          case ArithmeticBinaryOperator.Div =>
             if (rightValue == 0) {
               Failure(RuntimeException("Division by zero."))
             } else {

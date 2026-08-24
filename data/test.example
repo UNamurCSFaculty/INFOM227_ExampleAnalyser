@@ -1,8 +1,7 @@
-int a;
-a = 3;
-a = {
-  int b;
-  b = a + 5;
-  b / 2
-};
-print a; // Should print 4
+function main() {
+    a = 0;
+    b = a + 1;
+    c = a - 1;
+    d = a - 0;
+    return 0;
+}

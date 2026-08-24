@@ -16,8 +16,8 @@ case class Cfg(edges: Map[(ProgramPoint, ProgramPoint), BooleanExpression]) {
     edges.get((start, end))
   }
 
-  def entryPoint: Option[ProgramPoint] = {
-    edges.keys.map(_._1).find(predecessors(_).isEmpty)
+  def entryPoints: Set[ProgramPoint] = {
+    edges.keys.map(_._1).filter(predecessors(_).isEmpty).toSet
   }
 
   def programPoints: Set[ProgramPoint] = {

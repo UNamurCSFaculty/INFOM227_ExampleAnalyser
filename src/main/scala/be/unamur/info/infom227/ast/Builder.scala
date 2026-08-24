@@ -11,7 +11,7 @@ def build(programCst: SmallGrammarParser.ProgramContext): Try[Program] = {
   Builder.visitProgram(programCst)
 }
 
-type VisitorType = Try[Program] | Function | List[String] | List[Statement] | Statement | FunctionCall | Expression | IntegerBinaryOperator | IntegerComparisonOperator | EqualComparisonOperator | BooleanBinaryOperator
+type VisitorType = Try[Program] | Function | List[String] | List[Statement] | Statement | FunctionCall | Expression | ArithmeticBinaryOperator | IntegerComparisonOperator | EqualComparisonOperator | BooleanBinaryOperator
 
 private object Builder extends SmallGrammarBaseVisitor[VisitorType] {
   // Program
@@ -170,15 +170,15 @@ private object Builder extends SmallGrammarBaseVisitor[VisitorType] {
   }
 
   // Operators
-  override def visitArithOp(ctx: SmallGrammarParser.ArithOpContext): IntegerBinaryOperator = {
+  override def visitArithOp(ctx: SmallGrammarParser.ArithOpContext): ArithmeticBinaryOperator = {
     if (ctx.ADD != null) {
-      IntegerBinaryOperator.Add
+      ArithmeticBinaryOperator.Add
     } else if (ctx.SUBSTRACT != null) {
-      IntegerBinaryOperator.Sub
+      ArithmeticBinaryOperator.Sub
     } else if (ctx.MULTIPLY != null) {
-      IntegerBinaryOperator.Mul
+      ArithmeticBinaryOperator.Mul
     } else if (ctx.DIVIDE != null) {
-      IntegerBinaryOperator.Div
+      ArithmeticBinaryOperator.Div
     } else {
       throw new AssertionError(s"Unsupported arithmetic operator : ${ctx.getText}")
     }

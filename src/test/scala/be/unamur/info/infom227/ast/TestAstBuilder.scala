@@ -31,7 +31,7 @@ class TestAstBuilder extends AnyFunSuite {
                 "a",
                 ArithmeticBinaryOperation(
                   ArithmeticConstant(3),
-                  IntegerBinaryOperator.Mul,
+                  ArithmeticBinaryOperator.Mul,
                   ArithmeticConstant(4)
                 )
               ),
@@ -40,7 +40,7 @@ class TestAstBuilder extends AnyFunSuite {
                 "a",
                 ArithmeticBinaryOperation(
                   Variable("a"),
-                  IntegerBinaryOperator.Div,
+                  ArithmeticBinaryOperator.Div,
                   ArithmeticConstant(5)
                 )
               ),
@@ -49,7 +49,7 @@ class TestAstBuilder extends AnyFunSuite {
                 "b",
                 ArithmeticBinaryOperation(
                   ArithmeticConstant(7),
-                  IntegerBinaryOperator.Sub,
+                  ArithmeticBinaryOperator.Sub,
                   Variable("a")
                 )
               ),
@@ -58,7 +58,7 @@ class TestAstBuilder extends AnyFunSuite {
                 "x",
                 ArithmeticBinaryOperation(
                   ArithmeticConstant(10),
-                  IntegerBinaryOperator.Add,
+                  ArithmeticBinaryOperator.Add,
                   ArithmeticConstant(2)
                 )
               ),
@@ -204,7 +204,7 @@ class TestAstBuilder extends AnyFunSuite {
                     "x",
                     ArithmeticBinaryOperation(
                       Variable("x"),
-                      IntegerBinaryOperator.Sub,
+                      ArithmeticBinaryOperator.Sub,
                       ArithmeticConstant(1)
                     )
                   )
@@ -215,7 +215,7 @@ class TestAstBuilder extends AnyFunSuite {
                     "x",
                     ArithmeticBinaryOperation(
                       Variable("x"),
-                      IntegerBinaryOperator.Add,
+                      ArithmeticBinaryOperator.Add,
                       ArithmeticConstant(1)
                     )
                   )
@@ -264,7 +264,7 @@ class TestAstBuilder extends AnyFunSuite {
                     "x",
                     ArithmeticBinaryOperation(
                       Variable("x"),
-                      IntegerBinaryOperator.Sub,
+                      ArithmeticBinaryOperator.Sub,
                       ArithmeticConstant(1)
                     )
                   )
@@ -275,7 +275,7 @@ class TestAstBuilder extends AnyFunSuite {
                     "x",
                     ArithmeticBinaryOperation(
                       Variable("x"),
-                      IntegerBinaryOperator.Add,
+                      ArithmeticBinaryOperator.Add,
                       ArithmeticConstant(1)
                     )
                   )
@@ -309,7 +309,7 @@ class TestAstBuilder extends AnyFunSuite {
                 3,
                 ArithmeticBinaryOperation(
                   Variable("a"),
-                  IntegerBinaryOperator.Add,
+                  ArithmeticBinaryOperator.Add,
                   ArithmeticConstant(1)
                 )
               )

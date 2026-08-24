@@ -25,6 +25,28 @@ class TestCfgBuilder extends AnyFunSuite {
       """,
     ),
     (
+      "convert a simple AST with multiple assignments",
+      """
+      function main() {
+          a = 3 * 4;
+          a = a / 5;
+          b = 7 - a;
+          x = 10 + 2;
+          return 0;
+      }
+      """,
+      """
+      digraph "main" {
+          "PP(3)" -> "PP(4)" [label="BooleanConstant(true)"];
+          "PP(5)" -> "PP(6)" [label="BooleanConstant(true)"];
+          "PP(7)" -> "ExitPoint" [label="BooleanConstant(true)"];
+          "EntryPoint" -> "PP(3)" [label="BooleanConstant(true)"];
+          "PP(6)" -> "PP(7)" [label="BooleanConstant(true)"];
+          "PP(4)" -> "PP(5)" [label="BooleanConstant(true)"];
+      }
+      """,
+    ),
+    (
       "convert a simple AST with a if statement",
       """
       function main() {
