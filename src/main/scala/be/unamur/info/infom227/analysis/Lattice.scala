@@ -1,7 +1,7 @@
 package be.unamur.info.infom227.analysis
 
 
-trait ExampleLattice[L] {
+trait Lattice[L] {
   def top: Option[L]
 
   def bottom: Option[L]
@@ -13,7 +13,7 @@ trait ExampleLattice[L] {
   def meet(value1: L, value2: L): Option[L]
 }
 
-case class ExampleFiniteSizeLattice[L](edges: Set[(L, L)]) extends ExampleLattice[L] {
+case class FiniteSizeLattice[L](edges: Set[(L, L)]) extends Lattice[L] {
   override def top: Option[L] = {
     // The first node that does have a successor (should be unique)
     edges.map(_._2).find(end => !edges.map(_._1).contains(end))
