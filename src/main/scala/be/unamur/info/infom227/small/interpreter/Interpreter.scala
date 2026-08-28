@@ -7,18 +7,18 @@ import scala.util.{Failure, Success, Try}
 
 type VariableType = Int | Boolean
 
-def execute(program: Program): Try[VariableType] = {
-  program.functions.get("main") match {
-    case Some(mainFunction) =>
-      if (mainFunction.parameters.nonEmpty) {
-        Failure(RuntimeException("The 'main' function should not have parameters."))
+def execute(program: Program, entry: String): Try[VariableType] = {
+  program.functions.get(entry) match {
+    case Some(entryFunction) =>
+      if (entryFunction.parameters.nonEmpty) {
+        Failure(RuntimeException("The entry function should not have parameters."))
       } else {
         for {
-          (returnValue, _) <- executeFunction(program, Environments().push(), mainFunction.body)
+          (returnValue, _) <- executeFunction(program, Environments().push(), entryFunction.body)
         } yield returnValue
       }
     case None =>
-      Failure(RuntimeException("No 'main' function found in the program."))
+      Failure(RuntimeException("No entry function found in the program."))
   }
 }
 

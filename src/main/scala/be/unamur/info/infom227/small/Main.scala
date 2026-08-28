@@ -18,7 +18,7 @@ val UNKNOWN_ACTION_ERROR_CODE = 3
         charStream <- Try(CharStreams.fromFileName(file))
         programContext <- cst.parse(charStream)
         program <- ast.build(programContext)
-        result <- interpreter.execute(program)
+        result <- interpreter.execute(program, "main")
       } yield result
 
       tryResult match

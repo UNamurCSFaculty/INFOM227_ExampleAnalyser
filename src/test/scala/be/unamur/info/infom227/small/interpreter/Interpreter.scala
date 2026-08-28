@@ -187,7 +187,7 @@ class Interpreter extends AnyFunSuite {
       val result = for {
         programContext <- cst.parse(charStream)
         program <- ast.build(programContext)
-        result <- interpreter.execute(program)
+        result <- interpreter.execute(program, "main")
       } yield result
 
       assert(Success(expected) == result)
