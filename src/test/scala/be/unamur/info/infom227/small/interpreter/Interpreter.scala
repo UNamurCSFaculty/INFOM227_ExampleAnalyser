@@ -160,6 +160,25 @@ class Interpreter extends AnyFunSuite {
       }
       """,
       610
+    ),
+    (
+      "execute the power function (Syllabus - Chapter 2)",
+      """
+      function power(x, n) {
+          r = 1;
+          while (n > 0) {
+              r = r * x;
+              n = n - 1;
+          }
+          return r;
+      }
+
+      function main() {
+          result = power(2, 3);
+          return result;
+      }
+      """,
+      8
     )
   ).foreach { (name, code, expected) =>
     test(name) {
