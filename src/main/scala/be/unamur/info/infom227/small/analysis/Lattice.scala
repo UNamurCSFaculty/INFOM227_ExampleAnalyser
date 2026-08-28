@@ -1,5 +1,4 @@
-package be.unamur.info.infom227.analysis
-
+package be.unamur.info.infom227.small.analysis
 
 trait Lattice[L] {
   def join(other: L): L

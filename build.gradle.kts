@@ -6,7 +6,7 @@ plugins {
 }
 
 application {
-    mainClass = "be.unamur.info.infom227.main"
+    mainClass = "be.unamur.info.infom227.small.main"
 }
 
 java {
@@ -15,7 +15,7 @@ java {
     }
 }
 
-group = "be.unamur.info.infom227"
+group = "be.unamur.info.infom227.small"
 version = "2.0.0"
 
 repositories {
@@ -42,5 +42,5 @@ tasks.test {
 }
 
 tasks.generateGrammarSource {
-    arguments = arguments + listOf("-package", "be.unamur.info.infom227.cst", "-visitor", "-no-listener")
+    arguments = arguments + listOf("-package", "be.unamur.info.infom227.small.cst", "-visitor", "-no-listener")
 }

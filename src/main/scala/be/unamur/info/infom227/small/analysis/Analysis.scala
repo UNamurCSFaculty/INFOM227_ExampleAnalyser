@@ -1,4 +1,4 @@
-package be.unamur.info.infom227.analysis
+package be.unamur.info.infom227.small.analysis
 
 import scala.util.Try
 import scala.collection.mutable

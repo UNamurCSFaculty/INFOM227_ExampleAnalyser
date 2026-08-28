@@ -1,4 +1,4 @@
-package be.unamur.info.infom227.interpreter
+package be.unamur.info.infom227.small.interpreter
 
 import scala.collection.immutable.HashMap
 import scala.util.{Failure, Success, Try}

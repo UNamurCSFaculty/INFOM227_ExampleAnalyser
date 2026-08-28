@@ -1,6 +1,6 @@
-package be.unamur.info.infom227.cfg
+package be.unamur.info.infom227.small.cfg
 
-import be.unamur.info.infom227.ast.Statement
+import be.unamur.info.infom227.small.ast.Statement
 
 enum ProgramPoint {
   case EntryPoint

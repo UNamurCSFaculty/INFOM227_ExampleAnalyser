@@ -1,6 +1,7 @@
-package be.unamur.info.infom227.analysis
+package be.unamur.info.infom227.small.analysis
 
-import be.unamur.info.infom227.{ast, cfg, cst}
+import be.unamur.info.infom227.small.analysis.{DummyObserver, analyseProgram}
+import be.unamur.info.infom227.small.{ast, cfg, cst}
 import org.antlr.v4.runtime.CharStreams
 import org.scalatest.funsuite.AnyFunSuite
 

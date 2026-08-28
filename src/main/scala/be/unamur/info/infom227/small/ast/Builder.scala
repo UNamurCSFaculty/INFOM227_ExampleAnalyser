@@ -1,6 +1,6 @@
-package be.unamur.info.infom227.ast
+package be.unamur.info.infom227.small.ast
 
-import be.unamur.info.infom227.cst.{SmallGrammarBaseVisitor, SmallGrammarParser}
+import be.unamur.info.infom227.small.cst.{SmallGrammarBaseVisitor, SmallGrammarParser}
 
 import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}

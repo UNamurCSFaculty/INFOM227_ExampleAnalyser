@@ -1,7 +1,7 @@
-package be.unamur.info.infom227.ast
+package be.unamur.info.infom227.small.ast
 
-import be.unamur.info.infom227.ast
-import be.unamur.info.infom227.cst
+import be.unamur.info.infom227.small.ast.{ArithmeticBinaryOperation, ArithmeticBinaryOperator, ArithmeticConstant, AssignStatement, BooleanBinaryOperation, BooleanBinaryOperator, BooleanConstant, EqualComparisonOperator, FunctionCall, IfStatement, IntegerComparisonOperation, IntegerComparisonOperator, Program, ReturnStatement, Variable, build}
+import be.unamur.info.infom227.small.{ast, cst}
 import org.antlr.v4.runtime.CharStreams
 import org.scalatest.funsuite.AnyFunSuite
 

@@ -1,8 +1,8 @@
-package be.unamur.info.infom227.interpreter
+package be.unamur.info.infom227.small.interpreter
 
-import be.unamur.info.infom227.ast
-import be.unamur.info.infom227.cst
-import be.unamur.info.infom227.interpreter
+import be.unamur.info.infom227.small.ast
+import be.unamur.info.infom227.small.cst
+import be.unamur.info.infom227.small.interpreter
 import org.antlr.v4.runtime.CharStreams
 import org.scalatest.funsuite.AnyFunSuite
 

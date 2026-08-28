@@ -27,13 +27,13 @@ You can download the application on the [downloads page](https://github.com/UNam
 You can execute a program using the application by running the following command:
 
 ```bash
-java -jar ExampleAnalyser-X.X.X-all.jar run <path-to-your-program>
+java -jar Small-X.X.X-all.jar run <path-to-your-program>
 ```
 
 You can run a zero analysis on a program using the application by running the following command:
 
 ```bash
-java -jar ExampleAnalyser-X.X.X-all.jar zero-analysis <path-to-your-program>
+java -jar Small-X.X.X-all.jar zero-analysis <path-to-your-program>
 ```
 
 

@@ -1,9 +1,9 @@
-package be.unamur.info.infom227.cfg
+package be.unamur.info.infom227.small.cfg
 
-import be.unamur.info.infom227.ast.*
-import be.unamur.info.infom227.cfg.ProgramPoint.StatementPoint
+import ProgramPoint.StatementPoint
+import be.unamur.info.infom227.small.ast.{AssignStatement, BooleanConstant, BooleanExpression, Function, IfStatement, Program, ReturnStatement, Statement, WhileStatement}
 
-import scala.util.control.Breaks._
+import scala.util.control.Breaks.*
 import scala.collection.mutable
 
 private type PreviousPoints = Set[(ProgramPoint, BooleanExpression)]

@@ -1,4 +1,4 @@
-package be.unamur.info.infom227.ast
+package be.unamur.info.infom227.small.ast
 
 // Operators
 

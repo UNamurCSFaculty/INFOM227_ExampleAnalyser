@@ -1,9 +1,9 @@
-package be.unamur.info.infom227.interpreter
+package be.unamur.info.infom227.small.interpreter
 
-import be.unamur.info.infom227.ast.*
+import be.unamur.info.infom227.small.ast.{ArithmeticBinaryOperation, ArithmeticBinaryOperator, ArithmeticConstant, ArithmeticExpression, AssignStatement, BooleanBinaryOperation, BooleanBinaryOperator, BooleanConstant, BooleanExpression, BooleanNegOperation, EqualComparisonOperator, Expression, FunctionCall, IfStatement, IntegerComparisonOperation, IntegerComparisonOperator, Program, ReturnStatement, Statement, Variable, WhileStatement}
+
 import scala.collection.immutable.HashMap
-
-import scala.util.{Success, Failure, Try}
+import scala.util.{Failure, Success, Try}
 
 type VariableType = Int | Boolean
 

@@ -1,6 +1,7 @@
-package be.unamur.info.infom227
+package be.unamur.info.infom227.small
 
-import be.unamur.info.infom227.ast.BuiltAstException
+import be.unamur.info.infom227.small.analysis.{DummyObserver, ZeroAnalysisObserver}
+import be.unamur.info.infom227.small.ast.BuiltAstException
 import org.antlr.v4.runtime.CharStreams
 
 import scala.util.{Failure, Success, Try}
@@ -36,9 +37,9 @@ val UNKNOWN_ACTION_ERROR_CODE = 3
         program <- ast.build(programContext)
         cfgs = cfg.build(program)
         analysisState <- analysis.analyseProgram(cfgs, if (others.contains("-v")) {
-          analysis.ZeroAnalysisObserver()
+          ZeroAnalysisObserver()
         } else {
-          analysis.DummyObserver()
+          DummyObserver()
         })
       } yield analysisState
 

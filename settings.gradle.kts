@@ -1,1 +1,1 @@
-rootProject.name = "ExampleAnalyser"
+rootProject.name = "Small"

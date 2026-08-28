@@ -1,8 +1,7 @@
-package be.unamur.info.infom227.analysis
+package be.unamur.info.infom227.small.analysis
 
-import be.unamur.info.infom227.ast
-import be.unamur.info.infom227.ast.*
-import be.unamur.info.infom227.cfg.{Cfg, ProgramPoint}
+import be.unamur.info.infom227.small.ast.{ArithmeticBinaryOperation, ArithmeticBinaryOperator, ArithmeticConstant, AssignStatement, BooleanBinaryOperation, BooleanConstant, BooleanNegOperation, EqualComparisonOperator, Expression, FunctionCall, IntegerComparisonOperation, Variable}
+import be.unamur.info.infom227.small.cfg.{Cfg, ProgramPoint}
 
 import scala.collection.mutable
 import scala.util.{Success, Try}

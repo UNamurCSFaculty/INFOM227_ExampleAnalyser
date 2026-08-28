@@ -1,6 +1,6 @@
-package be.unamur.info.infom227.cfg
+package be.unamur.info.infom227.small.cfg
 
-import be.unamur.info.infom227.ast.BooleanExpression
+import be.unamur.info.infom227.small.ast.BooleanExpression
 
 case class Cfg(edges: Map[(ProgramPoint, ProgramPoint), BooleanExpression]) {
 
