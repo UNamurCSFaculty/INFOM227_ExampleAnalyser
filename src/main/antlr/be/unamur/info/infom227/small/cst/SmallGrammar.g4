@@ -34,8 +34,6 @@ SEMICOLON: ';';
 
 ASSIGN: '=';
 
-NOT: 'not';
-
 AND: 'and';
 
 OR: 'or';
