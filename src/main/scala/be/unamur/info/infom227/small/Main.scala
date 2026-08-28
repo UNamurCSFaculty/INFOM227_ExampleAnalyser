@@ -22,7 +22,8 @@ val UNKNOWN_ACTION_ERROR_CODE = 3
       } yield result
 
       tryResult match
-        case Success(messages) =>
+        case Success(returnValue) =>
+          println(returnValue)
           System.exit(SUCCESS_ERROR_CODE)
         case Failure(exception: BuiltAstException) =>
           println(s"Compilation Error:\n${exception.getMessage}")
