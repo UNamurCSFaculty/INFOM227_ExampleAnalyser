@@ -130,17 +130,16 @@ By using this grammar, it is possible to check whether a text follows a certain 
 Here is an example of how some code can be converted into a CST using ANTLR and our grammar:
 
 ```
-int a;
-a = {
-  int b;
-  b = -a + b - 7;
-  3 * 4 / b
-};
+function main() {
+    a = 5;
+    c = a + 2;
+    return c - 6;
+}
 ```
 
 ![CST Example](docs/images/CST_example.png)
 
-As you can see, with just 6 lines of code, this already represents a fairly large CST (If you are interested, this CST was generated using the [ANTLR extension for IntelliJ](https://plugins.jetbrains.com/plugin/7358-antlr-v4)). In addition, this tree has a strange shape because of the rules on expressions. Even if this seems strange, it's actually intentional because it allows to enforce the [Order of operations](https://en.wikipedia.org/wiki/Order_of_operations#Programming_languages) directly at the syntax level and this is something that can be found in almost all programming languages ([Example with the Python grammar](https://docs.python.org/3/reference/grammar.html)).
+As you can see, with just 5 lines of code, this already represents a fairly large CST (If you are interested, this CST was generated using the [ANTLR extension for IntelliJ](https://plugins.jetbrains.com/plugin/7358-antlr-v4)). Usually, the branches of expressions are much longer because they are designed to follow the [Order of operations](https://en.wikipedia.org/wiki/Order_of_operations#Programming_languages) directly at the syntax level and this is something that can be found in almost all programming languages ([Example with the Python grammar](https://docs.python.org/3/reference/grammar.html)). However, since the operations in Small cannot be nested, this does not affect us.
 
 
 ## Semantics
