@@ -214,12 +214,12 @@ In our implementation, the AST is defined using Scala classes that allow easy pa
 
 ## Interpreter
 
-With our AST and our visitors, it's very easy to create an interpreter for our language that will follow the semantics defined earlier. All we need to do is create [a class that will represent the environment](src/main/scala/be/unamur/info/infom227/interpreter/ExampleEnvironment.scala) and then [implement the different rules](src/main/scala/be/unamur/info/infom227/interpreter/ExampleInterpreter.scala) using our visitors.
+With our AST, it is very easy to create an interpreter for our language that will follow the semantics defined earlier. All we need to do is create [a class that will represent the environments](src/main/scala/be/unamur/info/infom227/small/interpreter/Environments.scala) and then [implement the different rules](src/main/scala/be/unamur/info/infom227/small/interpreter/Interpreter.scala).
 
 
 ## Zero Analysis
 
-In this section, we will define a Zero Analysis, similar to the one used in the course, by using the Worklist algorithm implemented [here](src/main/scala/be/unamur/info/infom227/analysis/ExampleWorklist.scala). The file containing the entire analysis code is available [here](src/main/scala/be/unamur/info/infom227/analysis/ExampleZeroAnalysis.scala).
+In this section, we will define a Zero Analysis, similar to the one used in the course, by using the Worklist algorithm implemented [here](src/main/scala/be/unamur/info/infom227/analysis/ExampleWorklist.scala). The file containing the entire analysis code is available [here](src/main/scala/be/unamur/info/infom227/analysis/ExampleZeroAnalysis.scala). The only difference from the grammar is that we throw exceptions when a semantic error is encountered at runtime.
 
 
 ### Abstract values & Lattice
