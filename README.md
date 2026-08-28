@@ -7,7 +7,7 @@ The analyser has been implemented in [Scala](https://www.scala-lang.org/) for se
 - Scala natively supports Java libraries, including [ANTLR](https://www.antlr.org/), which is one of the best-known libraries for writing programming languages.
 - Scala supports [Algebraic data type](https://en.wikipedia.org/wiki/Algebraic_data_type) and has powerful [Pattern matching](https://en.wikipedia.org/wiki/Pattern_matching) capabilities, which makes it very easy to define a language and perform analysis on it.
 - It provides a very good developer experience because there is a built-in [Gradle plugin for Scala](https://docs.gradle.org/current/userguide/scala_plugin.html) and [Gradle plugin for ANTLR](https://docs.gradle.org/current/userguide/antlr_plugin.html).
-- Scala can treat [errors as values](https://en.wikipedia.org/wiki/Result_type) using [Monads](https://en.wikipedia.org/wiki/Monad_(functional_programming)) ([Here is a great video on the subject](https://www.youtube.com/watch?v=C2w45qRc3aU)), and this makes the management of errors much clearer.
+- Scala can treat [errors as values](https://en.wikipedia.org/wiki/Result_type) using [Monads](https://en.wikipedia.org/wiki/Monad_(functional_programming)) ([Here is a great video on the subject](https://www.youtube.com/watch?v=C2w45qRc3aU)), and this highlights the edge cases in the analyses.
 
 
 ## Requirements
@@ -62,7 +62,7 @@ You can install the project using [Gradle](https://gradle.org/) and build the ap
 ./gradlew build
 ```
 
-The application will be built in the `build/libs/ExampleAnalyser-X.X.X-all.jar` file.
+The application will be built in the `build/libs/Small-X.X.X-all.jar` file.
 
 
 ### Tests
@@ -93,32 +93,36 @@ In this example, we will use the following grammar to define the syntax of our l
 
 $$
 \begin{align}
-& \langle DIGIT \rangle ::= '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' \\
-& \langle NUMBER \rangle ::= \langle DIGIT \rangle+ \\
-& \langle LETTER \rangle ::= 'a' | 'b' | 'c' | ... | 'z' | 'A' | 'B' | 'C' | ... | 'Z' \\
-& \langle IDENTIFIER \rangle ::= \langle LETTER \rangle (\langle LETTER \rangle | \langle DIGIT \rangle)* \\
-& \langle program \rangle ::= \langle scope \rangle \\
-& \langle scope \rangle ::= \langle declareStatement \rangle* \quad \langle statements \rangle \\
-& \langle statements \rangle ::= \langle statement \rangle* \\
-& \langle statement \rangle ::= \langle assignStatement \rangle | \langle printStatement \rangle) | \langle ifStatement \rangle) | \langle whileStatement \rangle \\
-& \langle declareStatement \rangle ::= \langle type \rangle \quad \langle IDENTIFIER \rangle ';' \\
-& \langle assignStatement \rangle ::= \langle IDENTIFIER \rangle '=' (\langle expression \rangle | '\{' \langle scope \rangle \langle expression \rangle '\}') ';' \\
-& \langle printStatement \rangle ::= 'print' \quad \langle expression \rangle ';' \\
-& \langle ifStatement \rangle ::= 'if' \quad '(' \langle expression \rangle ')' \quad '\{' \langle statements \rangle '\}' \quad 'else' \quad '\{' \langle statements \rangle '\}' \\
-& \langle whileStatement \rangle ::= 'while' \quad '(' \langle expression \rangle ')' \quad '\{' \langle statements \rangle '\}' \\
-& \langle type \rangle ::= 'int' | 'bool' \\
-& \langle expression \rangle ::= \langle disjunction \rangle \\
-& \langle disjunction \rangle ::= \langle conjunction \rangle ('OR' \langle conjunction \rangle) | \langle conjunction \rangle \\
-& \langle inversion \rangle ::= 'NOT' \quad \langle inversion \rangle | \langle comparison \rangle \\
-& \langle comparison \rangle ::= \langle comparison \rangle ('<' | '>' | '==' | '!=' | '>=' | '<=') \langle sum \rangle) | \langle sum \rangle \\
-& \langle sum \rangle ::= \langle sum \rangle ('+' | '-') \langle product \rangle | \langle product \rangle \\
-& \langle product \rangle ::= \langle product \rangle ('*' | '/') \langle factor \rangle | \langle factor \rangle \\
-& \langle factor \rangle ::= ('+' | '-') \langle atom \rangle | \langle atom \rangle \\
-& \langle atom \rangle ::= \langle IDENTIFIER \rangle | \langle NUMBER \rangle | 'True' | 'False' | '(' \langle expression \rangle ')'
+& \langle program \rangle ::= \, \langle function \rangle* \\
+& \langle function \rangle ::= \, 'function' \quad \langle identifier \rangle '(' \langle parameters \rangle ')' \quad \langle body \rangle \\
+& \langle parameters \rangle ::= \, [\, \langle identifier \rangle (',' \, \langle identifier \rangle)* \, ] \\
+& \langle body \rangle ::= \, '\{' \langle stmt \rangle* '\}' \\
+& \langle stmt \rangle ::= \, \langle assignStmt \rangle \, | \, \langle ifStmt \rangle \, | \, \langle whileStmt \rangle \, | \, \langle returnStmt \rangle \\
+& \langle assignStmt \rangle ::= \, \langle identifier \rangle \, '=' \, (\langle expr \rangle | \langle funcCall \rangle) ';' \\
+& \langle ifStmt \rangle ::= \, 'if' \quad '(' \langle boolExpr \rangle ')' \quad \langle body \rangle \quad 'else' \quad \langle body \rangle \\
+& \langle whileStmt \rangle ::= \, 'while' \quad '(' \langle boolExpr \rangle ')' \quad \langle body \rangle \\
+& \langle returnStmt \rangle ::= \, 'return' \quad \langle expr \rangle ';' \\
+& \langle arguments \rangle ::= \, [\, \langle expr \rangle (',' \, \langle expr \rangle)* \, ] \\
+& \langle funcCall \rangle ::= \, \langle identifier \rangle '(' \langle arguments \rangle ')' \\
+& \langle expr \rangle ::= \, \langle arithExpr \rangle \, | \, \langle boolExpr \rangle \\
+& \langle arithExpr \rangle ::= \, \langle noprnd \rangle \, | \, \langle binArithOp \rangle \\
+& \langle boolExpr \rangle ::= \, \langle boprnd \rangle \, | \, \langle relOp \rangle \, | \, \langle binLogicOp \rangle \\
+& \langle binArithOp \rangle ::= \, \langle noprnd \rangle \, \langle arithOp \rangle \, \langle noprnd \rangle \\
+& \langle binLogicOp \rangle ::= \, \langle noprnd \rangle \, \langle logicOp \rangle \, \langle noprnd \rangle \\
+& \langle relOp \rangle ::= \, \langle boprnd \rangle \, \langle nop \rangle \, \langle boprnd \rangle \\
+& \langle noprnd \rangle ::= \, \langle identifier \rangle \, | \, \langle num \rangle \\
+& \langle boprnd \rangle ::= \, \langle identifier \rangle \, | \, 'True' \, | \, 'False' \\
+& \langle arithOp \rangle ::= \, '+'\, | \,'-'\, | \,'*'\, | \,'/' \\
+& \langle logicOp \rangle ::= \, '<'\, | \,'>'\, | \,'=='\, | \,'!='\, | \,'>='\, | \,'<=' \\
+& \langle nop \rangle ::= \, '=='\, | \,'!='\, | \,'and'\, | \,'or' \\
+& \langle digit \rangle ::= \, '0'\, | \,'1'\, | \,'2'\, | \,'3'\, | \,'4'\, | \,'5'\, | \,'6'\, | \,'7'\, | \,'8'\, | \,'9' \\
+& \langle num \rangle ::= \, \langle digit \rangle+ \\
+& \langle letter \rangle ::= \, 'a'\, | \,'b'\, | \,'c'\, | \,\ldots\, | \,'z'\, | \,'A'\, | \,'B'\, | \,'C'\, | \,\ldots\, | \,'Z' \\
+& \langle identifier \rangle ::= \, \langle letter \rangle (\langle letter \rangle\, | \,\langle digit \rangle)*
 \end{align}
 $$
 
-By using this grammar, it is possible to check whether a text follows a certain format and therefore to verify the syntax of the programming language we want. However, this grammar cannot be directly converted into code that automatically checks whether text follows the syntax of our language. This is why we usually use tools such as ANTLR to do this for us. Even if this involves rewriting the syntax in a format that the tool supports, the use of ANTLR saves a lot of time by creating code that can recognise a language automatically. You can find the grammar described above in the format supported by ANTLR if you go [there](src/main/antlr/be/unamur/info/infom227/cst/ExampleGrammar.g4). If you open it, you'll see that it looks very similar to our grammar using the format the EBNF notation. The main difference is that the file is divided into 2 parts, the [Lexer](https://en.wikipedia.org/wiki/Lexical_analysis) part and the [Parser](https://en.wikipedia.org/wiki/Parsing) part. The parser is responsible for converting text into words and removing unnecessary characters. **The order of the rules written here is important because the parser will use the first rule that matches the text to create the words.** This is why the keywords are above the identifiers. Without this, ANTLR would not be able to properly find the keywords. Then, there is the parser which is responsible for converting the sequence of words created by the lexer into a [CST (Concrete Syntax Tree)](https://en.wikipedia.org/wiki/Parse_tree). This CST uses the [Visitor design pattern](https://en.wikipedia.org/wiki/Visitor_pattern), which makes it easy to browse for the information we want.
+By using this grammar, it is possible to check whether a text follows a certain format and therefore to verify the syntax of the programming language we want. However, this grammar cannot be directly converted into code that automatically checks whether text follows the syntax of our language. This is why we usually use tools such as ANTLR to do this for us. Even if this involves rewriting the syntax in a format that the tool supports, the use of ANTLR saves a lot of time by creating code that can recognise a language automatically. You can find the grammar described above in the format supported by ANTLR if you go [there](src/main/antlr/be/unamur/info/infom227/small/cst/SmallGrammar.g4). If you open it, you'll see that it looks very similar to our grammar using the format the EBNF notation. The main difference is that the file is divided into 2 parts, the [Lexer](https://en.wikipedia.org/wiki/Lexical_analysis) part and the [Parser](https://en.wikipedia.org/wiki/Parsing) part. The lexer is responsible for converting text into words and removing unnecessary characters. **The order of the rules written here is important because the lexer will use the first rule that matches the text to create the words.** This is why the keywords are above the identifiers. Without this, ANTLR would not be able to properly find the keywords. Then, there is the parser which is responsible for converting the sequence of words created by the lexer into a [CST (Concrete Syntax Tree)](https://en.wikipedia.org/wiki/Parse_tree). This CST uses the [Visitor design pattern](https://en.wikipedia.org/wiki/Visitor_pattern), which makes it easy to browse for the information we want.
 
 
 ### Concrete Syntax Tree
