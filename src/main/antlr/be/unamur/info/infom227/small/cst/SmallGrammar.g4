@@ -112,9 +112,9 @@ returnStmt: RETURN expr SEMICOLON;
 
 // Call
 
-arguments: (expr (COMMA expr)*)?;
-
 funcCall: IDENTIFIER LPAR arguments RPAR;
+
+arguments: (expr (COMMA expr)*)?;
 
 // Expressions
 

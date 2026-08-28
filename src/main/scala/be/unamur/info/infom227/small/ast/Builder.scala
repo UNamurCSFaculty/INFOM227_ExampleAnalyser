@@ -93,12 +93,12 @@ private object Builder extends SmallGrammarBaseVisitor[VisitorType] {
   }
 
   // Call
-  override def visitArguments(ctx: SmallGrammarParser.ArgumentsContext): List[Expression] = {
-    ctx.expr().asScala.map(visitExpr).toList
-  }
-
   override def visitFuncCall(ctx: SmallGrammarParser.FuncCallContext): FunctionCall = {
     FunctionCall(ctx.IDENTIFIER.getText, visitArguments(ctx.arguments()))
+  }
+
+  override def visitArguments(ctx: SmallGrammarParser.ArgumentsContext): List[Expression] = {
+    ctx.expr().asScala.map(visitExpr).toList
   }
 
   // Expressions
