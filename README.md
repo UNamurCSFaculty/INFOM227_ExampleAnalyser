@@ -144,7 +144,7 @@ As you can see, with just 5 lines of code, this already represents a fairly larg
 
 ## Semantics
 
-Once the syntactic analysis has been performed using ANTLR, it is then possible to perform a [Semantic](https://en.wikipedia.org/wiki/Semantics_(computer_science)) analysis. The semantics of a programming language define what has a meaning, i.e. which operations make sense and which don't, what happens when an instruction is executed, and so on. Indeed, does it make sense to assign a boolean expression to a variable of type int, given that the syntax allows it? In the case of our language, we would rather display an error to the user to indicate that it doesn't make sense because there is a mismatch between the type of the variable and the type of the expression. That's why we need to formally define the semantics of our language.
+Once the syntactic analysis has been performed using ANTLR, it is then possible to perform a [Semantic](https://en.wikipedia.org/wiki/Semantics_(computer_science)) analysis. The semantics of a programming language define what has a meaning, i.e. which operations make sense and which don't, what happens when an instruction is executed, and so on. Indeed, does it make sense to divide a boolean variable by 2 given that the syntax allows it? In the case of our language, we would rather display an error to the user to indicate that it doesn't make sense because there is a mismatch between the type of the variable and the type of the expression. That's why we need to formally define the semantics of our language.
 
 
 ### Semantic rules
@@ -153,22 +153,41 @@ The semantics of our language are defined by the [operational semantics](https:/
 
 $$
 \begin{align}
-[\text{Value}] & \quad \frac{v \in \mathbb{Z} \cup \{ True, False \}}{(v, \Sigma \bullet \sigma) \leadsto v} & \\
-[\text{Var}] & \quad \frac{x \in < Var >}{(x, \Sigma \bullet \sigma) \leadsto \sigma(x)} & \\
-[\text{Non-local var}] & \quad \frac{x \in < Var > \qquad x \notin dom(\sigma_s) \qquad (x, \Sigma \bullet \sigma) \leadsto v}{(x, \Sigma \bullet \sigma \bullet \sigma_s) \leadsto v} & \\
-[\text{Op}] & \quad \frac{(x_1, \Sigma \bullet \sigma) \leadsto v_1 \qquad (x_2, \Sigma \bullet \sigma) \leadsto v_2 \qquad v_1 \oplus v_2 = v}{(x_1 \oplus x_2, \Sigma \bullet \sigma) \leadsto v} & \\
-[\text{Int declaration}] & \quad \frac{x \notin dom(\sigma) \qquad \sigma' = \sigma[x \mapsto 0]}{(\text{int x}, \Sigma \bullet \sigma) \leadsto \Sigma \bullet \sigma'} & \\
-[\text{Bool declaration}] & \quad \frac{x \notin dom(\sigma) \qquad \sigma' = \sigma[x \mapsto False]}{(\text{bool x}, \Sigma \bullet \sigma) \leadsto \Sigma \bullet \sigma'} & \\
-[\text{Simple int assignment}] & \quad \frac{(e, \Sigma \bullet \sigma) \leadsto v \qquad v \in \mathbb{Z} \qquad \sigma(x) \in \mathbb{Z} \qquad \sigma' = \sigma[x \mapsto v]}{(x = e, \Sigma \bullet \sigma) \leadsto \Sigma \bullet \sigma'} & \\
-[\text{Simple bool assignment}] & \quad \frac{(e, \Sigma \bullet \sigma) \leadsto v \qquad v \in \{True, False\} \qquad \sigma(x) \in \{True, False\} \qquad \sigma' = \sigma[x \mapsto v]}{(x = e, \Sigma \bullet \sigma) \leadsto \Sigma \bullet \sigma'} & \\
-[\text{Print}] & \quad \frac{(e, \Sigma \bullet \sigma) \leadsto v \qquad stdout(v)}{(\text{print e}, \Sigma \bullet \sigma) \leadsto \Sigma \bullet \sigma} & \\
-[\text{Sequence}] & \quad \frac{(s_1, \Sigma \bullet \sigma) \leadsto \Sigma \bullet \sigma' \qquad (s_2, \Sigma \bullet \sigma') \leadsto \Sigma \bullet \sigma''}{(s_1;s_2, \Sigma \bullet \sigma) \leadsto \Sigma \bullet \sigma''} & \\
-[\text{If-True}] & \quad \frac{(e, \Sigma \bullet \sigma) \leadsto True \qquad (s_1, \Sigma \bullet \sigma) \leadsto \Sigma \bullet \sigma'}{(if \quad (e) \quad s_1 \quad else \quad s_2, \Sigma \bullet \sigma) \leadsto \Sigma \bullet \sigma'} & \\
-[\text{If-False}] & \quad \frac{(e, \Sigma \bullet \sigma) \leadsto False \qquad (s_2, \Sigma \bullet \sigma) \leadsto \Sigma \bullet \sigma'}{(if \quad (e) \quad s_1 \quad else \quad s_2, \Sigma \bullet \sigma) \leadsto \Sigma \bullet \sigma'} & \\
-[\text{While-True}] & \quad \frac{(e, \Sigma \bullet \sigma) \leadsto True \qquad (s; \quad while \quad (e) \quad s, \Sigma \bullet \sigma) \leadsto \Sigma \bullet \sigma'}{(while \quad (e) \quad s, \Sigma \bullet \sigma) \leadsto \Sigma \bullet \sigma'} & \\
-[\text{While-False}] & \quad \frac{(e, \Sigma \bullet \sigma) \leadsto False}{(while \quad (e) \quad s, \Sigma \bullet \sigma) \leadsto \Sigma \bullet \sigma} & \\
-[\text{Scope int assignment}] & \quad \frac{(s, \Sigma \bullet \sigma \bullet \sigma_s) \leadsto \sigma_s' \qquad (e, \Sigma \bullet \sigma \bullet \sigma_s') \leadsto v \qquad v \in \mathbb{Z} \qquad \sigma(x) \in \mathbb{Z} \qquad \sigma' = \sigma[x \mapsto v]}{(x = \{s;e\}, \Sigma \bullet \sigma) \leadsto \sigma'} & \\
-[\text{Scope bool assignment}] & \quad \frac{(s, \Sigma \bullet \sigma \bullet \sigma_s) \leadsto \sigma_s' \qquad (e, \Sigma \bullet \sigma \bullet \sigma_s') \leadsto v \qquad v \in \{True, False\} \qquad \sigma(x) \in \{True, False\} \qquad \sigma' = \sigma[x \mapsto v]}{(x = \{s;e\}, \Sigma \bullet \sigma) \leadsto \sigma'} & \\
+\text{[True]} & \quad \frac{}{(\mathtt{True},\sigma) \leadsto \mathtt{True}} \\
+\text{[False]} & \quad \frac{}{(\mathtt{False},\sigma) \leadsto \mathtt{False}} \\
+\text{[Int]} &  \quad \frac{v\in\mathbb{Z}}{(v,\sigma) \leadsto v} \\
+\text{[Var]} & \quad \frac{x\in\mathtt{< Var >}}{(x,\sigma) \leadsto \sigma(x)} \\
+\text{[Op]} & \quad \frac{(x_1,\sigma) \leadsto v_1 \quad (x_2,\sigma) \leadsto v_2 \quad v_1 \oplus v_2 = v}{(x_1\oplus x_2,\sigma) \leadsto v} \\
+\text{[Sequence]} & \quad \frac{(s_1,\Sigma\bullet\sigma) \leadsto (\bot, \Sigma\bullet\sigma') \quad (s_2,\Sigma\bullet\sigma') \leadsto (v, \Sigma\bullet\sigma'')}{(s_1 \mathtt{;} s_2, \Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma'')} \\
+\text{[Early return]} & \quad \frac{v \in \mathbb{Z} \cup \{\mathtt{True}, \mathtt{False}\} \quad (s_1,\Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')}{(s_1 \mathtt{;} s_2, \Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')} \\
+\text{[Simple assignment]} & \quad \frac{(e,\sigma) \leadsto v \quad \sigma' = \sigma[x\mapsto v]}{(x \: \mathtt{=} \: e, \Sigma\bullet\sigma) \leadsto (\bot, \Sigma\bullet\sigma')} \\
+\text{[If-True]} & \quad \frac{(e,\sigma) \leadsto \mathtt{True}\quad (s_1,\Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')}{(\mathtt{if}\: (e)\: s_1\: \mathtt{else}\: s_2, \Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')} \\
+\text{[If-False]} & \quad \frac{(e,\sigma) \leadsto \mathtt{False}\quad (s_2,\Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')}{(\mathtt{if}\: (e)\: s_1\: \mathtt{else}\: s_2, \Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')} \\
+\text{[While-True]} & \quad \frac{(e,\sigma) \leadsto \mathtt{True}\quad (s;\mathtt{while}\:(e)\:s, \Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')}{(\mathtt{while}\:(e)\:s, \Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')} \\
+\text{[While-False]} & \quad  \frac{(e,\sigma) \leadsto \mathtt{False}}{(\mathtt{while}\:(e)\:s, \Sigma\bullet\sigma) \leadsto (\bot, \Sigma\bullet\sigma)} \\
+\text{[Return]} & \quad \frac{(e,\sigma) \leadsto v}{(\mathtt{return}\: e, \Sigma\bullet\sigma) \leadsto (v, \Sigma)} \\
+\text{[Function call]} & \quad \frac{
+\begin{aligned}
+  \left(
+  \substack{
+    \displaystyle (e_1,\sigma) \leadsto a_1 \\\\
+    \displaystyle \ldots \\\\
+    \displaystyle (e_n,\sigma) \leadsto a_n
+  }
+  \right)
+  \quad
+  \sigma_n &= \left\{
+  \substack{
+    \displaystyle x_1 \mapsto a_1, \\\\
+    \displaystyle \ldots \\\\
+    \displaystyle x_n \mapsto a_n
+  }
+  \right\}
+  \quad
+  (B,\Sigma\bullet\sigma\bullet\sigma_n) \leadsto (v,\Sigma\bullet\sigma)
+\end{aligned}
+}{(y \: \mathtt{=} \: f(e_1, \ldots, e_n), \Sigma\bullet\sigma) \leadsto (\bot, \Sigma\bullet\sigma[y\mapsto v])} \\
+& \mbox{where $n \geq 0$ and $f$ is defined as}\:\mathtt{function}\: f(x_1,\ldots,x_n) \{B\} \\
 \end{align}
 $$
 
@@ -182,11 +201,9 @@ with:
 - The notation $\Sigma \bullet \sigma$ splits the execution stack into the environment of the function currently being executed $\sigma$ and the rest of the execution stack $\Sigma$.
 - The notation $(e, \Sigma \bullet \sigma) \leadsto v$ corresponds to the evaluation of an expression $e$ with respect to an environment $\sigma$ and the rest of the execution stack $\Sigma$ and which produces $v$ as a value.
 - The notation $\sigma[x \mapsto v]$ corresponds to the update of the environment $\sigma$ with the fact that $v$ is associated to $x$.
-- The notation $(I, \Sigma \bullet \sigma) \leadsto \Sigma \bullet \sigma'$ corresponds to the fact of executing an instruction $I$ with respect to a state $\Sigma \bullet \sigma$ and yielding a state $\Sigma \bullet \sigma'$.
-- The notation $stdout(v)$ corresponds to the fact that the value $v$ has been printed to $stdout$.
+- The notation $(I, \Sigma \bullet \sigma) \leadsto (v, \Sigma \bullet \sigma')$ corresponds to the fact of executing an instruction $I$ with respect to a state $\Sigma \bullet \sigma$ and yielding a return value $v$ and a state $\Sigma \bullet \sigma'$.
 
-With these semantic rules, it is now possible to perform our semantic analysis. In statically typed languages like the one in our example, this can be done statically using the Visitor design pattern and the CST defined earlier. If the programmer tries to perform an operation that doesn't make sense, an error is produced in the visitor and then displayed to the programmer. To help us in this step, it is usually a good idea to use a [Symbol table](https://en.wikipedia.org/wiki/Symbol_table) to store the variables that have been defined and their type, potential functions (even if there aren't any in our case), and so on. The symbol table used in this project can be found [here](src/main/scala/be/unamur/info/infom227/ast/ExampleSymbolTable.scala). In general, it is also during this step that we try to simplify our CST into an [AST (Abstract Syntax Tree)](https://en.wikipedia.org/wiki/Abstract_syntax_tree) that allows us to keep only the information we need and to create a set of data structures that are easier to use in the rest of our application. The code that performs the semantic analysis and creates the AST can be found [here](src/main/scala/be/unamur/info/infom227/ast/ExampleAstBuilder.scala).
-
+With these semantic rules, it is now possible to perform our semantic analysis. In untyped languages such as the one considered here, this is primarily handled at runtime. However, certain properties can still be checked statically, such as ensuring that no two functions share the same name using the Visitor design pattern and the CST defined earlier. When that happens, an error is produced in the visitor and then displayed to the programmer. In general, it is also during this step that we try to simplify our CST into an [AST (Abstract Syntax Tree)](https://en.wikipedia.org/wiki/Abstract_syntax_tree) that allows us to keep only the information we need and to create a set of data structures that are easier to use in the rest of our application. The code that performs the semantic analysis and creates the AST can be found [here](src/main/scala/be/unamur/info/infom227/small/ast/Builder.scala). Note that in typed languages, it is usually a good idea to have a [Symbol table](https://en.wikipedia.org/wiki/Symbol_table) to store the variables that have been defined and their type, but it is not useful in our case.
 
 ### Abstract Syntax Tree
 
