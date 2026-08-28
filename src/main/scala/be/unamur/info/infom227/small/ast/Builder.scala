@@ -11,7 +11,7 @@ def build(programCst: SmallGrammarParser.ProgramContext): Try[Program] = {
   Builder.visitProgram(programCst)
 }
 
-type VisitorType = Try[Program] | Function | List[String] | List[Statement] | Statement | FunctionCall | Expression | ArithmeticBinaryOperator | IntegerComparisonOperator | EqualComparisonOperator | BooleanBinaryOperator
+type VisitorType = Try[Program] | Function | List[String] | List[Statement] | Statement | List[Expression] | FunctionCall | Expression | ArithmeticBinaryOperator | IntegerComparisonOperator | EqualComparisonOperator | BooleanBinaryOperator
 
 private object Builder extends SmallGrammarBaseVisitor[VisitorType] {
   // Program
@@ -42,7 +42,7 @@ private object Builder extends SmallGrammarBaseVisitor[VisitorType] {
       .IDENTIFIER
       .asScala
       .iterator
-      .map(parameter => parameter.getText)
+      .map(_.getText)
       .toList
   }
 
@@ -51,7 +51,7 @@ private object Builder extends SmallGrammarBaseVisitor[VisitorType] {
       .stmt
       .asScala
       .iterator
-      .map(statement => visitStmt(statement))
+      .map(visitStmt)
       .toList
   }
 
@@ -93,13 +93,12 @@ private object Builder extends SmallGrammarBaseVisitor[VisitorType] {
   }
 
   // Call
+  override def visitArguments(ctx: SmallGrammarParser.ArgumentsContext): List[Expression] = {
+    ctx.expr().asScala.map(visitExpr).toList
+  }
+
   override def visitFuncCall(ctx: SmallGrammarParser.FuncCallContext): FunctionCall = {
-    FunctionCall(ctx.IDENTIFIER.getText, ctx
-      .expr
-      .asScala
-      .map(expr => visitExpr(expr))
-      .toList
-    )
+    FunctionCall(ctx.IDENTIFIER.getText, visitArguments(ctx.arguments()))
   }
 
   // Expressions

@@ -94,7 +94,7 @@ program: function*;
 
 function: FUNCTION IDENTIFIER LPAR parameters RPAR body;
 
-parameters: IDENTIFIER*;
+parameters: (IDENTIFIER (COMMA IDENTIFIER)*)?;
 
 body: LBRACE stmt* RBRACE;
 
@@ -112,7 +112,9 @@ returnStmt: RETURN expr SEMICOLON;
 
 // Call
 
-funcCall: IDENTIFIER LPAR expr* RPAR;
+arguments: (expr (COMMA expr)*)?;
+
+funcCall: IDENTIFIER LPAR arguments RPAR;
 
 // Expressions
 
