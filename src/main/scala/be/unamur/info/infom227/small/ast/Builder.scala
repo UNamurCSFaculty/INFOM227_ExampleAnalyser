@@ -46,6 +46,7 @@ private object Builder extends SmallGrammarBaseVisitor[VisitorType] {
       .toList
   }
 
+  // Statements
   override def visitBody(ctx: SmallGrammarParser.BodyContext): List[Statement] = {
     ctx
       .stmt
@@ -55,7 +56,6 @@ private object Builder extends SmallGrammarBaseVisitor[VisitorType] {
       .toList
   }
 
-  // Statements
   override def visitStmt(ctx: SmallGrammarParser.StmtContext): Statement = {
     if (ctx.assignStmt != null) {
       visitAssignStmt(ctx.assignStmt)

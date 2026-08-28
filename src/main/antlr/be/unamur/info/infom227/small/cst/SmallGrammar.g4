@@ -96,9 +96,9 @@ function: FUNCTION IDENTIFIER LPAR parameters RPAR body;
 
 parameters: (IDENTIFIER (COMMA IDENTIFIER)*)?;
 
-body: LBRACE stmt* RBRACE;
-
 // Statements
+
+body: LBRACE stmt* RBRACE;
 
 stmt: assignStmt | ifStmt | whileStmt | returnStmt;
 
