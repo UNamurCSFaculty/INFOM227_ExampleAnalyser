@@ -214,12 +214,12 @@ In our implementation, the AST is defined using Scala classes that allow easy pa
 
 ## Interpreter
 
-With our AST, it is very easy to create an interpreter for our language that will follow the semantics defined earlier. All we need to do is create [a class that will represent the environments](src/main/scala/be/unamur/info/infom227/small/interpreter/Environments.scala) and then [implement the different rules](src/main/scala/be/unamur/info/infom227/small/interpreter/Interpreter.scala).
+With our AST, it is very easy to create an interpreter for our language that will follow the semantics defined earlier. All we need to do is create [a class that will represent the environments](src/main/scala/be/unamur/info/infom227/small/interpreter/Environments.scala) and then [implement the different rules](src/main/scala/be/unamur/info/infom227/small/interpreter/Interpreter.scala). The only difference from the grammar is that we throw exceptions when a semantic error is encountered at runtime.
 
 
 ## Zero Analysis
 
-In this section, we will define a Zero Analysis, similar to the one used in the course, by using the Worklist algorithm implemented [here](src/main/scala/be/unamur/info/infom227/analysis/ExampleWorklist.scala). The file containing the entire analysis code is available [here](src/main/scala/be/unamur/info/infom227/analysis/ExampleZeroAnalysis.scala). The only difference from the grammar is that we throw exceptions when a semantic error is encountered at runtime.
+In this section, we will define a Zero Analysis, similar to the one used in the course, by using the Worklist algorithm implemented [here](src/main/scala/be/unamur/info/infom227/small/analysis/Analysis.scala). The file containing the entire analysis code is available [here](src/main/scala/be/unamur/info/infom227/small/analysis/ZeroAnalysis.scala).
 
 
 ### Abstract values & Lattice
@@ -240,10 +240,27 @@ with:
 
 ![Zero analysis lattice](docs/images/ZeroAnalysisLattice.png)
 
+The relation between concrete values and abstract values is defined using the following abstraction and concretisation functions:
+
+$$
+\begin{align}
+  & \alpha(x) = & Z & \quad if & x = 0 \\
+  & & NZ & \quad if & x \in \mathbb{Z}_0 \\
+  & & U & \quad otherwise
+\end{align}
+$$
+
+$$
+\begin{align}
+  & \gamma(a) = & \{0\} & \quad if & a = Z \\
+  & & \mathbb{Z}_0 & \quad if & a = NZ \\
+  & & \mathbb{Z} \cup \{True, False\} & \quad otherwise
+\end{align}
+$$
 
 ### Control-flow graph
 
-Next, we need to convert our AST into a [CFG (Control-flow graph)](https://en.wikipedia.org/wiki/Control-flow_graph). The code that achieves this can be found [here](src/main/scala/be/unamur/info/infom227/cfg/ExampleCfgBuilder.scala).
+Next, we need to convert our AST into a [CFG (Control-flow graph)](https://en.wikipedia.org/wiki/Control-flow_graph). The code that achieves this can be found [here](src/main/scala/be/unamur/info/infom227/small/cfg/Builder.scala).
 
 A CFG is composed of the following elements:
 
@@ -267,11 +284,8 @@ Next, we can define our control-flow function by specifying its instances:
 
 $$
 \begin{align}
-& fg [[ p ]] (\phi) = & \phi[x \mapsto Z] & \quad if & P[p] \equiv int\ x & \\
-& & \phi[x \mapsto NZ] & \quad if & P[p] \equiv bool\ x & \\
-& & f [[ P[p] ]] (\phi) & \quad if & P[p] \equiv x = E & \\
-& & \phi[x \mapsto U] & \quad if & P[p] \equiv x = \{S; E\} & \\
-& & \phi & \quad if & P[p] \equiv while (E) \lor P[p] \equiv if (E) \lor P[p] \equiv print \ E  & \\
+& fg [[ p ]] (\phi) = & f [[ P[p] ]] (\phi) & \quad if & P[p] \equiv x = E & \\
+& & \phi & \quad if & P[p] \equiv while (E) \lor P[p] \equiv if (E) \lor return \ E  & \\
 \end{align}
 $$
 
@@ -295,7 +309,7 @@ $$
 \end{align}
 $$
 
-These control-flow function instances are almost the same as the ones in the course. It was a choice to make them not that precise.
+These control-flow function instances are the same as the ones in the syllabus. It was a choice to make them not that precise.
 
 
 ### Condition update function

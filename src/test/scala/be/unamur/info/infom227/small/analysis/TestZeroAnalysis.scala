@@ -10,10 +10,23 @@ import scala.util.{Failure, Success}
 class TestZeroAnalysis extends AnyFunSuite {
   Seq(
     (
-      "convert a simple AST with a single assignment",
+      "convert a simple AST with a single zero assignment",
       """
       function main() {
-          a = 3 + 2;
+          a = 0;
+          return a;
+      }
+      """,
+      """
+      main:
+        a: Zero
+      """,
+    ),
+    (
+      "convert a simple AST with a single non-zero assignment",
+      """
+      function main() {
+          a = 3;
           return a;
       }
       """,
@@ -26,8 +39,8 @@ class TestZeroAnalysis extends AnyFunSuite {
       "convert a simple AST with multiple assignments",
       """
       function main() {
-          a = 3 * 4;
-          a = a / 5;
+          a = 0;
+          a = a + 5;
           b = 7 - a;
           x = 10 + 2;
           return 0;
@@ -35,9 +48,9 @@ class TestZeroAnalysis extends AnyFunSuite {
       """,
       """
       main:
-        a: Top
-        b: Top
-        x: NonZero
+        a: NonZero
+        b: Unknown
+        x: Unknown
       """,
     ),
     (
@@ -46,9 +59,9 @@ class TestZeroAnalysis extends AnyFunSuite {
       function main() {
           i = 1;
           if (i < 10) {
-              i = i + 1;
+              i = 1;
           } else {
-              i = i - 1;
+              i = 2;
           }
           return i;
       }
@@ -71,7 +84,7 @@ class TestZeroAnalysis extends AnyFunSuite {
       """,
       """
       main:
-        i: NonZero
+        i: Unknown
       """,
     ),
     (

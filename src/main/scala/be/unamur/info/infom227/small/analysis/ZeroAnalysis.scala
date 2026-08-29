@@ -1,13 +1,13 @@
 package be.unamur.info.infom227.small.analysis
 
-import be.unamur.info.infom227.small.ast.{ArithmeticBinaryOperation, ArithmeticBinaryOperator, ArithmeticConstant, AssignStatement, BooleanBinaryOperation, BooleanConstant, BooleanNegOperation, EqualComparisonOperator, Expression, FunctionCall, IntegerComparisonOperation, Variable}
+import be.unamur.info.infom227.small.ast.{ArithmeticBinaryOperation, ArithmeticBinaryOperator, ArithmeticConstant, AssignStatement, BooleanBinaryOperation, BooleanConstant, BooleanNegOperation, EqualComparisonOperator, Expression, FunctionCall, IntegerComparisonOperation, Statement, Variable}
 import be.unamur.info.infom227.small.cfg.{Cfg, ProgramPoint}
 
 import scala.collection.mutable
-import scala.util.{Success, Try}
+import scala.util.{Failure, Success, Try}
 
 enum ZeroAnalysisAbstractValue extends Lattice[ZeroAnalysisAbstractValue]:
-  case Top
+  case Unknown
   case Zero
   case NonZero
   case Bottom
@@ -18,29 +18,32 @@ enum ZeroAnalysisAbstractValue extends Lattice[ZeroAnalysisAbstractValue]:
       case (_, ZeroAnalysisAbstractValue.Bottom) => this
       case (ZeroAnalysisAbstractValue.Zero, ZeroAnalysisAbstractValue.Zero) => ZeroAnalysisAbstractValue.Zero
       case (ZeroAnalysisAbstractValue.NonZero, ZeroAnalysisAbstractValue.NonZero) => ZeroAnalysisAbstractValue.NonZero
-      case _ => ZeroAnalysisAbstractValue.Top
+      case _ => ZeroAnalysisAbstractValue.Unknown
     }
   }
 
   override def meet(other: ZeroAnalysisAbstractValue): ZeroAnalysisAbstractValue = {
     (this, other) match {
-      case (ZeroAnalysisAbstractValue.Top, _) => other
-      case (_, ZeroAnalysisAbstractValue.Top) => this
+      case (ZeroAnalysisAbstractValue.Unknown, _) => other
+      case (_, ZeroAnalysisAbstractValue.Unknown) => this
       case (ZeroAnalysisAbstractValue.Zero, ZeroAnalysisAbstractValue.Zero) => ZeroAnalysisAbstractValue.Zero
       case (ZeroAnalysisAbstractValue.NonZero, ZeroAnalysisAbstractValue.NonZero) => ZeroAnalysisAbstractValue.NonZero
       case _ => ZeroAnalysisAbstractValue.Bottom
     }
   }
 
-def abstractionFunction(value: Int | Boolean): ZeroAnalysisAbstractValue = {
-  value match {
-    case 0 => ZeroAnalysisAbstractValue.Zero
-    case intValue: Int => ZeroAnalysisAbstractValue.NonZero
-    case _ => ZeroAnalysisAbstractValue.Top
-  }
-}
-
 case class ZeroAnalysisAbstractState(variables: Map[String, ZeroAnalysisAbstractValue] = Map()):
+  def get(variable: String): Try[ZeroAnalysisAbstractValue] = {
+    variables.get(variable) match {
+      case Some(value) => Success(value)
+      case None => Failure(new RuntimeException(s"Variable $variable not found"))
+    }
+  }
+
+  def update(variable: String, abstractValue: ZeroAnalysisAbstractValue): ZeroAnalysisAbstractState = {
+    ZeroAnalysisAbstractState(variables + (variable -> abstractValue))
+  }
+
   override def toString: String = {
     val builder = new StringBuilder()
     for ((variable, abstractValue) <- variables) {
@@ -53,36 +56,53 @@ class ZeroAnalysisAnalysisState:
   var abstractStates: mutable.Map[ProgramPoint, ZeroAnalysisAbstractState] = mutable.Map()
 
 case class ZeroAnalysis(cfg: Cfg) extends GraphAnalyser[ProgramPoint, ZeroAnalysisAbstractState, ZeroAnalysisAnalysisState]:
-  def analyseExpression(abstractState: ZeroAnalysisAbstractState, expression: Expression | FunctionCall): Try[ZeroAnalysisAbstractValue] = {
-    expression match {
-      case arithmeticConstant: ArithmeticConstant => Success(abstractionFunction(arithmeticConstant.value))
-      case arithmeticBinaryOperation: ArithmeticBinaryOperation =>
-        for {
-          leftAbstractValue <- analyseExpression(abstractState, arithmeticBinaryOperation.left)
-          rightAbstractValue <- analyseExpression(abstractState, arithmeticBinaryOperation.right)
-        } yield (leftAbstractValue, arithmeticBinaryOperation.operator, rightAbstractValue) match {
-          case (ZeroAnalysisAbstractValue.Zero, ArithmeticBinaryOperator.Mul, _) => ZeroAnalysisAbstractValue.Zero
-          case (_, ArithmeticBinaryOperator.Mul, ZeroAnalysisAbstractValue.Zero) => ZeroAnalysisAbstractValue.Zero
-          case (ZeroAnalysisAbstractValue.Top, _, _) => ZeroAnalysisAbstractValue.Top
-          case (_, _, ZeroAnalysisAbstractValue.Top) => ZeroAnalysisAbstractValue.Top
-          // Add
-          case (ZeroAnalysisAbstractValue.Zero, ArithmeticBinaryOperator.Add, ZeroAnalysisAbstractValue.Zero) => ZeroAnalysisAbstractValue.Zero
-          case (ZeroAnalysisAbstractValue.Zero, ArithmeticBinaryOperator.Add, ZeroAnalysisAbstractValue.NonZero) => ZeroAnalysisAbstractValue.NonZero
-          case (ZeroAnalysisAbstractValue.NonZero, ArithmeticBinaryOperator.Add, ZeroAnalysisAbstractValue.Zero) => ZeroAnalysisAbstractValue.NonZero
-          case (ZeroAnalysisAbstractValue.NonZero, ArithmeticBinaryOperator.Add, ZeroAnalysisAbstractValue.NonZero) => ZeroAnalysisAbstractValue.NonZero
-          // Sub
-          case (ZeroAnalysisAbstractValue.Zero, ArithmeticBinaryOperator.Sub, ZeroAnalysisAbstractValue.Zero) => ZeroAnalysisAbstractValue.Zero
-          case (ZeroAnalysisAbstractValue.Zero, ArithmeticBinaryOperator.Sub, ZeroAnalysisAbstractValue.NonZero) => ZeroAnalysisAbstractValue.NonZero
-          case (ZeroAnalysisAbstractValue.NonZero, ArithmeticBinaryOperator.Sub, ZeroAnalysisAbstractValue.NonZero) => ZeroAnalysisAbstractValue.NonZero
-          // Rest
-          case _ => ZeroAnalysisAbstractValue.Top
+  def analyseStatement(abstractState: ZeroAnalysisAbstractState, statement: Statement): Try[ZeroAnalysisAbstractState] = {
+    statement match {
+      case AssignStatement(lineNumber, variable, expression) =>
+        expression match {
+          case ArithmeticConstant(c) =>
+            Success(if (c == 0) {
+              abstractState.update(variable, ZeroAnalysisAbstractValue.Zero)
+            } else {
+              abstractState.update(variable, ZeroAnalysisAbstractValue.NonZero)
+            })
+          case Variable(y) =>
+            for {
+              yAbstractValue <- abstractState.get(y)
+            } yield abstractState.update(variable, yAbstractValue)
+          case ArithmeticBinaryOperation(ArithmeticConstant(c), ArithmeticBinaryOperator.Add, ArithmeticConstant(d)) =>
+            Success(if (c == -d) {
+              abstractState.update(variable, ZeroAnalysisAbstractValue.Zero)
+            } else {
+              abstractState.update(variable, ZeroAnalysisAbstractValue.Unknown)
+            })
+          case ArithmeticBinaryOperation(Variable(y), ArithmeticBinaryOperator.Add, Variable(z)) =>
+            for {
+              yAbstractValue <- abstractState.get(y)
+              zAbstractValue <- abstractState.get(z)
+            } yield if (yAbstractValue == ZeroAnalysisAbstractValue.Zero && zAbstractValue == ZeroAnalysisAbstractValue.Zero) {
+              abstractState.update(variable, ZeroAnalysisAbstractValue.Zero)
+            } else {
+              abstractState.update(variable, ZeroAnalysisAbstractValue.Unknown)
+            }
+          case ArithmeticBinaryOperation(Variable(y), ArithmeticBinaryOperator.Add, ArithmeticConstant(c)) =>
+            for {
+              yAbstractValue <- abstractState.get(y)
+            } yield if (yAbstractValue == ZeroAnalysisAbstractValue.Zero && c == 0) {
+              abstractState.update(variable, ZeroAnalysisAbstractValue.Zero)
+            } else if (yAbstractValue == ZeroAnalysisAbstractValue.Zero && c != 0) {
+              abstractState.update(variable, ZeroAnalysisAbstractValue.NonZero)
+            } else if (yAbstractValue == ZeroAnalysisAbstractValue.NonZero && c == 0) {
+              abstractState.update(variable, ZeroAnalysisAbstractValue.NonZero)
+            } else {
+              abstractState.update(variable, ZeroAnalysisAbstractValue.Unknown)
+            }
+          case ArithmeticBinaryOperation(ArithmeticConstant(c), ArithmeticBinaryOperator.Add, Variable(y)) =>
+            analyseStatement(abstractState, AssignStatement(lineNumber, variable, ArithmeticBinaryOperation(Variable(y), ArithmeticBinaryOperator.Add, ArithmeticConstant(c))))
+          case _ =>
+            Success(abstractState.update(variable, ZeroAnalysisAbstractValue.Unknown))
         }
-      case booleanConstant: BooleanConstant => Success(ZeroAnalysisAbstractValue.Top)
-      case booleanNegOperation: BooleanNegOperation => Success(ZeroAnalysisAbstractValue.Top)
-      case booleanBinaryOperation: BooleanBinaryOperation => Success(ZeroAnalysisAbstractValue.Top)
-      case integerComparisonOperation: IntegerComparisonOperation => Success(ZeroAnalysisAbstractValue.Top)
-      case variable: Variable => Success(abstractState.variables.getOrElse(variable.name, ZeroAnalysisAbstractValue.Bottom))
-      case functionCall: FunctionCall => Success(ZeroAnalysisAbstractValue.Top)
+      case _ => Success(abstractState)
     }
   }
 
@@ -96,43 +116,13 @@ case class ZeroAnalysis(cfg: Cfg) extends GraphAnalyser[ProgramPoint, ZeroAnalys
     val abstractState = analysisState.abstractStates.getOrElse(node, ZeroAnalysisAbstractState())
 
     node match {
-      case ProgramPoint.StatementPoint(statement) =>
-        statement match {
-          case AssignStatement(lineNumber, variable, expression) => for {
-            expressionAbstractValue <- analyseExpression(abstractState, expression)
-          } yield {
-            ZeroAnalysisAbstractState(abstractState.variables + (variable -> expressionAbstractValue))
-          }
-          case _ => Success(abstractState)
-        }
+      case ProgramPoint.StatementPoint(statement) => analyseStatement(abstractState, statement)
       case _ => Success(abstractState)
     }
   }
 
   override def updateAbstractState(analysisState: ZeroAnalysisAnalysisState, from: ProgramPoint, to: ProgramPoint, abstractState: ZeroAnalysisAbstractState): Try[Option[ZeroAnalysisAbstractState]] =
     cfg.condition(from, to) match {
-      case Some(IntegerComparisonOperation(left, EqualComparisonOperator.Eq, ArithmeticConstant(0))) =>
-        for {
-          leftAbstractValue <- analyseExpression(abstractState, left)
-        } yield leftAbstractValue match {
-          case ZeroAnalysisAbstractValue.NonZero => None
-          case ZeroAnalysisAbstractValue.Zero => Some(abstractState)
-          case _ => left match {
-            case Variable(leftVariable) => Some(ZeroAnalysisAbstractState(abstractState.variables + (leftVariable -> ZeroAnalysisAbstractValue.Zero)))
-            case _ => Some(abstractState)
-          }
-        }
-      case Some(IntegerComparisonOperation(left, EqualComparisonOperator.Ne, ArithmeticConstant(0))) =>
-        for {
-          leftAbstractValue <- analyseExpression(abstractState, left)
-        } yield leftAbstractValue match {
-          case ZeroAnalysisAbstractValue.Zero => None
-          case ZeroAnalysisAbstractValue.NonZero => Some(abstractState)
-          case _ => left match {
-            case Variable(leftVariable) => Some(ZeroAnalysisAbstractState(abstractState.variables + (leftVariable -> ZeroAnalysisAbstractValue.NonZero)))
-            case _ => Some(abstractState)
-          }
-        }
       case _ => Success(Some(abstractState))
     }
 
