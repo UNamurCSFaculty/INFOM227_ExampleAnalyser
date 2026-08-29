@@ -1,8 +1,9 @@
 package be.unamur.info.infom227.small.analysis
 
-import be.unamur.info.infom227.small.ast.{ArithmeticBinaryOperation, ArithmeticBinaryOperator, ArithmeticConstant, AssignStatement, BooleanBinaryOperation, BooleanConstant, BooleanNegOperation, EqualComparisonOperator, Expression, FunctionCall, IntegerComparisonOperation, Statement, Variable}
+import be.unamur.info.infom227.small.ast.{ArithmeticBinaryOperation, ArithmeticBinaryOperator, ArithmeticConstant, AssignStatement, BooleanBinaryOperation, BooleanBinaryOperator, BooleanConstant, BooleanExpression, BooleanNegOperation, EqualComparisonOperator, Expression, FunctionCall, IntegerComparisonOperation, IntegerComparisonOperator, Statement, Variable}
 import be.unamur.info.infom227.small.cfg.{Cfg, ProgramPoint}
 
+import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.util.{Failure, Success, Try}
 
@@ -56,7 +57,8 @@ class ZeroAnalysisAnalysisState:
   var abstractStates: mutable.Map[ProgramPoint, ZeroAnalysisAbstractState] = mutable.Map()
 
 case class ZeroAnalysis(cfg: Cfg) extends GraphAnalyser[ProgramPoint, ZeroAnalysisAbstractState, ZeroAnalysisAnalysisState]:
-  def analyseStatement(abstractState: ZeroAnalysisAbstractState, statement: Statement): Try[ZeroAnalysisAbstractState] = {
+  @tailrec
+  private def analyseStatement(abstractState: ZeroAnalysisAbstractState, statement: Statement): Try[ZeroAnalysisAbstractState] = {
     statement match {
       case AssignStatement(lineNumber, variable, expression) =>
         expression match {
@@ -102,7 +104,99 @@ case class ZeroAnalysis(cfg: Cfg) extends GraphAnalyser[ProgramPoint, ZeroAnalys
           case _ =>
             Success(abstractState.update(variable, ZeroAnalysisAbstractValue.Unknown))
         }
-      case _ => Success(abstractState)
+      case _ =>
+        Success(abstractState)
+    }
+  }
+
+  @tailrec
+  private def conditionUpdate(abstractState: ZeroAnalysisAbstractState, condition: BooleanExpression): Try[Option[ZeroAnalysisAbstractState]] = {
+    condition match {
+      case BooleanConstant(true) =>
+        Success(Some(abstractState))
+      case BooleanConstant(false) =>
+        Success(None)
+      case IntegerComparisonOperation(Variable(y), IntegerComparisonOperator.Lt, ArithmeticConstant(c)) =>
+        for {
+          yAbstractValue <- abstractState.get(y)
+          metAbstractValue = yAbstractValue.meet(ZeroAnalysisAbstractValue.NonZero)
+        } yield if (c <= 0 && metAbstractValue != ZeroAnalysisAbstractValue.Bottom) {
+          Some(abstractState.update(y, metAbstractValue))
+        } else if (c > 0) {
+          Some(abstractState)
+        } else {
+          None
+        }
+      case IntegerComparisonOperation(ArithmeticConstant(c), IntegerComparisonOperator.Lt, Variable(y)) =>
+        conditionUpdate(abstractState, IntegerComparisonOperation(Variable(y), IntegerComparisonOperator.Gt, ArithmeticConstant(c)))
+      case IntegerComparisonOperation(Variable(y), IntegerComparisonOperator.Gt, ArithmeticConstant(c)) =>
+        for {
+          yAbstractValue <- abstractState.get(y)
+          metAbstractValue = yAbstractValue.meet(ZeroAnalysisAbstractValue.NonZero)
+        } yield if (c >= 0 && metAbstractValue != ZeroAnalysisAbstractValue.Bottom) {
+          Some(abstractState.update(y, metAbstractValue))
+        } else if (c < 0) {
+          Some(abstractState)
+        } else {
+          None
+        }
+      case IntegerComparisonOperation(ArithmeticConstant(c), IntegerComparisonOperator.Gt, Variable(y)) =>
+        conditionUpdate(abstractState, IntegerComparisonOperation(Variable(y), IntegerComparisonOperator.Lt, ArithmeticConstant(c)))
+      case IntegerComparisonOperation(Variable(y), IntegerComparisonOperator.Lte, ArithmeticConstant(c)) =>
+        for {
+          yAbstractValue <- abstractState.get(y)
+          metAbstractValue = yAbstractValue.meet(ZeroAnalysisAbstractValue.NonZero)
+        } yield if (c < 0 && metAbstractValue != ZeroAnalysisAbstractValue.Bottom) {
+          Some(abstractState.update(y, metAbstractValue))
+        } else if (c >= 0) {
+          Some(abstractState)
+        } else {
+          None
+        }
+      case IntegerComparisonOperation(ArithmeticConstant(c), IntegerComparisonOperator.Lte, Variable(y)) =>
+        conditionUpdate(abstractState, IntegerComparisonOperation(Variable(y), IntegerComparisonOperator.Gte, ArithmeticConstant(c)))
+      case IntegerComparisonOperation(Variable(y), IntegerComparisonOperator.Gte, ArithmeticConstant(c)) =>
+        for {
+          yAbstractValue <- abstractState.get(y)
+          metAbstractValue = yAbstractValue.meet(ZeroAnalysisAbstractValue.NonZero)
+        } yield if (c > 0 && metAbstractValue != ZeroAnalysisAbstractValue.Bottom) {
+          Some(abstractState.update(y, metAbstractValue))
+        } else if (c <= 0) {
+          Some(abstractState)
+        } else {
+          None
+        }
+      case IntegerComparisonOperation(ArithmeticConstant(c), IntegerComparisonOperator.Gte, Variable(y)) =>
+        conditionUpdate(abstractState, IntegerComparisonOperation(Variable(y), IntegerComparisonOperator.Lte, ArithmeticConstant(c)))
+      case IntegerComparisonOperation(Variable(y), EqualComparisonOperator.Eq, ArithmeticConstant(c)) =>
+        for {
+          yAbstractValue <- abstractState.get(y)
+          metZeroAbstractValue = yAbstractValue.meet(ZeroAnalysisAbstractValue.Zero)
+          metNonZeroAbstractValue = yAbstractValue.meet(ZeroAnalysisAbstractValue.NonZero)
+        } yield if (c == 0 && metZeroAbstractValue != ZeroAnalysisAbstractValue.Bottom) {
+          Some(abstractState.update(y, metZeroAbstractValue))
+        } else if (c != 0 && metNonZeroAbstractValue != ZeroAnalysisAbstractValue.Bottom) {
+          Some(abstractState.update(y, metNonZeroAbstractValue))
+        } else {
+          None
+        }
+      case IntegerComparisonOperation(ArithmeticConstant(c), EqualComparisonOperator.Eq, Variable(y)) =>
+        conditionUpdate(abstractState, IntegerComparisonOperation(Variable(y), EqualComparisonOperator.Eq, ArithmeticConstant(c)))
+      case IntegerComparisonOperation(Variable(y), EqualComparisonOperator.Ne, ArithmeticConstant(c)) =>
+        for {
+          yAbstractValue <- abstractState.get(y)
+          metNonZeroAbstractValue = yAbstractValue.meet(ZeroAnalysisAbstractValue.NonZero)
+        } yield if (c == 0 && metNonZeroAbstractValue != ZeroAnalysisAbstractValue.Bottom) {
+          Some(abstractState.update(y, metNonZeroAbstractValue))
+        } else if (c != 0) {
+          Some(abstractState)
+        } else {
+          None
+        }
+      case IntegerComparisonOperation(ArithmeticConstant(c), EqualComparisonOperator.Ne, Variable(y)) =>
+        conditionUpdate(abstractState, IntegerComparisonOperation(Variable(y), EqualComparisonOperator.Ne, ArithmeticConstant(c)))
+      case _ =>
+        Success(Some(abstractState))
     }
   }
 
@@ -123,7 +217,8 @@ case class ZeroAnalysis(cfg: Cfg) extends GraphAnalyser[ProgramPoint, ZeroAnalys
 
   override def updateAbstractState(analysisState: ZeroAnalysisAnalysisState, from: ProgramPoint, to: ProgramPoint, abstractState: ZeroAnalysisAbstractState): Try[Option[ZeroAnalysisAbstractState]] =
     cfg.condition(from, to) match {
-      case _ => Success(Some(abstractState))
+      case Some(condition) => conditionUpdate(abstractState, condition)
+      case _ => Failure(new RuntimeException("condition should always exist"))
     }
 
   override def getAbstractState(analysisState: ZeroAnalysisAnalysisState, node: ProgramPoint): Try[Option[ZeroAnalysisAbstractState]] = Success(analysisState.abstractStates.get(node))

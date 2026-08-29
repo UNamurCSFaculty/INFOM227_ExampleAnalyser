@@ -84,7 +84,7 @@ class TestZeroAnalysis extends AnyFunSuite {
       """,
       """
       main:
-        i: Unknown
+        i: NonZero
       """,
     ),
     (
