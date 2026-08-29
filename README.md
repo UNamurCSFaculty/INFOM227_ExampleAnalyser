@@ -378,6 +378,7 @@ Here are the function instances that we will use in our analysis:
 
 $$
 \begin{align}
+& \phi[[ True ]] = & \phi & & \\
 & \phi[[ False ]] = & \bot & & \\
 & \phi[[ y < c ]] = & \phi[y \mapsto \phi(y) \sqcap NZ] & \quad if & c \leq 0 \land y \in \phi \land \phi(y) \sqcap NZ \neq \bot & \\
 & & \phi & \quad if & c > 0 \land y \in \phi & \\
