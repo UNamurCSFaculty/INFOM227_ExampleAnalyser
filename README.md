@@ -408,6 +408,30 @@ $$
 \end{align}
 $$
 
+### GEN/KILL
+
+It is also possible to represent the analysis using GEN/KILL:
+
+$$
+\begin{align}
+\phi_1 \sqsubseteq \phi_2 & \Leftrightarrow \forall x \in dom(\phi_1) \Rightarrow (x \in \phi_2 \land \phi_1(x) \sqsubseteq \phi_2(x)) \\
+\phi_1 \sqcup \phi_2 & = \{x \mapsto \phi_1(x) \sqcup \phi_2(x) \mid x \in dom(\phi_1) \cap dom(\phi_2)\} \\
+& \cup \{x \mapsto \phi_1(x) \mid x \in dom(\phi_1) \setminus dom(\phi_2)\} \\
+& \cup \{x \mapsto \phi_2(x) \mid x \in dom(\phi_2) \setminus dom(\phi_1)\} \\
+\top & = \{x \mapsto U \mid x \in < Var >\} \\
+\bot & = \{\}\\
+\end{align}
+$$
+
+$$
+\begin{align}
+& GEN(p) = & \{x \mapsto fg[[p]](\phi)(x)\} & \quad if & P[p] \equiv x = E \\
+& & \emptyset & \quad otherwise & \\
+& KILL(p) = & \{x \mapsto \phi(x)\} & \quad if & x \in \phi \land P[p] \equiv x = E \\
+& & \emptyset & \quad otherwise & \\
+\end{align}
+$$
+
 ### Results interpretation
 
 Finally, we can define processing rules in order to interpret the results of the analysis:
