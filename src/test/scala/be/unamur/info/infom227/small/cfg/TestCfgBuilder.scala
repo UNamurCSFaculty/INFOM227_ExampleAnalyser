@@ -1,7 +1,5 @@
 package be.unamur.info.infom227.small.cfg
 
-import be.unamur.info.infom227.small.cfg.build
-import be.unamur.info.infom227.small.cst.parse
 import be.unamur.info.infom227.small.{ast, cfg, cst}
 import org.antlr.v4.runtime.CharStreams
 import org.scalatest.funsuite.AnyFunSuite

@@ -2,6 +2,7 @@ package be.unamur.info.infom227.small
 
 import be.unamur.info.infom227.small.analysis.{DummyObserver, ZeroAnalysisObserver}
 import be.unamur.info.infom227.small.ast.BuiltAstException
+import be.unamur.info.infom227.small.cfg.ProgramPoint
 import org.antlr.v4.runtime.CharStreams
 
 import scala.util.{Failure, Success, Try}
@@ -37,23 +38,30 @@ val UNKNOWN_ACTION_ERROR_CODE = 3
         programContext <- cst.parse(charStream)
         program <- ast.build(programContext)
         cfgs = cfg.build(program)
-        analysisState <- analysis.analyseProgram(cfgs, if (others.contains("-v")) {
+        zeroAnalyses <- analysis.zeroAnalysis(cfgs, if (others.contains("-v")) {
           ZeroAnalysisObserver()
         } else {
           DummyObserver()
         })
-      } yield analysisState
+        moduleDiagnostics <- analysis.zeroAnalysisInterpreter(cfgs, zeroAnalyses, DummyObserver())
+      } yield (zeroAnalyses, moduleDiagnostics)
 
       tryResult match {
-        case Success(abstractStates) =>
+        case Success((zeroAnalyses, moduleDiagnostics)) =>
           println("=====================================")
           println("            Zero Analysis            ")
           println("=====================================")
-          for ((name, abstractState) <- abstractStates) {
+          for ((name, zeroAnalysis) <- zeroAnalyses) {
             println(s"Analysis for $name:")
-            for (line <- abstractState.toString().split("\n")) {
+            for (line <- zeroAnalysis.abstractStates(ProgramPoint.ExitPoint).toString().split("\n")) {
               println(s"  $line")
             }
+
+            moduleDiagnostics.get(name).foreach(diagnostics =>
+              for ((diagnosticType, message) <- diagnostics.diagnostics) {
+                println(s"  [$diagnosticType] $message\n")
+              }
+            )
           }
           System.exit(SUCCESS_ERROR_CODE)
         case Failure(exception: BuiltAstException) =>
