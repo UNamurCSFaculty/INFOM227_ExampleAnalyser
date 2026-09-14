@@ -100,16 +100,16 @@ In this example, we will use the following grammar to define the syntax of our l
 $$
 \begin{align}
 & \langle program \rangle ::= \, \langle function \rangle* \\
-& \langle function \rangle ::= \, 'function' \quad \langle identifier \rangle '(' \langle parameters \rangle ')' \quad \langle body \rangle \\
-& \langle parameters \rangle ::= \, [\, \langle identifier \rangle (',' \, \langle identifier \rangle)* \, ] \\
-& \langle body \rangle ::= \, '\{' \langle stmt \rangle* '\}' \\
+& \langle function \rangle ::= \, \text{'function'} \quad \langle identifier \rangle \text{'('} \langle parameters \rangle \text{')'} \quad \langle body \rangle \\
+& \langle parameters \rangle ::= \, [\, \langle identifier \rangle (\text{','} \, \langle identifier \rangle)* \, ] \\
+& \langle body \rangle ::= \, \text{'\{'} \langle stmt \rangle* \text{'\}'} \\
 & \langle stmt \rangle ::= \, \langle assignStmt \rangle \, | \, \langle ifStmt \rangle \, | \, \langle whileStmt \rangle \, | \, \langle returnStmt \rangle \\
-& \langle assignStmt \rangle ::= \, \langle identifier \rangle \, '=' \, (\langle expr \rangle | \langle funcCall \rangle) ';' \\
-& \langle ifStmt \rangle ::= \, 'if' \quad '(' \langle boolExpr \rangle ')' \quad \langle body \rangle \quad 'else' \quad \langle body \rangle \\
-& \langle whileStmt \rangle ::= \, 'while' \quad '(' \langle boolExpr \rangle ')' \quad \langle body \rangle \\
-& \langle returnStmt \rangle ::= \, 'return' \quad \langle expr \rangle ';' \\
-& \langle arguments \rangle ::= \, [\, \langle expr \rangle (',' \, \langle expr \rangle)* \, ] \\
-& \langle funcCall \rangle ::= \, \langle identifier \rangle '(' \langle arguments \rangle ')' \\
+& \langle assignStmt \rangle ::= \, \langle identifier \rangle \, \text{'='} \, (\langle expr \rangle | \langle funcCall \rangle) \text{';'} \\
+& \langle ifStmt \rangle ::= \, \text{'if'} \quad \text{'('} \langle boolExpr \rangle \text{')'} \quad \langle body \rangle \quad \text{'else'} \quad \langle body \rangle \\
+& \langle whileStmt \rangle ::= \, \text{'while'} \quad \text{'('} \langle boolExpr \rangle \text{')'} \quad \langle body \rangle \\
+& \langle returnStmt \rangle ::= \, \text{'return'} \quad \langle expr \rangle \text{';'} \\
+& \langle arguments \rangle ::= \, [\, \langle expr \rangle (\text{','} \, \langle expr \rangle)* \, ] \\
+& \langle funcCall \rangle ::= \, \langle identifier \rangle \text{'('} \langle arguments \rangle \text{')'} \\
 & \langle expr \rangle ::= \, \langle arithExpr \rangle \, | \, \langle boolExpr \rangle \\
 & \langle arithExpr \rangle ::= \, \langle noprnd \rangle \, | \, \langle binArithOp \rangle \\
 & \langle boolExpr \rangle ::= \, \langle boprnd \rangle \, | \, \langle relOp \rangle \, | \, \langle binLogicOp \rangle \\
@@ -117,13 +117,13 @@ $$
 & \langle binLogicOp \rangle ::= \, \langle noprnd \rangle \, \langle logicOp \rangle \, \langle noprnd \rangle \\
 & \langle relOp \rangle ::= \, \langle boprnd \rangle \, \langle nop \rangle \, \langle boprnd \rangle \\
 & \langle noprnd \rangle ::= \, \langle identifier \rangle \, | \, \langle num \rangle \\
-& \langle boprnd \rangle ::= \, \langle identifier \rangle \, | \, 'True' \, | \, 'False' \\
-& \langle arithOp \rangle ::= \, '+'\, | \,'-'\, | \,'*'\, | \,'/' \\
-& \langle logicOp \rangle ::= \, '<'\, | \,'>'\, | \,'=='\, | \,'!='\, | \,'>='\, | \,'<=' \\
-& \langle nop \rangle ::= \, '=='\, | \,'!='\, | \,'and'\, | \,'or' \\
-& \langle digit \rangle ::= \, '0'\, | \,'1'\, | \,'2'\, | \,'3'\, | \,'4'\, | \,'5'\, | \,'6'\, | \,'7'\, | \,'8'\, | \,'9' \\
+& \langle boprnd \rangle ::= \, \langle identifier \rangle \, | \, \text{'True'} \, | \, \text{'False'} \\
+& \langle arithOp \rangle ::= \, \text{'+'}\, | \,\text{'-'}\, | \,\text{'*'}\, | \,\text{'/'} \\
+& \langle logicOp \rangle ::= \, \text{'<'}\, | \,\text{'>'}\, | \,\text{'=='}\, | \,\text{'!='}\, | \,\text{'>='}\, | \,\text{'<='} \\
+& \langle nop \rangle ::= \, \text{'=='}\, | \,\text{'!='}\, | \,\text{'and'}\, | \,\text{'or'} \\
+& \langle digit \rangle ::= \, \text{'0'}\, | \,\text{'1'}\, | \,\text{'2'}\, | \,\text{'3'}\, | \,\text{'4'}\, | \,\text{'5'}\, | \,\text{'6'}\, | \,\text{'7'}\, | \,\text{'8'}\, | \,\text{'9'} \\
 & \langle num \rangle ::= \, \langle digit \rangle+ \\
-& \langle letter \rangle ::= \, 'a'\, | \,'b'\, | \,'c'\, | \,\ldots\, | \,'z'\, | \,'A'\, | \,'B'\, | \,'C'\, | \,\ldots\, | \,'Z' \\
+& \langle letter \rangle ::= \, \text{'a'}\, | \,\text{'b'}\, | \,\text{'c'}\, | \,\ldots\, | \,\text{'z'}\, | \,\text{'A'}\, | \,\text{'B'}\, | \,\text{'C'}\, | \,\ldots\, | \,\text{'Z'} \\
 & \langle identifier \rangle ::= \, \langle letter \rangle (\langle letter \rangle\, | \,\langle digit \rangle)*
 \end{align}
 $$
