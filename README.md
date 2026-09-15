@@ -99,32 +99,32 @@ In this example, we will use the following grammar to define the syntax of our l
 
 $$
 \begin{align}
-& \langle program \rangle ::= \, \langle function \rangle * \\
-& \langle function \rangle ::= \, \texttt{'function'} \quad \langle identifier \rangle \texttt{'('} \langle parameters \rangle \texttt{')'} \quad \langle body \rangle \\
-& \langle parameters \rangle ::= \, [\, \langle identifier \rangle (\texttt{','} \, \langle identifier \rangle) * \, ] \\
-& \langle body \rangle ::= \, \texttt{'\{'} \langle stmt \rangle * \texttt{'\}'} \\
-& \langle stmt \rangle ::= \, \langle assignStmt \rangle \, | \, \langle ifStmt \rangle \, | \, \langle whileStmt \rangle \, | \, \langle returnStmt \rangle \\
-& \langle assignStmt \rangle ::= \, \langle identifier \rangle \, \texttt{'='} \, (\langle expr \rangle | \langle funcCall \rangle) \texttt{';'} \\
-& \langle ifStmt \rangle ::= \, \texttt{'if'} \quad \texttt{'('} \langle boolExpr \rangle \texttt{')'} \quad \langle body \rangle \quad \texttt{'else'} \quad \langle body \rangle \\
-& \langle whileStmt \rangle ::= \, \texttt{'while'} \quad \texttt{'('} \langle boolExpr \rangle \texttt{')'} \quad \langle body \rangle \\
-& \langle returnStmt \rangle ::= \, \texttt{'return'} \quad \langle expr \rangle \texttt{';'} \\
-& \langle arguments \rangle ::= \, [\, \langle expr \rangle (\texttt{','} \, \langle expr \rangle) * \, ] \\
-& \langle funcCall \rangle ::= \, \langle identifier \rangle \texttt{'('} \langle arguments \rangle \texttt{')'} \\
-& \langle expr \rangle ::= \, \langle arithExpr \rangle \, | \, \langle boolExpr \rangle \\
-& \langle arithExpr \rangle ::= \, \langle noprnd \rangle \, | \, \langle binArithOp \rangle \\
-& \langle boolExpr \rangle ::= \, \langle boprnd \rangle \, | \, \langle relOp \rangle \, | \, \langle binLogicOp \rangle \\
-& \langle binArithOp \rangle ::= \, \langle noprnd \rangle \, \langle arithOp \rangle \, \langle noprnd \rangle \\
-& \langle binLogicOp \rangle ::= \, \langle noprnd \rangle \, \langle logicOp \rangle \, \langle noprnd \rangle \\
-& \langle relOp \rangle ::= \, \langle boprnd \rangle \, \langle nop \rangle \, \langle boprnd \rangle \\
-& \langle noprnd \rangle ::= \, \langle identifier \rangle \, | \, \langle num \rangle \\
-& \langle boprnd \rangle ::= \, \langle identifier \rangle \, | \, \texttt{'True'} \, | \, \texttt{'False'} \\
-& \langle arithOp \rangle ::= \, \texttt{'+'}\, | \,\texttt{'-'}\, | \,\texttt{'*'}\, | \,\texttt{'/'} \\
-& \langle logicOp \rangle ::= \, \texttt{'<'}\, | \,\texttt{'>'}\, | \,\texttt{'=='}\, | \,\texttt{'!='}\, | \,\texttt{'>='}\, | \,\texttt{'<='} \\
-& \langle nop \rangle ::= \, \texttt{'=='}\, | \,\texttt{'!='}\, | \,\texttt{'and'}\, | \,\texttt{'or'} \\
-& \langle digit \rangle ::= \, \texttt{'0'}\, | \,\texttt{'1'}\, | \,\texttt{'2'}\, | \,\texttt{'3'}\, | \,\texttt{'4'}\, | \,\texttt{'5'}\, | \,\texttt{'6'}\, | \,\texttt{'7'}\, | \,\texttt{'8'}\, | \,\texttt{'9'} \\
-& \langle num \rangle ::= \, \langle digit \rangle+ \\
-& \langle letter \rangle ::= \, \texttt{'a'}\, | \,\texttt{'b'}\, | \,\texttt{'c'}\, | \,\ldots\, | \,\texttt{'z'}\, | \,\texttt{'A'}\, | \,\texttt{'B'}\, | \,\texttt{'C'}\, | \,\ldots\, | \,\texttt{'Z'} \\
-& \langle identifier \rangle ::= \, \langle letter \rangle (\langle letter \rangle\, | \,\langle digit \rangle) *
+& \langle program \rangle ::= \ \langle function \rangle * \\
+& \langle function \rangle ::= \ \texttt{'function'} \quad \langle identifier \rangle \texttt{'('} \langle parameters \rangle \texttt{')'} \quad \langle body \rangle \\
+& \langle parameters \rangle ::= \ [\ \langle identifier \rangle (\texttt{','} \ \langle identifier \rangle) * \ ] \\
+& \langle body \rangle ::= \ \texttt{'\{'} \langle stmt \rangle * \texttt{'\}'} \\
+& \langle stmt \rangle ::= \ \langle assignStmt \rangle \ | \ \langle ifStmt \rangle \ | \ \langle whileStmt \rangle \ | \ \langle returnStmt \rangle \\
+& \langle assignStmt \rangle ::= \ \langle identifier \rangle \ \texttt{'='} \ (\langle expr \rangle | \langle funcCall \rangle) \texttt{';'} \\
+& \langle ifStmt \rangle ::= \ \texttt{'if'} \quad \texttt{'('} \langle boolExpr \rangle \texttt{')'} \quad \langle body \rangle \quad \texttt{'else'} \quad \langle body \rangle \\
+& \langle whileStmt \rangle ::= \ \texttt{'while'} \quad \texttt{'('} \langle boolExpr \rangle \texttt{')'} \quad \langle body \rangle \\
+& \langle returnStmt \rangle ::= \ \texttt{'return'} \quad \langle expr \rangle \texttt{';'} \\
+& \langle arguments \rangle ::= \ [\ \langle expr \rangle (\texttt{','} \ \langle expr \rangle) * \ ] \\
+& \langle funcCall \rangle ::= \ \langle identifier \rangle \texttt{'('} \langle arguments \rangle \texttt{')'} \\
+& \langle expr \rangle ::= \ \langle arithExpr \rangle \ | \ \langle boolExpr \rangle \\
+& \langle arithExpr \rangle ::= \ \langle noprnd \rangle \ | \ \langle binArithOp \rangle \\
+& \langle boolExpr \rangle ::= \ \langle boprnd \rangle \ | \ \langle relOp \rangle \ | \ \langle binLogicOp \rangle \\
+& \langle binArithOp \rangle ::= \ \langle noprnd \rangle \ \langle arithOp \rangle \ \langle noprnd \rangle \\
+& \langle binLogicOp \rangle ::= \ \langle noprnd \rangle \ \langle logicOp \rangle \ \langle noprnd \rangle \\
+& \langle relOp \rangle ::= \ \langle boprnd \rangle \ \langle nop \rangle \ \langle boprnd \rangle \\
+& \langle noprnd \rangle ::= \ \langle identifier \rangle \ | \ \langle num \rangle \\
+& \langle boprnd \rangle ::= \ \langle identifier \rangle \ | \ \texttt{'True'} \ | \ \texttt{'False'} \\
+& \langle arithOp \rangle ::= \ \texttt{'+'}\ | \,\texttt{'-'}\ | \,\texttt{'*'}\ | \,\texttt{'/'} \\
+& \langle logicOp \rangle ::= \ \texttt{'<'}\ | \,\texttt{'>'}\ | \,\texttt{'=='}\ | \,\texttt{'!='}\ | \,\texttt{'>='}\ | \,\texttt{'<='} \\
+& \langle nop \rangle ::= \ \texttt{'=='}\ | \,\texttt{'!='}\ | \,\texttt{'and'}\ | \,\texttt{'or'} \\
+& \langle digit \rangle ::= \ \texttt{'0'}\ | \,\texttt{'1'}\ | \,\texttt{'2'}\ | \,\texttt{'3'}\ | \,\texttt{'4'}\ | \,\texttt{'5'}\ | \,\texttt{'6'}\ | \,\texttt{'7'}\ | \,\texttt{'8'}\ | \,\texttt{'9'} \\
+& \langle num \rangle ::= \ \langle digit \rangle+ \\
+& \langle letter \rangle ::= \ \texttt{'a'}\ | \,\texttt{'b'}\ | \,\texttt{'c'}\ | \,\ldots\ | \,\texttt{'z'}\ | \,\texttt{'A'}\ | \,\texttt{'B'}\ | \,\texttt{'C'}\ | \,\ldots\ | \,\texttt{'Z'} \\
+& \langle identifier \rangle ::= \ \langle letter \rangle (\langle letter \rangle\ | \,\langle digit \rangle) *
 \end{align}
 $$
 
@@ -192,12 +192,12 @@ $$
 \text{[Op]} & \quad \frac{(x_1,\sigma) \leadsto v_1 \quad (x_2,\sigma) \leadsto v_2 \quad v_1 \oplus v_2 = v}{(x_1\oplus x_2,\sigma) \leadsto v} \\
 \text{[Sequence]} & \quad \frac{(s_1,\Sigma\bullet\sigma) \leadsto (\bot, \Sigma\bullet\sigma') \quad (s_2,\Sigma\bullet\sigma') \leadsto (v, \Sigma\bullet\sigma'')}{(s_1 \mathtt{;} s_2, \Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma'')} \\
 \text{[Early return]} & \quad \frac{v \in \mathbb{Z} \cup \lbrace \mathtt{True}, \mathtt{False} \rbrace \quad (s_1,\Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')}{(s_1 \mathtt{;} s_2, \Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')} \\
-\text{[Simple assignment]} & \quad \frac{(e,\sigma) \leadsto v \quad \sigma' = \sigma[x\mapsto v]}{(x \: \mathtt{=} \: e, \Sigma\bullet\sigma) \leadsto (\bot, \Sigma\bullet\sigma')} \\
-\text{[If-True]} & \quad \frac{(e,\sigma) \leadsto \mathtt{True}\quad (s_1,\Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')}{(\mathtt{if}\: (e)\: s_1\: \mathtt{else}\: s_2, \Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')} \\
-\text{[If-False]} & \quad \frac{(e,\sigma) \leadsto \mathtt{False}\quad (s_2,\Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')}{(\mathtt{if}\: (e)\: s_1\: \mathtt{else}\: s_2, \Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')} \\
+\text{[Simple assignment]} & \quad \frac{(e,\sigma) \leadsto v \quad \sigma' = \sigma[x\mapsto v]}{(x \ \mathtt{=} \ e, \Sigma\bullet\sigma) \leadsto (\bot, \Sigma\bullet\sigma')} \\
+\text{[If-True]} & \quad \frac{(e,\sigma) \leadsto \mathtt{True}\quad (s_1,\Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')}{(\mathtt{if}\ (e)\ s_1\ \mathtt{else}\ s_2, \Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')} \\
+\text{[If-False]} & \quad \frac{(e,\sigma) \leadsto \mathtt{False}\quad (s_2,\Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')}{(\mathtt{if}\ (e)\ s_1\ \mathtt{else}\ s_2, \Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')} \\
 \text{[While-True]} & \quad \frac{(e,\sigma) \leadsto \mathtt{True}\quad (s;\mathtt{while}\:(e)\:s, \Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')}{(\mathtt{while}\:(e)\:s, \Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')} \\
 \text{[While-False]} & \quad \frac{(e,\sigma) \leadsto \mathtt{False}}{(\mathtt{while}\:(e)\:s, \Sigma\bullet\sigma) \leadsto (\bot, \Sigma\bullet\sigma)} \\
-\text{[Return]} & \quad \frac{(e,\sigma) \leadsto v}{(\mathtt{return}\: e, \Sigma\bullet\sigma) \leadsto (v, \Sigma)} \\
+\text{[Return]} & \quad \frac{(e,\sigma) \leadsto v}{(\mathtt{return}\ e, \Sigma\bullet\sigma) \leadsto (v, \Sigma)} \\
 \text{[Function call]} & \quad \frac{
 \begin{aligned}
 \left(
@@ -218,8 +218,8 @@ $$
 \quad
 (B,\Sigma\bullet\sigma\bullet\sigma_n) \leadsto (v,\Sigma\bullet\sigma)
 \end{aligned}
-}{(y \: \mathtt{=} \: f(e_1, \ldots, e_n), \Sigma\bullet\sigma) \leadsto (\bot, \Sigma\bullet\sigma[y\mapsto v])} \\
-& \mbox{where $n \geq 0$ and $f$ is defined as}\:\mathtt{function}\: f(x_1,\ldots,x_n) \lbrace B \rbrace \\
+}{(y \ \mathtt{=} \ f(e_1, \ldots, e_n), \Sigma\bullet\sigma) \leadsto (\bot, \Sigma\bullet\sigma[y\mapsto v])} \\
+& \mbox{where $n \geq 0$ and $f$ is defined as}\:\mathtt{function}\ f(x_1,\ldots,x_n) \lbrace B \rbrace \\
 \end{align}
 $$
 
