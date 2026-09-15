@@ -118,13 +118,13 @@ $$
 & \langle relOp \rangle ::= \ \langle boprnd \rangle \ \langle nop \rangle \ \langle boprnd \rangle \\
 & \langle noprnd \rangle ::= \ \langle identifier \rangle \ | \ \langle num \rangle \\
 & \langle boprnd \rangle ::= \ \langle identifier \rangle \ | \ \texttt{'True'} \ | \ \texttt{'False'} \\
-& \langle arithOp \rangle ::= \ \texttt{'+'}\ | \,\texttt{'-'}\ | \,\texttt{'*'}\ | \,\texttt{'/'} \\
-& \langle logicOp \rangle ::= \ \texttt{'<'}\ | \,\texttt{'>'}\ | \,\texttt{'=='}\ | \,\texttt{'!='}\ | \,\texttt{'>='}\ | \,\texttt{'<='} \\
-& \langle nop \rangle ::= \ \texttt{'=='}\ | \,\texttt{'!='}\ | \,\texttt{'and'}\ | \,\texttt{'or'} \\
-& \langle digit \rangle ::= \ \texttt{'0'}\ | \,\texttt{'1'}\ | \,\texttt{'2'}\ | \,\texttt{'3'}\ | \,\texttt{'4'}\ | \,\texttt{'5'}\ | \,\texttt{'6'}\ | \,\texttt{'7'}\ | \,\texttt{'8'}\ | \,\texttt{'9'} \\
+& \langle arithOp \rangle ::= \ \texttt{'+'}\ | \ \texttt{'-'}\ | \ \texttt{'*'}\ | \ \texttt{'/'} \\
+& \langle logicOp \rangle ::= \ \texttt{'<'}\ | \ \texttt{'>'}\ | \ \texttt{'=='}\ | \ \texttt{'!='}\ | \ \texttt{'>='}\ | \ \texttt{'<='} \\
+& \langle nop \rangle ::= \ \texttt{'=='}\ | \ \texttt{'!='}\ | \ \texttt{'and'}\ | \ \texttt{'or'} \\
+& \langle digit \rangle ::= \ \texttt{'0'}\ | \ \texttt{'1'}\ | \ \texttt{'2'}\ | \ \texttt{'3'}\ | \ \texttt{'4'}\ | \ \texttt{'5'}\ | \ \texttt{'6'}\ | \ \texttt{'7'}\ | \ \texttt{'8'}\ | \ \texttt{'9'} \\
 & \langle num \rangle ::= \ \langle digit \rangle+ \\
-& \langle letter \rangle ::= \ \texttt{'a'}\ | \,\texttt{'b'}\ | \,\texttt{'c'}\ | \,\ldots\ | \,\texttt{'z'}\ | \,\texttt{'A'}\ | \,\texttt{'B'}\ | \,\texttt{'C'}\ | \,\ldots\ | \,\texttt{'Z'} \\
-& \langle identifier \rangle ::= \ \langle letter \rangle (\langle letter \rangle\ | \,\langle digit \rangle) *
+& \langle letter \rangle ::= \ \texttt{'a'}\ | \ \texttt{'b'}\ | \ \texttt{'c'}\ | \ \ldots\ | \ \texttt{'z'}\ | \ \texttt{'A'}\ | \ \texttt{'B'}\ | \ \texttt{'C'}\ | \ \ldots\ | \ \texttt{'Z'} \\
+& \langle identifier \rangle ::= \ \langle letter \rangle (\langle letter \rangle\ | \ \langle digit \rangle) *
 \end{align}
 $$
 
@@ -195,8 +195,8 @@ $$
 \text{[Simple assignment]} & \quad \frac{(e,\sigma) \leadsto v \quad \sigma' = \sigma[x\mapsto v]}{(x \ \mathtt{=} \ e, \Sigma\bullet\sigma) \leadsto (\bot, \Sigma\bullet\sigma')} \\
 \text{[If-True]} & \quad \frac{(e,\sigma) \leadsto \mathtt{True}\quad (s_1,\Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')}{(\mathtt{if}\ (e)\ s_1\ \mathtt{else}\ s_2, \Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')} \\
 \text{[If-False]} & \quad \frac{(e,\sigma) \leadsto \mathtt{False}\quad (s_2,\Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')}{(\mathtt{if}\ (e)\ s_1\ \mathtt{else}\ s_2, \Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')} \\
-\text{[While-True]} & \quad \frac{(e,\sigma) \leadsto \mathtt{True}\quad (s;\mathtt{while}\:(e)\:s, \Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')}{(\mathtt{while}\:(e)\:s, \Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')} \\
-\text{[While-False]} & \quad \frac{(e,\sigma) \leadsto \mathtt{False}}{(\mathtt{while}\:(e)\:s, \Sigma\bullet\sigma) \leadsto (\bot, \Sigma\bullet\sigma)} \\
+\text{[While-True]} & \quad \frac{(e,\sigma) \leadsto \mathtt{True}\quad (s;\mathtt{while}\ (e)\ s, \Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')}{(\mathtt{while}\ (e)\ s, \Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')} \\
+\text{[While-False]} & \quad \frac{(e,\sigma) \leadsto \mathtt{False}}{(\mathtt{while}\ (e)\ s, \Sigma\bullet\sigma) \leadsto (\bot, \Sigma\bullet\sigma)} \\
 \text{[Return]} & \quad \frac{(e,\sigma) \leadsto v}{(\mathtt{return}\ e, \Sigma\bullet\sigma) \leadsto (v, \Sigma)} \\
 \text{[Function call]} & \quad \frac{
 \begin{aligned}
@@ -219,7 +219,7 @@ $$
 (B,\Sigma\bullet\sigma\bullet\sigma_n) \leadsto (v,\Sigma\bullet\sigma)
 \end{aligned}
 }{(y \ \mathtt{=} \ f(e_1, \ldots, e_n), \Sigma\bullet\sigma) \leadsto (\bot, \Sigma\bullet\sigma[y\mapsto v])} \\
-& \mbox{where $n \geq 0$ and $f$ is defined as}\:\mathtt{function}\ f(x_1,\ldots,x_n) \lbrace B \rbrace \\
+& \mbox{where $n \geq 0$ and $f$ is defined as}\ \mathtt{function}\ f(x_1,\ldots,x_n) \lbrace B \rbrace \\
 \end{align}
 $$
 
