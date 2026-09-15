@@ -208,13 +208,13 @@ $$
 }
 \right)
 \quad
-\sigma_n &= \left\{
+\sigma_n &= \left\lbrace
 \substack{
 \displaystyle x_1 \mapsto a_1, \\\\
 \displaystyle \ldots \\\\
 \displaystyle x_n \mapsto a_n
 }
-\right\}
+\right\rbrace
 \quad
 (B,\Sigma\bullet\sigma\bullet\sigma_n) \leadsto (v,\Sigma\bullet\sigma)
 \end{aligned}
