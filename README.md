@@ -191,7 +191,7 @@ $$
 \text{[Var]} & \quad \frac{x\in\mathtt{< Var >}}{(x,\sigma) \leadsto \sigma(x)} \\
 \text{[Op]} & \quad \frac{(x_1,\sigma) \leadsto v_1 \quad (x_2,\sigma) \leadsto v_2 \quad v_1 \oplus v_2 = v}{(x_1\oplus x_2,\sigma) \leadsto v} \\
 \text{[Sequence]} & \quad \frac{(s_1,\Sigma\bullet\sigma) \leadsto (\bot, \Sigma\bullet\sigma') \quad (s_2,\Sigma\bullet\sigma') \leadsto (v, \Sigma\bullet\sigma'')}{(s_1 \mathtt{;} s_2, \Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma'')} \\
-\text{[Early return]} & \quad \frac{v \in \mathbb{Z} \cup \{\mathtt{True}, \mathtt{False}\} \quad (s_1,\Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')}{(s_1 \mathtt{;} s_2, \Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')} \\
+\text{[Early return]} & \quad \frac{v \in \mathbb{Z} \cup \lbrace \mathtt{True}, \mathtt{False} \rbrace \quad (s_1,\Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')}{(s_1 \mathtt{;} s_2, \Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')} \\
 \text{[Simple assignment]} & \quad \frac{(e,\sigma) \leadsto v \quad \sigma' = \sigma[x\mapsto v]}{(x \: \mathtt{=} \: e, \Sigma\bullet\sigma) \leadsto (\bot, \Sigma\bullet\sigma')} \\
 \text{[If-True]} & \quad \frac{(e,\sigma) \leadsto \mathtt{True}\quad (s_1,\Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')}{(\mathtt{if}\: (e)\: s_1\: \mathtt{else}\: s_2, \Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')} \\
 \text{[If-False]} & \quad \frac{(e,\sigma) \leadsto \mathtt{False}\quad (s_2,\Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')}{(\mathtt{if}\: (e)\: s_1\: \mathtt{else}\: s_2, \Sigma\bullet\sigma) \leadsto (v, \Sigma\bullet\sigma')} \\
@@ -219,7 +219,7 @@ $$
 (B,\Sigma\bullet\sigma\bullet\sigma_n) \leadsto (v,\Sigma\bullet\sigma)
 \end{aligned}
 }{(y \: \mathtt{=} \: f(e_1, \ldots, e_n), \Sigma\bullet\sigma) \leadsto (\bot, \Sigma\bullet\sigma[y\mapsto v])} \\
-& \mbox{where $n \geq 0$ and $f$ is defined as}\:\mathtt{function}\: f(x_1,\ldots,x_n) \{B\} \\
+& \mbox{where $n \geq 0$ and $f$ is defined as}\:\mathtt{function}\: f(x_1,\ldots,x_n) \lbrace B \rbrace \\
 \end{align}
 $$
 
@@ -229,7 +229,7 @@ with:
 - The symbol $\oplus$ corresponds to the operators `+`, `-`, `*`, `/`, `<`, `>`, `<=`, `>=`, `!=`, `==`, `and` and `or`
   with their mathematical semantics.
 - The symbol $\mathcal{E}$ corresponds to the set of all possible environments.
-- The symbol $\sigma$, with $\sigma \in \mathcal{E}$ and $\sigma : < Var > \mapsto \mathbb{Z} \cup \{True, False\}$,
+- The symbol $\sigma$, with $\sigma \in \mathcal{E}$ and $\sigma : < Var > \mapsto \mathbb{Z} \cup \lbrace True, False \rbrace$,
   corresponds to the environment of the function currently being executed.
 - The symbol $\Sigma$, with $\Sigma = \langle \sigma_0, ..., \sigma_n \rangle$, corresponds to the execution stack which
   is a sequence of environments.
@@ -282,7 +282,7 @@ First, we need to define the set of abstract values $L$ that we are going to use
 these values:
 
 $$
-L = \{Bottom, Z, NZ, U\}
+L = \lbrace Bottom, Z, NZ, U \rbrace
 $$
 
 with:
@@ -308,9 +308,9 @@ $$
 
 $$
 \begin{align}
-& \gamma(a) = & \{0\} & \quad if & a = Z \\
+& \gamma(a) = & \lbrace 0 \rbrace & \quad if & a = Z \\
 & & \mathbb{Z}_0 & \quad if & a = NZ \\
-& & \mathbb{Z} \cup \{True, False\} & \quad otherwise
+& & \mathbb{Z} \cup \lbrace True, False \rbrace & \quad otherwise
 \end{align}
 $$
 
@@ -352,7 +352,7 @@ with:
 $$
 \begin{align}
 & f [[ x = 0 ]] (\phi) = & \phi[x \mapsto Z] & & & \\
-& f [[ x = c ]] (\phi) = & \phi[x \mapsto NZ] & \quad if & c \in \mathbb{Z}_0 \cup \{True, False\} & \\
+& f [[ x = c ]] (\phi) = & \phi[x \mapsto NZ] & \quad if & c \in \mathbb{Z}_0 \cup \lbrace True, False \rbrace & \\
 & f [[ x = y ]] (\phi) = & \phi[x \mapsto \phi(y)] & \quad if & y \in < Var > & \\
 & f [[ x = c + d ]] (\phi) = & \phi[x \mapsto Z] & \quad if & c = -d & \\
 & & \phi[x \mapsto U] & \quad otherwise & & \\
@@ -416,19 +416,19 @@ It is also possible to represent the analysis using GEN/KILL:
 $$
 \begin{align}
 \phi_1 \sqsubseteq \phi_2 & \Leftrightarrow \forall x \in dom(\phi_1) \Rightarrow (x \in \phi_2 \land \phi_1(x) \sqsubseteq \phi_2(x)) \\
-\phi_1 \sqcup \phi_2 & = \{x \mapsto \phi_1(x) \sqcup \phi_2(x) \mid x \in dom(\phi_1) \cap dom(\phi_2)\} \\
-& \cup \{x \mapsto \phi_1(x) \mid x \in dom(\phi_1) \setminus dom(\phi_2)\} \\
-& \cup \{x \mapsto \phi_2(x) \mid x \in dom(\phi_2) \setminus dom(\phi_1)\} \\
-\top & = \{x \mapsto U \mid x \in < Var >\} \\
-\bot & = \{\}\\
+\phi_1 \sqcup \phi_2 & = \lbrace x \mapsto \phi_1(x) \sqcup \phi_2(x) \mid x \in dom(\phi_1) \cap dom(\phi_2) \rbrace \\
+& \cup \lbrace x \mapsto \phi_1(x) \mid x \in dom(\phi_1) \setminus dom(\phi_2) \rbrace \\
+& \cup \lbrace x \mapsto \phi_2(x) \mid x \in dom(\phi_2) \setminus dom(\phi_1) \rbrace \\
+\top & = \lbrace x \mapsto U \mid x \in < Var > \rbrace \\
+\bot & = \lbrace \rbrace\\
 \end{align}
 $$
 
 $$
 \begin{align}
-& GEN(p) = & \{x \mapsto fg[[p]](\phi)(x)\} & \quad if & P[p] \equiv x = E \\
+& GEN(p) = & \lbrace x \mapsto fg[[p]](\phi)(x) \rbrace & \quad if & P[p] \equiv x = E \\
 & & \emptyset & \quad otherwise & \\
-& KILL(p) = & \{x \mapsto \phi(x)\} & \quad if & x \in \phi \land P[p] \equiv x = E \\
+& KILL(p) = & \lbrace x \mapsto \phi(x) \rbrace & \quad if & x \in \phi \land P[p] \equiv x = E \\
 & & \emptyset & \quad otherwise & \\
 \end{align}
 $$
