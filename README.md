@@ -426,7 +426,7 @@ $$
 
 $$
 \begin{align}
-& GEN(p) = & \lbrace x \mapsto fg[[p]](\phi)(x) \rbrace & \quad if & P[p] \equiv x = E \\
+& GEN(p) = & \lbrace x \mapsto fg[[ p ]] (\phi) (x) \rbrace & \quad if & P[p] \equiv x = E \\
 & & \emptyset & \quad otherwise & \\
 & KILL(p) = & \lbrace x \mapsto \phi(x) \rbrace & \quad if & x \in \phi \land P[p] \equiv x = E \\
 & & \emptyset & \quad otherwise & \\
