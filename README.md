@@ -99,16 +99,16 @@ In this example, we will use the following grammar to define the syntax of our l
 
 $$
 \begin{align}
-& \langle program \rangle ::= \, \langle function \rangle* \\
+& \langle program \rangle ::= \, \langle function \rangle * \\
 & \langle function \rangle ::= \, \texttt{'function'} \quad \langle identifier \rangle \texttt{'('} \langle parameters \rangle \texttt{')'} \quad \langle body \rangle \\
-& \langle parameters \rangle ::= \, [\, \langle identifier \rangle (\texttt{','} \, \langle identifier \rangle)* \, ] \\
-& \langle body \rangle ::= \, \texttt{'\{'} \langle stmt \rangle* \texttt{'\}'} \\
+& \langle parameters \rangle ::= \, [\, \langle identifier \rangle (\texttt{','} \, \langle identifier \rangle) * \, ] \\
+& \langle body \rangle ::= \, \texttt{'\{'} \langle stmt \rangle * \texttt{'\}'} \\
 & \langle stmt \rangle ::= \, \langle assignStmt \rangle \, | \, \langle ifStmt \rangle \, | \, \langle whileStmt \rangle \, | \, \langle returnStmt \rangle \\
 & \langle assignStmt \rangle ::= \, \langle identifier \rangle \, \texttt{'='} \, (\langle expr \rangle | \langle funcCall \rangle) \texttt{';'} \\
 & \langle ifStmt \rangle ::= \, \texttt{'if'} \quad \texttt{'('} \langle boolExpr \rangle \texttt{')'} \quad \langle body \rangle \quad \texttt{'else'} \quad \langle body \rangle \\
 & \langle whileStmt \rangle ::= \, \texttt{'while'} \quad \texttt{'('} \langle boolExpr \rangle \texttt{')'} \quad \langle body \rangle \\
 & \langle returnStmt \rangle ::= \, \texttt{'return'} \quad \langle expr \rangle \texttt{';'} \\
-& \langle arguments \rangle ::= \, [\, \langle expr \rangle (\texttt{','} \, \langle expr \rangle)* \, ] \\
+& \langle arguments \rangle ::= \, [\, \langle expr \rangle (\texttt{','} \, \langle expr \rangle) * \, ] \\
 & \langle funcCall \rangle ::= \, \langle identifier \rangle \texttt{'('} \langle arguments \rangle \texttt{')'} \\
 & \langle expr \rangle ::= \, \langle arithExpr \rangle \, | \, \langle boolExpr \rangle \\
 & \langle arithExpr \rangle ::= \, \langle noprnd \rangle \, | \, \langle binArithOp \rangle \\
@@ -124,7 +124,7 @@ $$
 & \langle digit \rangle ::= \, \texttt{'0'}\, | \,\texttt{'1'}\, | \,\texttt{'2'}\, | \,\texttt{'3'}\, | \,\texttt{'4'}\, | \,\texttt{'5'}\, | \,\texttt{'6'}\, | \,\texttt{'7'}\, | \,\texttt{'8'}\, | \,\texttt{'9'} \\
 & \langle num \rangle ::= \, \langle digit \rangle+ \\
 & \langle letter \rangle ::= \, \texttt{'a'}\, | \,\texttt{'b'}\, | \,\texttt{'c'}\, | \,\ldots\, | \,\texttt{'z'}\, | \,\texttt{'A'}\, | \,\texttt{'B'}\, | \,\texttt{'C'}\, | \,\ldots\, | \,\texttt{'Z'} \\
-& \langle identifier \rangle ::= \, \langle letter \rangle (\langle letter \rangle\, | \,\langle digit \rangle)*
+& \langle identifier \rangle ::= \, \langle letter \rangle (\langle letter \rangle\, | \,\langle digit \rangle) *
 \end{align}
 $$
 
