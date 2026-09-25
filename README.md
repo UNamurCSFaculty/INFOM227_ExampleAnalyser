@@ -310,7 +310,8 @@ $$
 \begin{align}
 & \gamma(a) = & \lbrace 0 \rbrace & \quad if & a = Z \\
 & & \mathbb{Z}_0 & \quad if & a = NZ \\
-& & \mathbb{Z} \cup \lbrace True, False \rbrace & \quad otherwise
+& & \mathbb{Z} \cup \lbrace True, False \rbrace & \quad if & a = U \\
+& & \emptyset & \quad if & a = Bottom
 \end{align}
 $$
 
