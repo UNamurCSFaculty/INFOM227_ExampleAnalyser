@@ -1,0 +1,16 @@
+function main(w) {
+    x = 0;
+    y = 5;
+    z = 0 - 3;
+    if (w <= 0) {
+        w = x * z;
+    } else {
+        w = z * z;
+    }
+    while (z <= 0) {
+        z = y * z;
+        y = w;
+    }
+    x = z * z;
+    return x;
+}
