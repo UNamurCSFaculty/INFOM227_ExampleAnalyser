@@ -1,6 +1,9 @@
 package be.unamur.info.infom227.small.analysis
 
-import scala.util.Try
+import be.unamur.info.infom227.small.ast.{BooleanExpression, Statement}
+import be.unamur.info.infom227.small.cfg.{Cfg, ProgramPoint}
+
+import scala.util.{Failure, Success, Try}
 import scala.collection.mutable
 import scala.util.control.Breaks.*
 
@@ -15,6 +18,55 @@ trait GraphAnalyser[N, S, A] {
   def merge(analysisState: A, node: N, left: S, right: S): Try[S]
   def optimise(analysisState: A, worklist: mutable.Set[N]): Try[Unit] = Try(())
 }
+
+
+abstract class SimpleAnalyzer[T <: Lattice[T]](cfg: Cfg) extends GraphAnalyser[ProgramPoint, AbstractState[T], AnalysisState[T]]:
+  def bottom(): T
+
+  def top(): T
+
+  def analyseStatement(abstractState: AbstractState[T], statement: Statement): AbstractState[T]
+
+  def conditionUpdate(abstractState: AbstractState[T], condition: BooleanExpression): Option[AbstractState[T]]
+
+  override def entryNodes: Set[ProgramPoint] = cfg.entryPoints
+
+  override def nextNodes(abstractState: AbstractState[T], node: ProgramPoint): Try[Set[ProgramPoint]] = Success(cfg.successors(node))
+
+  override def initialiseAnalysisState(): Try[AnalysisState[T]] = Success(AnalysisState(mutable.Map(ProgramPoint.EntryPoint -> AbstractState(cfg.parameters.map { parameter => parameter -> top() }.toMap))))
+
+  override def analyseNode(analysisState: AnalysisState[T], node: ProgramPoint): Try[AbstractState[T]] = {
+    val abstractState = analysisState.abstractStates.getOrElse(node, AbstractState())
+
+    node match {
+      case ProgramPoint.StatementPoint(statement) => Try(analyseStatement(abstractState, statement))
+      case _ => Success(abstractState)
+    }
+  }
+
+  override def updateAbstractState(analysisState: AnalysisState[T], from: ProgramPoint, to: ProgramPoint, abstractState: AbstractState[T]): Try[Option[AbstractState[T]]] =
+    cfg.condition(from, to) match {
+      case Some(condition) => Try(conditionUpdate(abstractState, condition))
+      case _ => Failure(new RuntimeException("condition should always exist"))
+    }
+
+  override def getAbstractState(analysisState: AnalysisState[T], node: ProgramPoint): Try[Option[AbstractState[T]]] = Success(analysisState.abstractStates.get(node))
+
+  override def setAbstractState(analysisState: AnalysisState[T], node: ProgramPoint, abstractState: AbstractState[T]): Try[Unit] = {
+    analysisState.abstractStates.addOne(node -> abstractState)
+    Success(())
+  }
+
+  override def merge(analysisState: AnalysisState[T], node: ProgramPoint, left: AbstractState[T], right: AbstractState[T]): Try[AbstractState[T]] = {
+    Success(AbstractState(left.variables.foldLeft(right.variables) { (acc, entry) =>
+      val (name, newAbstractValue) = entry
+      val mergedValue = acc.get(name) match {
+        case Some(currentAbstractValue) => newAbstractValue.join(currentAbstractValue)
+        case None => newAbstractValue
+      }
+      acc + (name -> mergedValue)
+    }))
+  }
 
 def analysis[N: Ordering, S, A, G <: GraphAnalyser[N, S, A], O <: AnalysisObserver[N, S, A]](analyser: G, observer: O): Try[A] = {
   Try {

@@ -42,9 +42,13 @@ enum ZeroAnalysisAbstractValue extends Lattice[ZeroAnalysisAbstractValue]:
     }
   }
 
-case class ZeroAnalysis(cfg: Cfg) extends GraphAnalyser[ProgramPoint, AbstractState[ZeroAnalysisAbstractValue], AnalysisState[ZeroAnalysisAbstractValue]]:
+class ZeroAnalysis(cfg: Cfg) extends SimpleAnalyzer[ZeroAnalysisAbstractValue](cfg):
+  override def bottom(): ZeroAnalysisAbstractValue = ZeroAnalysisAbstractValue.Bottom
+
+  override def top(): ZeroAnalysisAbstractValue = ZeroAnalysisAbstractValue.Unknown
+
   @tailrec
-  private def analyseStatement(abstractState: AbstractState[ZeroAnalysisAbstractValue], statement: Statement): AbstractState[ZeroAnalysisAbstractValue] = {
+  final override def analyseStatement(abstractState: AbstractState[ZeroAnalysisAbstractValue], statement: Statement): AbstractState[ZeroAnalysisAbstractValue] = {
     statement match {
       case AssignStatement(lineNumber, variable, expression) =>
         expression match {
@@ -89,7 +93,7 @@ case class ZeroAnalysis(cfg: Cfg) extends GraphAnalyser[ProgramPoint, AbstractSt
   }
 
   @tailrec
-  private def conditionUpdate(abstractState: AbstractState[ZeroAnalysisAbstractValue], condition: BooleanExpression): Option[AbstractState[ZeroAnalysisAbstractValue]] = {
+  final override def conditionUpdate(abstractState: AbstractState[ZeroAnalysisAbstractValue], condition: BooleanExpression): Option[AbstractState[ZeroAnalysisAbstractValue]] = {
     condition match {
       case BooleanConstant(true) =>
         Some(abstractState)
@@ -171,45 +175,6 @@ case class ZeroAnalysis(cfg: Cfg) extends GraphAnalyser[ProgramPoint, AbstractSt
       case _ =>
         Some(abstractState)
     }
-  }
-
-  override def entryNodes: Set[ProgramPoint] = cfg.entryPoints
-
-  override def nextNodes(abstractState: AbstractState[ZeroAnalysisAbstractValue], node: ProgramPoint): Try[Set[ProgramPoint]] = Success(cfg.successors(node))
-
-  override def initialiseAnalysisState(): Try[AnalysisState[ZeroAnalysisAbstractValue]] = Success(AnalysisState(mutable.Map(ProgramPoint.EntryPoint -> AbstractState(cfg.parameters.map { parameter => parameter -> ZeroAnalysisAbstractValue.Unknown }.toMap))))
-
-  override def analyseNode(analysisState: AnalysisState[ZeroAnalysisAbstractValue], node: ProgramPoint): Try[AbstractState[ZeroAnalysisAbstractValue]] = {
-    val abstractState = analysisState.abstractStates.getOrElse(node, AbstractState())
-
-    node match {
-      case ProgramPoint.StatementPoint(statement) => Try(analyseStatement(abstractState, statement))
-      case _ => Success(abstractState)
-    }
-  }
-
-  override def updateAbstractState(analysisState: AnalysisState[ZeroAnalysisAbstractValue], from: ProgramPoint, to: ProgramPoint, abstractState: AbstractState[ZeroAnalysisAbstractValue]): Try[Option[AbstractState[ZeroAnalysisAbstractValue]]] =
-    cfg.condition(from, to) match {
-      case Some(condition) => Try(conditionUpdate(abstractState, condition))
-      case _ => Failure(new RuntimeException("condition should always exist"))
-    }
-
-  override def getAbstractState(analysisState: AnalysisState[ZeroAnalysisAbstractValue], node: ProgramPoint): Try[Option[AbstractState[ZeroAnalysisAbstractValue]]] = Success(analysisState.abstractStates.get(node))
-
-  override def setAbstractState(analysisState: AnalysisState[ZeroAnalysisAbstractValue], node: ProgramPoint, abstractState: AbstractState[ZeroAnalysisAbstractValue]): Try[Unit] = {
-    analysisState.abstractStates.addOne(node -> abstractState)
-    Success(())
-  }
-
-  override def merge(analysisState: AnalysisState[ZeroAnalysisAbstractValue], node: ProgramPoint, left: AbstractState[ZeroAnalysisAbstractValue], right: AbstractState[ZeroAnalysisAbstractValue]): Try[AbstractState[ZeroAnalysisAbstractValue]] = {
-    Success(AbstractState(left.variables.foldLeft(right.variables) { (acc, entry) =>
-      val (name, newAbstractValue) = entry
-      val mergedValue = acc.get(name) match {
-        case Some(currentAbstractValue) => newAbstractValue.join(currentAbstractValue)
-        case None => newAbstractValue
-      }
-      acc + (name -> mergedValue)
-    }))
   }
 
 def zeroAnalysis(cfgs: Map[String, Cfg], observer: AnalysisObserver[ProgramPoint, AbstractState[ZeroAnalysisAbstractValue], AnalysisState[ZeroAnalysisAbstractValue]]): Try[Map[String, AnalysisState[ZeroAnalysisAbstractValue]]] = {
