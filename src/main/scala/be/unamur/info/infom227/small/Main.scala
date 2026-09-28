@@ -1,6 +1,6 @@
 package be.unamur.info.infom227.small
 
-import be.unamur.info.infom227.small.analysis.{DummyObserver, ZeroAnalysisObserver}
+import be.unamur.info.infom227.small.analysis.{DummyObserver, TableObserver, ZeroAnalysisAbstractValue}
 import be.unamur.info.infom227.small.ast.BuiltAstException
 import be.unamur.info.infom227.small.cfg.ProgramPoint
 import org.antlr.v4.runtime.CharStreams
@@ -39,7 +39,7 @@ val UNKNOWN_ACTION_ERROR_CODE = 3
         program <- ast.build(programContext)
         cfgs = cfg.build(program)
         zeroAnalyses <- analysis.zeroAnalysis(cfgs, if (others.contains("-v")) {
-          ZeroAnalysisObserver()
+          TableObserver[ZeroAnalysisAbstractValue]()
         } else {
           DummyObserver()
         })
