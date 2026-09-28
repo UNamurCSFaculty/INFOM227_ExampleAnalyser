@@ -7,14 +7,14 @@ import scala.util.{Failure, Success, Try}
 
 type VariableType = Int | Boolean
 
-def execute(program: Program, entry: String): Try[VariableType] = {
+def execute(program: Program, entry: String, arguments: List[VariableType] = List.empty): Try[VariableType] = {
   program.functions.get(entry) match {
     case Some(entryFunction) =>
-      if (entryFunction.parameters.nonEmpty) {
-        Failure(RuntimeException("The entry function should not have parameters."))
+      if (entryFunction.parameters.length != arguments.length) {
+        Failure(RuntimeException(s"The number of arguments (${arguments.length}) does not match the number of parameters (${entryFunction.parameters.length})."))
       } else {
         for {
-          (_, returnValue) <- executeFunction(program, Environments().push(), entryFunction.body)
+          (_, returnValue) <- executeFunction(program, Environments().push(entryFunction.parameters.zip(arguments).toMap), entryFunction.body)
         } yield returnValue
       }
     case None =>

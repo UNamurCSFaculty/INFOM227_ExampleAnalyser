@@ -3,6 +3,7 @@ package be.unamur.info.infom227.small
 import be.unamur.info.infom227.small.analysis.{DummyObserver, Table, TableObserver, ZeroAnalysis, ZeroAnalysisAbstractValue, ZeroAnalysisInterpreter}
 import be.unamur.info.infom227.small.ast.BuiltAstException
 import be.unamur.info.infom227.small.cfg.ProgramPoint
+import be.unamur.info.infom227.small.interpreter.VariableType
 import org.antlr.v4.runtime.CharStreams
 
 import scala.util.{Failure, Success, Try}
@@ -12,14 +13,26 @@ val COMPILATION_ERROR_CODE = 1
 val FATAL_ERROR_CODE = 2
 val UNKNOWN_ACTION_ERROR_CODE = 3
 
+def parseArgument(string: String): Try[VariableType] =
+  string.toIntOption
+    .map(i => Success(i: VariableType))
+    .orElse(string.toBooleanOption.map(b => Success(b: VariableType)))
+    .getOrElse(Failure(new IllegalArgumentException(s"Cannot parse: $string")))
+
 @main def main(action: String, file: String, others: String*): Unit = {
   action match {
     case "run" =>
       val tryResult = for {
+        arguments <- others.foldRight(Try(List.empty[VariableType])) { (string, acc) =>
+          for {
+            args <- acc
+            arg <- parseArgument(string)
+          } yield arg :: args
+        }
         charStream <- Try(CharStreams.fromFileName(file))
         programContext <- cst.parse(charStream)
         program <- ast.build(programContext)
-        result <- interpreter.execute(program, "main")
+        result <- interpreter.execute(program, "main", arguments)
       } yield result
 
       tryResult match

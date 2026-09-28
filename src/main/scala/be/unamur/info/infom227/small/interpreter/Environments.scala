@@ -1,9 +1,8 @@
 package be.unamur.info.infom227.small.interpreter
 
-import scala.collection.immutable.HashMap
 import scala.util.{Failure, Success, Try}
 
-class Environments[T](val environments: List[HashMap[String, T]] = List.empty) {
+class Environments[T](val environments: List[Map[String, T]] = List.empty) {
   def get(name: String): Try[T] = {
     val value = for {
       head <- environments.headOption
@@ -23,7 +22,7 @@ class Environments[T](val environments: List[HashMap[String, T]] = List.empty) {
     }
   }
 
-  def push(environment: HashMap[String, T] = HashMap.empty): Environments[T] = {
+  def push(environment: Map[String, T] = Map.empty): Environments[T] = {
     Environments(environment :: environments)
   }
 
