@@ -22,7 +22,7 @@ class DummyObserver[N, S, A] extends AnalysisObserver[N, S, A]
 
 case class Row[T <: Lattice[T]](programPoint: ProgramPoint, worklist: Set[ProgramPoint], beforeAbstractState: AbstractState[T], afterAbstractState: AbstractState[T])
 
-case class Table[T <: Lattice[T]](rows: mutable.ListBuffer[Row[T]] = mutable.ListBuffer[Row[T]]()):
+case class Table[T <: Lattice[T]](rows: mutable.ListBuffer[Row[T]] = mutable.ListBuffer.empty[Row[T]], bottomSymbol: String = ""):
   private def center(string: String, width: Int): String = {
     val padding = math.max(0, width - string.length)
     val left = padding / 2
@@ -50,13 +50,13 @@ case class Table[T <: Lattice[T]](rows: mutable.ListBuffer[Row[T]] = mutable.Lis
         variables.map { variable =>
           row.beforeAbstractState.variables.get(variable) match {
             case Some(value) => s" ${value.toString} "
-            case None => "⊥"
+            case None => bottomSymbol
           }
         },
         variables.map { variable =>
           row.afterAbstractState.variables.get(variable) match {
             case Some(value) => s" ${value.toString} "
-            case None => "⊥"
+            case None => bottomSymbol
           }
         }
       )

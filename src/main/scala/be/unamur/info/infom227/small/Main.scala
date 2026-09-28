@@ -1,8 +1,7 @@
 package be.unamur.info.infom227.small
 
-import be.unamur.info.infom227.small.analysis.{DummyObserver, TableObserver, ZeroAnalysisAbstractValue}
+import be.unamur.info.infom227.small.analysis.{DummyObserver, Table, TableObserver, ZeroAnalysisAbstractValue}
 import be.unamur.info.infom227.small.ast.BuiltAstException
-import be.unamur.info.infom227.small.cfg.ProgramPoint
 import org.antlr.v4.runtime.CharStreams
 
 import scala.util.{Failure, Success, Try}
@@ -33,7 +32,7 @@ val UNKNOWN_ACTION_ERROR_CODE = 3
           println(s"Fatal error:\n${exception.getMessage}")
           System.exit(FATAL_ERROR_CODE)
     case "zero-analysis" =>
-      val observer = TableObserver[ZeroAnalysisAbstractValue]()
+      val observer = TableObserver[ZeroAnalysisAbstractValue](table = Table(bottomSymbol = ZeroAnalysisAbstractValue.Bottom.toString))
 
       val tryResult = for {
         charStream <- Try(CharStreams.fromFileName(file))
