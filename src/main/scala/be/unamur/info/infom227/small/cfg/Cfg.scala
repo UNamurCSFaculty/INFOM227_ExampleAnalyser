@@ -2,7 +2,9 @@ package be.unamur.info.infom227.small.cfg
 
 import be.unamur.info.infom227.small.ast.BooleanExpression
 
-case class Cfg(edges: Map[(ProgramPoint, ProgramPoint), BooleanExpression]) {
+import scala.collection.SortedMap
+
+case class Cfg(parameters: List[String], edges: SortedMap[(ProgramPoint, ProgramPoint), BooleanExpression]) {
 
   def successors(programPoint: ProgramPoint): Set[ProgramPoint] = {
     edges.keys.filter(_._1 == programPoint).map(_._2).toSet

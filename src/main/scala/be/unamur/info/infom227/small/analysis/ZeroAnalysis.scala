@@ -62,8 +62,7 @@ case class ZeroAnalysisAbstractState(variables: Map[String, ZeroAnalysisAbstract
     builder.toString()
   }
 
-class ZeroAnalysisState:
-  var abstractStates: mutable.Map[ProgramPoint, ZeroAnalysisAbstractState] = mutable.Map()
+case class ZeroAnalysisState(var abstractStates: mutable.Map[ProgramPoint, ZeroAnalysisAbstractState] = mutable.Map())
 
 case class ZeroAnalysis(cfg: Cfg) extends GraphAnalyser[ProgramPoint, ZeroAnalysisAbstractState, ZeroAnalysisState]:
   @tailrec
@@ -213,7 +212,7 @@ case class ZeroAnalysis(cfg: Cfg) extends GraphAnalyser[ProgramPoint, ZeroAnalys
 
   override def nextNodes(abstractState: ZeroAnalysisAbstractState, node: ProgramPoint): Try[Set[ProgramPoint]] = Success(cfg.successors(node))
 
-  override def initialiseAnalysisState(): Try[ZeroAnalysisState] = Success(ZeroAnalysisState())
+  override def initialiseAnalysisState(): Try[ZeroAnalysisState] = Success(ZeroAnalysisState(mutable.Map(ProgramPoint.EntryPoint -> ZeroAnalysisAbstractState(cfg.parameters.map { parameter => parameter -> ZeroAnalysisAbstractValue.Unknown }.toMap))))
 
   override def analyseNode(analysisState: ZeroAnalysisState, node: ProgramPoint): Try[ZeroAnalysisAbstractState] = {
     val abstractState = analysisState.abstractStates.getOrElse(node, ZeroAnalysisAbstractState())
@@ -281,17 +280,17 @@ case class ZeroAnalysisObserver(var beforeAbstractState: Option[ZeroAnalysisAbst
     val header = List((" PP ", " WL ", variables.map { variable => f" Φ($variable) " }, variables.map { variable => f" res($variable) " }))
     val stringTable = table.foldLeft(header) { (acc, row) =>
       acc :+ (
-        row.programPoint.toString,
-        row.worklist.mkString(","),
+        s" ${row.programPoint.toString} ",
+        s" ${row.worklist.mkString(",")} ",
         variables.map { variable =>
           row.beforeAbstractState.variables.get(variable) match {
-            case Some(value) => value.toString
+            case Some(value) => s" ${value.toString} "
             case None => "⊥"
           }
         },
         variables.map { variable =>
           row.afterAbstractState.variables.get(variable) match {
-            case Some(value) => value.toString
+            case Some(value) => s" ${value.toString} "
             case None => "⊥"
           }
         }

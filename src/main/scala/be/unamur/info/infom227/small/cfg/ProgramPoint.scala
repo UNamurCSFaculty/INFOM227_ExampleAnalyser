@@ -13,3 +13,11 @@ enum ProgramPoint {
     case ExitPoint => "◎"
   }
 }
+
+object ProgramPoint:
+  given Ordering[ProgramPoint] =
+    Ordering.by {
+      case ProgramPoint.EntryPoint                => (0, 0)
+      case ProgramPoint.StatementPoint(statement) => (1, statement.lineNumber)
+      case ProgramPoint.ExitPoint                 => (2, 0)
+    }

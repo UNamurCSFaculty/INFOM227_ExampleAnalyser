@@ -18,9 +18,9 @@ class TestCfgBuilder extends AnyFunSuite {
       """,
       """
       digraph "main" {
-          "PP(3)" -> "PP(4)" [label="BooleanConstant(true)"];
-          "EntryPoint" -> "PP(3)" [label="BooleanConstant(true)"];
-          "PP(4)" -> "ExitPoint" [label="BooleanConstant(true)"];
+          "○" -> "3" [label="BooleanConstant(true)"];
+          "3" -> "4" [label="BooleanConstant(true)"];
+          "4" -> "◎" [label="BooleanConstant(true)"];
       }
       """,
     ),
@@ -37,12 +37,12 @@ class TestCfgBuilder extends AnyFunSuite {
       """,
       """
       digraph "main" {
-          "PP(3)" -> "PP(4)" [label="BooleanConstant(true)"];
-          "PP(5)" -> "PP(6)" [label="BooleanConstant(true)"];
-          "PP(7)" -> "ExitPoint" [label="BooleanConstant(true)"];
-          "EntryPoint" -> "PP(3)" [label="BooleanConstant(true)"];
-          "PP(6)" -> "PP(7)" [label="BooleanConstant(true)"];
-          "PP(4)" -> "PP(5)" [label="BooleanConstant(true)"];
+          "○" -> "3" [label="BooleanConstant(true)"];
+          "3" -> "4" [label="BooleanConstant(true)"];
+          "4" -> "5" [label="BooleanConstant(true)"];
+          "5" -> "6" [label="BooleanConstant(true)"];
+          "6" -> "7" [label="BooleanConstant(true)"];
+          "7" -> "◎" [label="BooleanConstant(true)"];
       }
       """,
     ),
@@ -61,13 +61,13 @@ class TestCfgBuilder extends AnyFunSuite {
       """,
       """
       digraph "main" {
-          "PP(7)" -> "PP(9)" [label="BooleanConstant(true)"];
-          "PP(4)" -> "PP(5)" [label="IntegerComparisonOperation(Variable(i),Lt,ArithmeticConstant(10))"];
-          "PP(3)" -> "PP(4)" [label="BooleanConstant(true)"];
-          "PP(4)" -> "PP(7)" [label="IntegerComparisonOperation(Variable(i),Gte,ArithmeticConstant(10))"];
-          "EntryPoint" -> "PP(3)" [label="BooleanConstant(true)"];
-          "PP(9)" -> "ExitPoint" [label="BooleanConstant(true)"];
-          "PP(5)" -> "PP(9)" [label="BooleanConstant(true)"];
+          "○" -> "3" [label="BooleanConstant(true)"];
+          "3" -> "4" [label="BooleanConstant(true)"];
+          "4" -> "5" [label="IntegerComparisonOperation(Variable(i),Lt,ArithmeticConstant(10))"];
+          "4" -> "7" [label="IntegerComparisonOperation(Variable(i),Gte,ArithmeticConstant(10))"];
+          "5" -> "9" [label="BooleanConstant(true)"];
+          "7" -> "9" [label="BooleanConstant(true)"];
+          "9" -> "◎" [label="BooleanConstant(true)"];
       }
       """,
     ),
@@ -84,12 +84,12 @@ class TestCfgBuilder extends AnyFunSuite {
       """,
       """
       digraph "main" {
-          "PP(7)" -> "ExitPoint" [label="BooleanConstant(true)"];
-          "PP(4)" -> "PP(7)" [label="IntegerComparisonOperation(Variable(i),Gte,ArithmeticConstant(10))"];
-          "PP(3)" -> "PP(4)" [label="BooleanConstant(true)"];
-          "EntryPoint" -> "PP(3)" [label="BooleanConstant(true)"];
-          "PP(4)" -> "PP(5)" [label="IntegerComparisonOperation(Variable(i),Lt,ArithmeticConstant(10))"];
-          "PP(5)" -> "PP(4)" [label="BooleanConstant(true)"];
+          "○" -> "3" [label="BooleanConstant(true)"];
+          "3" -> "4" [label="BooleanConstant(true)"];
+          "4" -> "5" [label="IntegerComparisonOperation(Variable(i),Lt,ArithmeticConstant(10))"];
+          "4" -> "7" [label="IntegerComparisonOperation(Variable(i),Gte,ArithmeticConstant(10))"];
+          "5" -> "4" [label="BooleanConstant(true)"];
+          "7" -> "◎" [label="BooleanConstant(true)"];
       }
       """,
     ),
@@ -105,9 +105,9 @@ class TestCfgBuilder extends AnyFunSuite {
       """,
       """
       digraph "main" {
-          "PP(4)" -> "ExitPoint" [label="BooleanConstant(true)"];
-          "PP(3)" -> "PP(4)" [label="BooleanConstant(true)"];
-          "EntryPoint" -> "PP(3)" [label="BooleanConstant(true)"];
+          "○" -> "3" [label="BooleanConstant(true)"];
+          "3" -> "4" [label="BooleanConstant(true)"];
+          "4" -> "◎" [label="BooleanConstant(true)"];
       }
       """,
     )

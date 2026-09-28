@@ -2,7 +2,7 @@ package be.unamur.info.infom227.small.analysis
 
 import scala.util.Try
 import scala.collection.mutable
-import scala.util.control.Breaks._
+import scala.util.control.Breaks.*
 
 trait GraphAnalyser[N, S, A] {
   def entryNodes: Set[N]
@@ -27,11 +27,11 @@ trait AnalysisObserver[N, S, A] {
 
 class DummyObserver[N, S, A] extends AnalysisObserver[N, S, A]
 
-def analysis[N, S, A, G <: GraphAnalyser[N, S, A], O <: AnalysisObserver[N, S, A]](analyser: G, observer: O): Try[A] = {
+def analysis[N: Ordering, S, A, G <: GraphAnalyser[N, S, A], O <: AnalysisObserver[N, S, A]](analyser: G, observer: O): Try[A] = {
   Try {
     val analysisState = analyser.initialiseAnalysisState().get
 
-    val worklist = mutable.Set.from(analyser.entryNodes)
+    val worklist = mutable.SortedSet.from(analyser.entryNodes)
 
     observer.beforeAnalysis(analysisState, worklist)
 

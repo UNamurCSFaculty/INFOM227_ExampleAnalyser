@@ -4,7 +4,7 @@ import ProgramPoint.StatementPoint
 import be.unamur.info.infom227.small.ast.{AssignStatement, BooleanConstant, BooleanExpression, Function, IfStatement, Program, ReturnStatement, Statement, WhileStatement}
 
 import scala.util.control.Breaks.*
-import scala.collection.mutable
+import scala.collection.{SortedMap, mutable}
 
 private type PreviousPoints = Set[(ProgramPoint, BooleanExpression)]
 
@@ -32,7 +32,7 @@ private def analyseFunction(node: Function): Cfg = {
   createProgramPoint(edges, resultPoints.previousPoints, ProgramPoint.ExitPoint)
   createProgramPoint(edges, resultPoints.returnPoints, ProgramPoint.ExitPoint)
 
-  Cfg(edges.toMap)
+  Cfg(node.parameters, SortedMap.from(edges))
 }
 
 private def analyseBody(edges: Edges, previousPoints: PreviousPoints, body: List[Statement]): ResultPoints = {
