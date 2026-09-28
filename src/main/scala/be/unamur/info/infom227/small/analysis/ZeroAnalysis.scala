@@ -1,10 +1,10 @@
 package be.unamur.info.infom227.small.analysis
 
-import be.unamur.info.infom227.small.ast.{ArithmeticBinaryOperation, ArithmeticBinaryOperator, ArithmeticConstant, AssignStatement, BooleanConstant, BooleanExpression, EqualComparisonOperator, IntegerComparisonOperation, IntegerComparisonOperator, Statement, Variable}
+import be.unamur.info.infom227.small.ast.*
 import be.unamur.info.infom227.small.cfg.{Cfg, ProgramPoint}
 
 import scala.annotation.tailrec
-import scala.util.{Failure, Success, Try}
+import scala.util.{Success, Try}
 
 enum ZeroAnalysisAbstractValue extends Lattice[ZeroAnalysisAbstractValue]:
   case Unknown
