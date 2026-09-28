@@ -1,6 +1,6 @@
 package be.unamur.info.infom227.small
 
-import be.unamur.info.infom227.small.analysis.{DummyObserver, Table, TableObserver, ZeroAnalysis, ZeroAnalysisAbstractValue, ZeroAnalysisInterpreter}
+import be.unamur.info.infom227.small.analysis.{DummyObserver, SignAnalysis, SignAnalysisAbstractValue, Table, TableObserver, ZeroAnalysis, ZeroAnalysisAbstractValue, ZeroAnalysisInterpreter}
 import be.unamur.info.infom227.small.ast.BuiltAstException
 import be.unamur.info.infom227.small.cfg.ProgramPoint
 import be.unamur.info.infom227.small.interpreter.VariableType
@@ -82,6 +82,38 @@ def parseArgument(string: String): Try[VariableType] =
                 println(s"  [$diagnosticType] $message\n")
               }
             )
+          }
+          System.exit(SUCCESS_ERROR_CODE)
+        case Failure(exception: BuiltAstException) =>
+          println(s"Compilation Error:\n${exception.getMessage}")
+          System.exit(COMPILATION_ERROR_CODE)
+        case Failure(exception: Throwable) =>
+          println(s"Fatal error:\n${exception.getMessage}")
+          System.exit(FATAL_ERROR_CODE)
+      }
+    case "sign-analysis" =>
+      val tryResult = for {
+        charStream <- Try(CharStreams.fromFileName(file))
+        programContext <- cst.parse(charStream)
+        program <- ast.build(programContext)
+        cfgs = cfg.build(program)
+        signAnalyses <- analysis.cfgsAnalysis(
+          cfgs,
+          (_, cfg) => Success(SignAnalysis(cfg)),
+          (name, _) => Success(TableObserver[SignAnalysisAbstractValue](table = Table(bottomSymbol = SignAnalysisAbstractValue.Bottom.toString)))
+        )
+      } yield signAnalyses
+
+      tryResult match {
+        case Success(signAnalyses) =>
+          println("=====================================")
+          println("            Sign Analysis            ")
+          println("=====================================")
+          for ((name, (_, observer)) <- signAnalyses) {
+            println(s"Analysis for $name:")
+            if (others.contains("-v")) {
+              print(observer.table.toString)
+            }
           }
           System.exit(SUCCESS_ERROR_CODE)
         case Failure(exception: BuiltAstException) =>
