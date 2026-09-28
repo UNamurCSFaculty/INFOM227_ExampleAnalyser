@@ -1,6 +1,6 @@
 package be.unamur.info.infom227.small.analysis
 
-import be.unamur.info.infom227.small.ast.{ArithmeticBinaryOperation, ArithmeticBinaryOperator, ArithmeticConstant, AssignStatement, BooleanBinaryOperation, BooleanBinaryOperator, BooleanConstant, BooleanExpression, BooleanNegOperation, EqualComparisonOperator, Expression, FunctionCall, IntegerComparisonOperation, IntegerComparisonOperator, Statement, Variable}
+import be.unamur.info.infom227.small.ast.{ArithmeticBinaryOperation, ArithmeticBinaryOperator, ArithmeticConstant, AssignStatement, BooleanConstant, BooleanExpression, BooleanNegOperation, EqualComparisonOperator, Expression, FunctionCall, IntegerComparisonOperation, IntegerComparisonOperator, Statement, Variable}
 import be.unamur.info.infom227.small.cfg.{Cfg, ProgramPoint}
 
 import scala.annotation.tailrec
@@ -30,6 +30,15 @@ enum ZeroAnalysisAbstractValue extends Lattice[ZeroAnalysisAbstractValue]:
       case (ZeroAnalysisAbstractValue.Zero, ZeroAnalysisAbstractValue.Zero) => ZeroAnalysisAbstractValue.Zero
       case (ZeroAnalysisAbstractValue.NonZero, ZeroAnalysisAbstractValue.NonZero) => ZeroAnalysisAbstractValue.NonZero
       case _ => ZeroAnalysisAbstractValue.Bottom
+    }
+  }
+
+  override def toString: String = {
+    this match {
+      case ZeroAnalysisAbstractValue.Unknown => "U"
+      case ZeroAnalysisAbstractValue.Zero => "Z"
+      case ZeroAnalysisAbstractValue.NonZero => "NZ"
+      case ZeroAnalysisAbstractValue.Bottom => "⊥"
     }
   }
 
@@ -239,19 +248,75 @@ case class ZeroAnalysis(cfg: Cfg) extends GraphAnalyser[ProgramPoint, ZeroAnalys
     }))
   }
 
-case class ZeroAnalysisObserver() extends AnalysisObserver[ProgramPoint, ZeroAnalysisAbstractState, ZeroAnalysisState]:
+case class ZeroAnalysisRow(programPoint: ProgramPoint, worklist: Set[ProgramPoint], beforeAbstractState: ZeroAnalysisAbstractState, afterAbstractState: ZeroAnalysisAbstractState)
+
+case class ZeroAnalysisObserver(var beforeAbstractState: Option[ZeroAnalysisAbstractState] = None, table: mutable.ListBuffer[ZeroAnalysisRow] = mutable.ListBuffer()) extends AnalysisObserver[ProgramPoint, ZeroAnalysisAbstractState, ZeroAnalysisState]:
+  override def beforeNodeAnalysis(analysisState: ZeroAnalysisState, worklist: mutable.Set[ProgramPoint], node: ProgramPoint): Unit = {
+    beforeAbstractState = analysisState.abstractStates.get(node)
+  }
+
   override def afterNodeAnalysis(analysisState: ZeroAnalysisState, abstractState: ZeroAnalysisAbstractState, worklist: mutable.Set[ProgramPoint], node: ProgramPoint): Unit = {
-    println(s"Program point $node:")
-    val abstractStateString = analysisState.abstractStates.get(node) match {
-      case Some(abstractState) => abstractState.toString()
-      case None => ""
+    table += ZeroAnalysisRow(node, worklist.toSet, beforeAbstractState.getOrElse(ZeroAnalysisAbstractState()), abstractState)
+  }
+
+  private def printRow(pp: String, worklist: String, before: List[String], after: List[String], delim: String): Unit = {
+    println(s"$delim$pp$delim$worklist$delim${before.mkString(delim)}$delim${after.mkString(delim)}$delim")
+  }
+
+  private def center(string: String, width: Int): String = {
+    val padding = math.max(0, width - string.length)
+    val left = padding / 2
+    val right = padding - left
+    " " * left + string + " " * right
+  }
+
+  private def headerDelimiter(width: Int): String = {
+    ":" ++ "-" * (width - 2) ++ ":"
+  }
+
+  override def afterAnalysis(analysisState: ZeroAnalysisState, worklist: mutable.Set[ProgramPoint]): Unit = {
+    val variables = table.foldLeft(Set.empty[String]) { (acc, row) =>
+      acc.union(row.beforeAbstractState.variables.keys.toSet).union(row.afterAbstractState.variables.keys.toSet)
+    }.toList
+    val header = List((" PP ", " WL ", variables.map { variable => f" Φ($variable) " }, variables.map { variable => f" res($variable) " }))
+    val stringTable = table.foldLeft(header) { (acc, row) =>
+      acc :+ (
+        row.programPoint.toString,
+        row.worklist.mkString(","),
+        variables.map { variable =>
+          row.beforeAbstractState.variables.get(variable) match {
+            case Some(value) => value.toString
+            case None => "⊥"
+          }
+        },
+        variables.map { variable =>
+          row.afterAbstractState.variables.get(variable) match {
+            case Some(value) => value.toString
+            case None => "⊥"
+          }
+        }
+      )
     }
-    if (abstractStateString.nonEmpty) {
-      for (line <- abstractStateString.split("\n")) {
-        println(s"  $line")
+    val (ppSize, wlSize, beforeSize, afterSize) = stringTable.foldLeft((0, 0, variables.map(_ => 0), variables.map(_ => 0))) { case ((ppAccSize, wlAccSize, beforeAccSize, afterAccSize), (pp, wl, before, after)) =>
+      (
+        math.max(ppAccSize, pp.length),
+        math.max(wlAccSize, wl.length),
+        before.zip(beforeAccSize).map { (b, acc) => math.max(acc, b.length) },
+        after.zip(afterAccSize).map { (a, acc) => math.max(acc, a.length) }
+      )
+    }
+
+    for (((pp, wl, before, after), i) <- stringTable.zipWithIndex) {
+      printRow(
+        center(pp, ppSize),
+        center(wl, wlSize),
+        before.zip(beforeSize).map { (b, s) => center(b, s) },
+        after.zip(afterSize).map { (a, s) => center(a, s) },
+        "|"
+      )
+      if (i == 0) {
+        printRow(headerDelimiter(ppSize), headerDelimiter(wlSize), beforeSize.map(headerDelimiter), afterSize.map(headerDelimiter), "|")
       }
-    } else {
-      println("  /")
     }
   }
 

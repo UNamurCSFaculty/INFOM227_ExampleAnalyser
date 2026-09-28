@@ -20,7 +20,7 @@ class TestZeroAnalysis extends AnyFunSuite {
       """,
       """
       main:
-        a: Zero
+        a: Z
       """,
     ),
     (
@@ -33,7 +33,7 @@ class TestZeroAnalysis extends AnyFunSuite {
       """,
       """
       main:
-        a: NonZero
+        a: NZ
       """,
     ),
     (
@@ -49,9 +49,9 @@ class TestZeroAnalysis extends AnyFunSuite {
       """,
       """
       main:
-        a: NonZero
-        b: Unknown
-        x: Unknown
+        a: NZ
+        b: U
+        x: U
       """,
     ),
     (
@@ -69,7 +69,7 @@ class TestZeroAnalysis extends AnyFunSuite {
       """,
       """
       main:
-        i: NonZero
+        i: NZ
       """,
     ),
     (
@@ -85,7 +85,7 @@ class TestZeroAnalysis extends AnyFunSuite {
       """,
       """
       main:
-        i: NonZero
+        i: NZ
       """,
     ),
     (
@@ -100,7 +100,7 @@ class TestZeroAnalysis extends AnyFunSuite {
       """,
       """
       main:
-        i: NonZero
+        i: NZ
       """,
     )
   ).foreach { (name, code, expectedAnalysis) =>

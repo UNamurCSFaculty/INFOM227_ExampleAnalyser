@@ -8,8 +8,8 @@ enum ProgramPoint {
   case ExitPoint
 
   override def toString: String = this match {
-    case EntryPoint => "EntryPoint"
-    case StatementPoint(statement) => s"PP(${statement.lineNumber.toString})"
-    case ExitPoint => "ExitPoint"
+    case EntryPoint => "○"
+    case StatementPoint(statement) => s"${statement.lineNumber.toString}"
+    case ExitPoint => "◎"
   }
 }
