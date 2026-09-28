@@ -42,30 +42,9 @@ enum ZeroAnalysisAbstractValue extends Lattice[ZeroAnalysisAbstractValue]:
     }
   }
 
-case class ZeroAnalysisAbstractState(variables: Map[String, ZeroAnalysisAbstractValue] = Map()):
-  def apply(variable: String): ZeroAnalysisAbstractValue =
-    variables.get(variable) match {
-      case Some(value) => value
-      case None => throw new RuntimeException(s"Variable $variable not found")
-    }
-
-  def apply(update: (String, ZeroAnalysisAbstractValue)): ZeroAnalysisAbstractState = {
-    ZeroAnalysisAbstractState(variables + update)
-  }
-
-  override def toString: String = {
-    val builder = new StringBuilder()
-    for ((variable, abstractValue) <- variables) {
-      builder.append(s"$variable: $abstractValue\n")
-    }
-    builder.toString()
-  }
-
-case class ZeroAnalysisState(var abstractStates: mutable.Map[ProgramPoint, ZeroAnalysisAbstractState] = mutable.Map())
-
-case class ZeroAnalysis(cfg: Cfg) extends GraphAnalyser[ProgramPoint, ZeroAnalysisAbstractState, ZeroAnalysisState]:
+case class ZeroAnalysis(cfg: Cfg) extends GraphAnalyser[ProgramPoint, AbstractState[ZeroAnalysisAbstractValue], AnalysisState[ZeroAnalysisAbstractValue]]:
   @tailrec
-  private def analyseStatement(abstractState: ZeroAnalysisAbstractState, statement: Statement): ZeroAnalysisAbstractState = {
+  private def analyseStatement(abstractState: AbstractState[ZeroAnalysisAbstractValue], statement: Statement): AbstractState[ZeroAnalysisAbstractValue] = {
     statement match {
       case AssignStatement(lineNumber, variable, expression) =>
         expression match {
@@ -110,7 +89,7 @@ case class ZeroAnalysis(cfg: Cfg) extends GraphAnalyser[ProgramPoint, ZeroAnalys
   }
 
   @tailrec
-  private def conditionUpdate(abstractState: ZeroAnalysisAbstractState, condition: BooleanExpression): Option[ZeroAnalysisAbstractState] = {
+  private def conditionUpdate(abstractState: AbstractState[ZeroAnalysisAbstractValue], condition: BooleanExpression): Option[AbstractState[ZeroAnalysisAbstractValue]] = {
     condition match {
       case BooleanConstant(true) =>
         Some(abstractState)
@@ -196,12 +175,12 @@ case class ZeroAnalysis(cfg: Cfg) extends GraphAnalyser[ProgramPoint, ZeroAnalys
 
   override def entryNodes: Set[ProgramPoint] = cfg.entryPoints
 
-  override def nextNodes(abstractState: ZeroAnalysisAbstractState, node: ProgramPoint): Try[Set[ProgramPoint]] = Success(cfg.successors(node))
+  override def nextNodes(abstractState: AbstractState[ZeroAnalysisAbstractValue], node: ProgramPoint): Try[Set[ProgramPoint]] = Success(cfg.successors(node))
 
-  override def initialiseAnalysisState(): Try[ZeroAnalysisState] = Success(ZeroAnalysisState(mutable.Map(ProgramPoint.EntryPoint -> ZeroAnalysisAbstractState(cfg.parameters.map { parameter => parameter -> ZeroAnalysisAbstractValue.Unknown }.toMap))))
+  override def initialiseAnalysisState(): Try[AnalysisState[ZeroAnalysisAbstractValue]] = Success(AnalysisState(mutable.Map(ProgramPoint.EntryPoint -> AbstractState(cfg.parameters.map { parameter => parameter -> ZeroAnalysisAbstractValue.Unknown }.toMap))))
 
-  override def analyseNode(analysisState: ZeroAnalysisState, node: ProgramPoint): Try[ZeroAnalysisAbstractState] = {
-    val abstractState = analysisState.abstractStates.getOrElse(node, ZeroAnalysisAbstractState())
+  override def analyseNode(analysisState: AnalysisState[ZeroAnalysisAbstractValue], node: ProgramPoint): Try[AbstractState[ZeroAnalysisAbstractValue]] = {
+    val abstractState = analysisState.abstractStates.getOrElse(node, AbstractState())
 
     node match {
       case ProgramPoint.StatementPoint(statement) => Try(analyseStatement(abstractState, statement))
@@ -209,21 +188,21 @@ case class ZeroAnalysis(cfg: Cfg) extends GraphAnalyser[ProgramPoint, ZeroAnalys
     }
   }
 
-  override def updateAbstractState(analysisState: ZeroAnalysisState, from: ProgramPoint, to: ProgramPoint, abstractState: ZeroAnalysisAbstractState): Try[Option[ZeroAnalysisAbstractState]] =
+  override def updateAbstractState(analysisState: AnalysisState[ZeroAnalysisAbstractValue], from: ProgramPoint, to: ProgramPoint, abstractState: AbstractState[ZeroAnalysisAbstractValue]): Try[Option[AbstractState[ZeroAnalysisAbstractValue]]] =
     cfg.condition(from, to) match {
       case Some(condition) => Try(conditionUpdate(abstractState, condition))
       case _ => Failure(new RuntimeException("condition should always exist"))
     }
 
-  override def getAbstractState(analysisState: ZeroAnalysisState, node: ProgramPoint): Try[Option[ZeroAnalysisAbstractState]] = Success(analysisState.abstractStates.get(node))
+  override def getAbstractState(analysisState: AnalysisState[ZeroAnalysisAbstractValue], node: ProgramPoint): Try[Option[AbstractState[ZeroAnalysisAbstractValue]]] = Success(analysisState.abstractStates.get(node))
 
-  override def setAbstractState(analysisState: ZeroAnalysisState, node: ProgramPoint, abstractState: ZeroAnalysisAbstractState): Try[Unit] = {
+  override def setAbstractState(analysisState: AnalysisState[ZeroAnalysisAbstractValue], node: ProgramPoint, abstractState: AbstractState[ZeroAnalysisAbstractValue]): Try[Unit] = {
     analysisState.abstractStates.addOne(node -> abstractState)
     Success(())
   }
 
-  override def merge(analysisState: ZeroAnalysisState, node: ProgramPoint, left: ZeroAnalysisAbstractState, right: ZeroAnalysisAbstractState): Try[ZeroAnalysisAbstractState] = {
-    Success(ZeroAnalysisAbstractState(left.variables.foldLeft(right.variables) { (acc, entry) =>
+  override def merge(analysisState: AnalysisState[ZeroAnalysisAbstractValue], node: ProgramPoint, left: AbstractState[ZeroAnalysisAbstractValue], right: AbstractState[ZeroAnalysisAbstractValue]): Try[AbstractState[ZeroAnalysisAbstractValue]] = {
+    Success(AbstractState(left.variables.foldLeft(right.variables) { (acc, entry) =>
       val (name, newAbstractValue) = entry
       val mergedValue = acc.get(name) match {
         case Some(currentAbstractValue) => newAbstractValue.join(currentAbstractValue)
@@ -233,15 +212,15 @@ case class ZeroAnalysis(cfg: Cfg) extends GraphAnalyser[ProgramPoint, ZeroAnalys
     }))
   }
 
-case class ZeroAnalysisRow(programPoint: ProgramPoint, worklist: Set[ProgramPoint], beforeAbstractState: ZeroAnalysisAbstractState, afterAbstractState: ZeroAnalysisAbstractState)
+case class ZeroAnalysisRow(programPoint: ProgramPoint, worklist: Set[ProgramPoint], beforeAbstractState: AbstractState[ZeroAnalysisAbstractValue], afterAbstractState: AbstractState[ZeroAnalysisAbstractValue])
 
-case class ZeroAnalysisObserver(var beforeAbstractState: Option[ZeroAnalysisAbstractState] = None, table: mutable.ListBuffer[ZeroAnalysisRow] = mutable.ListBuffer()) extends AnalysisObserver[ProgramPoint, ZeroAnalysisAbstractState, ZeroAnalysisState]:
-  override def beforeNodeAnalysis(analysisState: ZeroAnalysisState, worklist: mutable.Set[ProgramPoint], node: ProgramPoint): Unit = {
+case class ZeroAnalysisObserver(var beforeAbstractState: Option[AbstractState[ZeroAnalysisAbstractValue]] = None, table: mutable.ListBuffer[ZeroAnalysisRow] = mutable.ListBuffer()) extends AnalysisObserver[ProgramPoint, AbstractState[ZeroAnalysisAbstractValue], AnalysisState[ZeroAnalysisAbstractValue]]:
+  override def beforeNodeAnalysis(analysisState: AnalysisState[ZeroAnalysisAbstractValue], worklist: mutable.Set[ProgramPoint], node: ProgramPoint): Unit = {
     beforeAbstractState = analysisState.abstractStates.get(node)
   }
 
-  override def afterNodeAnalysis(analysisState: ZeroAnalysisState, abstractState: ZeroAnalysisAbstractState, worklist: mutable.Set[ProgramPoint], node: ProgramPoint): Unit = {
-    table += ZeroAnalysisRow(node, worklist.toSet, beforeAbstractState.getOrElse(ZeroAnalysisAbstractState()), abstractState)
+  override def afterNodeAnalysis(analysisState: AnalysisState[ZeroAnalysisAbstractValue], abstractState: AbstractState[ZeroAnalysisAbstractValue], worklist: mutable.Set[ProgramPoint], node: ProgramPoint): Unit = {
+    table += ZeroAnalysisRow(node, worklist.toSet, beforeAbstractState.getOrElse(AbstractState()), abstractState)
   }
 
   private def printRow(pp: String, worklist: String, before: List[String], after: List[String], delim: String): Unit = {
@@ -259,7 +238,7 @@ case class ZeroAnalysisObserver(var beforeAbstractState: Option[ZeroAnalysisAbst
     ":" ++ "-" * (width - 2) ++ ":"
   }
 
-  override def afterAnalysis(analysisState: ZeroAnalysisState, worklist: mutable.Set[ProgramPoint]): Unit = {
+  override def afterAnalysis(analysisState: AnalysisState[ZeroAnalysisAbstractValue], worklist: mutable.Set[ProgramPoint]): Unit = {
     val variables = table.foldLeft(Set.empty[String]) { (acc, row) =>
       acc.union(row.beforeAbstractState.variables.keys.toSet).union(row.afterAbstractState.variables.keys.toSet)
     }.toList
@@ -305,12 +284,12 @@ case class ZeroAnalysisObserver(var beforeAbstractState: Option[ZeroAnalysisAbst
     }
   }
 
-def zeroAnalysis(cfgs: Map[String, Cfg], observer: AnalysisObserver[ProgramPoint, ZeroAnalysisAbstractState, ZeroAnalysisState]): Try[Map[String, ZeroAnalysisState]] = {
-  cfgs.foldLeft(Try(Map.empty[String, ZeroAnalysisState])) { (acc, entry) =>
+def zeroAnalysis(cfgs: Map[String, Cfg], observer: AnalysisObserver[ProgramPoint, AbstractState[ZeroAnalysisAbstractValue], AnalysisState[ZeroAnalysisAbstractValue]]): Try[Map[String, AnalysisState[ZeroAnalysisAbstractValue]]] = {
+  cfgs.foldLeft(Try(Map.empty[String, AnalysisState[ZeroAnalysisAbstractValue]])) { (acc, entry) =>
     for {
       results <- acc
       (name, cfg) = entry
-      analysisState <- analysis[ProgramPoint, ZeroAnalysisAbstractState, ZeroAnalysisState, ZeroAnalysis, AnalysisObserver[ProgramPoint, ZeroAnalysisAbstractState, ZeroAnalysisState]](ZeroAnalysis(cfg), observer)
+      analysisState <- analysis[ProgramPoint, AbstractState[ZeroAnalysisAbstractValue], AnalysisState[ZeroAnalysisAbstractValue], ZeroAnalysis, AnalysisObserver[ProgramPoint, AbstractState[ZeroAnalysisAbstractValue], AnalysisState[ZeroAnalysisAbstractValue]]](ZeroAnalysis(cfg), observer)
     } yield results + (name -> analysisState)
   }
 }
@@ -327,7 +306,7 @@ case class ZeroAnalysisInterpreterAbstractState(diagnostics: Set[(ZeroAnalysisDi
 class ZeroAnalysisInterpreterAnalysisState:
   var abstractStates: mutable.Map[ProgramPoint, ZeroAnalysisInterpreterAbstractState] = mutable.Map()
 
-case class ZeroAnalysisInterpreter(cfg: Cfg, zeroAnalysisState: ZeroAnalysisState) extends GraphAnalyser[ProgramPoint, ZeroAnalysisInterpreterAbstractState, ZeroAnalysisInterpreterAnalysisState]:
+case class ZeroAnalysisInterpreter(cfg: Cfg, zeroAnalysisState: AnalysisState[ZeroAnalysisAbstractValue]) extends GraphAnalyser[ProgramPoint, ZeroAnalysisInterpreterAbstractState, ZeroAnalysisInterpreterAnalysisState]:
   override def entryNodes: Set[ProgramPoint] = cfg.entryPoints
 
   override def nextNodes(abstractState: ZeroAnalysisInterpreterAbstractState, node: ProgramPoint): Try[Set[ProgramPoint]] = Success(cfg.successors(node))
@@ -365,7 +344,7 @@ case class ZeroAnalysisInterpreter(cfg: Cfg, zeroAnalysisState: ZeroAnalysisStat
     Success(ZeroAnalysisInterpreterAbstractState(left.diagnostics ++ right.diagnostics))
   }
 
-def zeroAnalysisInterpreter(cfgs: Map[String, Cfg], zeroAnalyses: Map[String, ZeroAnalysisState], observer: AnalysisObserver[ProgramPoint, ZeroAnalysisInterpreterAbstractState, ZeroAnalysisInterpreterAnalysisState]): Try[Map[String, ZeroAnalysisInterpreterAbstractState]] = {
+def zeroAnalysisInterpreter(cfgs: Map[String, Cfg], zeroAnalyses: Map[String, AnalysisState[ZeroAnalysisAbstractValue]], observer: AnalysisObserver[ProgramPoint, ZeroAnalysisInterpreterAbstractState, ZeroAnalysisInterpreterAnalysisState]): Try[Map[String, ZeroAnalysisInterpreterAbstractState]] = {
   cfgs.foldLeft(Try(Map.empty[String, ZeroAnalysisInterpreterAbstractState])) { (acc, entry) =>
     for {
       results <- acc
