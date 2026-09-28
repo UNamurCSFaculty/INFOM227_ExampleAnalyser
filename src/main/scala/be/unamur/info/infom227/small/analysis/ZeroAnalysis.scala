@@ -4,7 +4,6 @@ import be.unamur.info.infom227.small.ast.{ArithmeticBinaryOperation, ArithmeticB
 import be.unamur.info.infom227.small.cfg.{Cfg, ProgramPoint}
 
 import scala.annotation.tailrec
-import scala.collection.mutable
 import scala.util.{Failure, Success, Try}
 
 enum ZeroAnalysisAbstractValue extends Lattice[ZeroAnalysisAbstractValue]:
@@ -189,53 +188,43 @@ enum ZeroAnalysisDiagnosticType:
   case Warning
   case Error
 
-case class ZeroAnalysisInterpreterAbstractState(diagnostics: Set[(ZeroAnalysisDiagnosticType, String)] = Set()):
+case class ZeroAnalysisInterpreterAbstractState(diagnostics: Set[(ZeroAnalysisDiagnosticType, String)] = Set()) extends Lattice[ZeroAnalysisInterpreterAbstractState]:
   def addDiagnostic(diagnosticType: ZeroAnalysisDiagnosticType, message: String): ZeroAnalysisInterpreterAbstractState = {
     ZeroAnalysisInterpreterAbstractState(diagnostics + ((diagnosticType, message)))
   }
 
-class ZeroAnalysisInterpreterAnalysisState:
-  var abstractStates: mutable.Map[ProgramPoint, ZeroAnalysisInterpreterAbstractState] = mutable.Map()
+  override def join(other: ZeroAnalysisInterpreterAbstractState): ZeroAnalysisInterpreterAbstractState = {
+    ZeroAnalysisInterpreterAbstractState(diagnostics ++ other.diagnostics)
+  }
 
-case class ZeroAnalysisInterpreter(cfg: Cfg, zeroAnalysisState: AnalysisState[AbstractState[ZeroAnalysisAbstractValue]]) extends GraphAnalyser[ProgramPoint, ZeroAnalysisInterpreterAbstractState, ZeroAnalysisInterpreterAnalysisState]:
-  override def entryNodes: Set[ProgramPoint] = cfg.entryPoints
+  override def meet(other: ZeroAnalysisInterpreterAbstractState): ZeroAnalysisInterpreterAbstractState = {
+    ZeroAnalysisInterpreterAbstractState(diagnostics.intersect(other.diagnostics))
+  }
 
-  override def nextNodes(abstractState: ZeroAnalysisInterpreterAbstractState, node: ProgramPoint): Try[Set[ProgramPoint]] = Success(cfg.successors(node))
+class ZeroAnalysisInterpreter(cfg: Cfg, zeroAnalysisState: AnalysisState[AbstractState[ZeroAnalysisAbstractValue]]) extends ForwardMayAnalyzer[ZeroAnalysisInterpreterAbstractState](cfg):
+  override def entryAbstractState(): ZeroAnalysisInterpreterAbstractState = ZeroAnalysisInterpreterAbstractState()
 
-  override def initialiseAnalysisState(): Try[ZeroAnalysisInterpreterAnalysisState] = Success(ZeroAnalysisInterpreterAnalysisState())
-
-  override def analyseNode(analysisState: ZeroAnalysisInterpreterAnalysisState, node: ProgramPoint): Try[ZeroAnalysisInterpreterAbstractState] = {
-    val abstractState = analysisState.abstractStates.getOrElse(node, ZeroAnalysisInterpreterAbstractState())
-
-    zeroAnalysisState.abstractStates.get(node) match {
-      case Some(zeroAnalysisAbstractState) => node match {
-        case ProgramPoint.StatementPoint(AssignStatement(lineNumber, _, ArithmeticBinaryOperation(_, ArithmeticBinaryOperator.Div, Variable(z)))) =>
+  override def analyseStatement(abstractState: ZeroAnalysisInterpreterAbstractState, statement: Statement): ZeroAnalysisInterpreterAbstractState = {
+    zeroAnalysisState.abstractStates.get(ProgramPoint.StatementPoint(statement)) match {
+      case Some(zeroAnalysisAbstractState) => statement match {
+        case AssignStatement(lineNumber, _, ArithmeticBinaryOperation(_, ArithmeticBinaryOperator.Div, Variable(z))) =>
           Try(zeroAnalysisAbstractState(z)) match {
-            case Success(ZeroAnalysisAbstractValue.Zero) => Success(abstractState.addDiagnostic(ZeroAnalysisDiagnosticType.Error, s"Division by zero at line $lineNumber"))
-            case Success(ZeroAnalysisAbstractValue.Unknown) => Success(abstractState.addDiagnostic(ZeroAnalysisDiagnosticType.Warning, s"Potential division by zero at line $lineNumber"))
-            case _ => Success(abstractState)
+            case Success(ZeroAnalysisAbstractValue.Zero) => abstractState.addDiagnostic(ZeroAnalysisDiagnosticType.Error, s"Division by zero at line $lineNumber")
+            case Success(ZeroAnalysisAbstractValue.Unknown) => abstractState.addDiagnostic(ZeroAnalysisDiagnosticType.Warning, s"Potential division by zero at line $lineNumber")
+            case _ => abstractState
           }
-        case _ => Success(abstractState)
+        case _ => abstractState
       }
-      case None => Success(abstractState)
+      case None => abstractState
     }
   }
 
-  override def updateAbstractState(analysisState: ZeroAnalysisInterpreterAnalysisState, from: ProgramPoint, to: ProgramPoint, abstractState: ZeroAnalysisInterpreterAbstractState): Try[Option[ZeroAnalysisInterpreterAbstractState]] =
-    Success(Some(abstractState))
-
-  override def getAbstractState(analysisState: ZeroAnalysisInterpreterAnalysisState, node: ProgramPoint): Try[Option[ZeroAnalysisInterpreterAbstractState]] = Success(analysisState.abstractStates.get(node))
-
-  override def setAbstractState(analysisState: ZeroAnalysisInterpreterAnalysisState, node: ProgramPoint, abstractState: ZeroAnalysisInterpreterAbstractState): Try[Unit] = {
-    analysisState.abstractStates.addOne(node -> abstractState)
-    Success(())
+  override def conditionUpdate(abstractState: ZeroAnalysisInterpreterAbstractState, condition: BooleanExpression): Option[ZeroAnalysisInterpreterAbstractState] = {
+    Some(abstractState)
   }
 
-  override def merge(analysisState: ZeroAnalysisInterpreterAnalysisState, node: ProgramPoint, left: ZeroAnalysisInterpreterAbstractState, right: ZeroAnalysisInterpreterAbstractState): Try[ZeroAnalysisInterpreterAbstractState] = {
-    Success(ZeroAnalysisInterpreterAbstractState(left.diagnostics ++ right.diagnostics))
-  }
 
-def zeroAnalysisInterpreter(cfgs: Map[String, Cfg], zeroAnalyses: Map[String, AnalysisState[AbstractState[ZeroAnalysisAbstractValue]]], observer: AnalysisObserver[ProgramPoint, ZeroAnalysisInterpreterAbstractState, ZeroAnalysisInterpreterAnalysisState]): Try[Map[String, ZeroAnalysisInterpreterAbstractState]] = {
+def zeroAnalysisInterpreter(cfgs: Map[String, Cfg], zeroAnalyses: Map[String, AnalysisState[AbstractState[ZeroAnalysisAbstractValue]]], observer: AnalysisObserver[ProgramPoint, ZeroAnalysisInterpreterAbstractState, AnalysisState[ZeroAnalysisInterpreterAbstractState]]): Try[Map[String, ZeroAnalysisInterpreterAbstractState]] = {
   cfgs.foldLeft(Try(Map.empty[String, ZeroAnalysisInterpreterAbstractState])) { (acc, entry) =>
     for {
       results <- acc
@@ -244,7 +233,7 @@ def zeroAnalysisInterpreter(cfgs: Map[String, Cfg], zeroAnalyses: Map[String, An
         case Some(zeroAnalysis) => Success(zeroAnalysis)
         case None => Failure(new Exception(s"Zero analysis not found for $name"))
       }
-      analysisState <- analysis[ProgramPoint, ZeroAnalysisInterpreterAbstractState, ZeroAnalysisInterpreterAnalysisState, ZeroAnalysisInterpreter, AnalysisObserver[ProgramPoint, ZeroAnalysisInterpreterAbstractState, ZeroAnalysisInterpreterAnalysisState]](ZeroAnalysisInterpreter(cfg, zeroAnalysis), observer)
+      analysisState <- analysis[ProgramPoint, ZeroAnalysisInterpreterAbstractState, AnalysisState[ZeroAnalysisInterpreterAbstractState], ZeroAnalysisInterpreter, AnalysisObserver[ProgramPoint, ZeroAnalysisInterpreterAbstractState, AnalysisState[ZeroAnalysisInterpreterAbstractState]]](ZeroAnalysisInterpreter(cfg, zeroAnalysis), observer)
     } yield results + (name -> analysisState.abstractStates(ProgramPoint.ExitPoint))
   }
 }
