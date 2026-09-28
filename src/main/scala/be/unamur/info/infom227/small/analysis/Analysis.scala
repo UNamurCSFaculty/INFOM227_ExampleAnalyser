@@ -1,6 +1,7 @@
 package be.unamur.info.infom227.small.analysis
 
 import be.unamur.info.infom227.small.ast.{BooleanExpression, Statement}
+import be.unamur.info.infom227.small.cfg.ProgramPoint.{EntryPoint, ExitPoint}
 import be.unamur.info.infom227.small.cfg.{Cfg, ProgramPoint}
 
 import scala.util.{Failure, Success, Try}
@@ -9,13 +10,21 @@ import scala.util.control.Breaks.*
 
 trait GraphAnalyser[N, S, A] {
   def entryNodes: Set[N]
+
   def nextNodes(abstractState: S, node: N): Try[Set[N]]
+
   def initialiseAnalysisState(): Try[A]
+
   def analyseNode(analysisState: A, node: N): Try[S]
+
   def updateAbstractState(analysisState: A, from: N, to: N, abstractState: S): Try[Option[S]]
+
   def getAbstractState(analysisState: A, node: N): Try[Option[S]]
+
   def setAbstractState(analysisState: A, node: N, abstractState: S): Try[Unit]
+
   def merge(analysisState: A, node: N, left: S, right: S): Try[S]
+
   def optimise(analysisState: A, worklist: mutable.Set[N]): Try[Unit] = Try(())
 }
 
@@ -25,6 +34,8 @@ abstract class SimpleAnalyzer[T <: Lattice[T]](cfg: Cfg) extends GraphAnalyser[P
 
   def top(): T
 
+  def entryAbstractState(): AbstractState[T]
+
   def analyseStatement(abstractState: AbstractState[T], statement: Statement): AbstractState[T]
 
   def conditionUpdate(abstractState: AbstractState[T], condition: BooleanExpression): Option[AbstractState[T]]
@@ -33,14 +44,15 @@ abstract class SimpleAnalyzer[T <: Lattice[T]](cfg: Cfg) extends GraphAnalyser[P
 
   override def nextNodes(abstractState: AbstractState[T], node: ProgramPoint): Try[Set[ProgramPoint]] = Success(cfg.successors(node))
 
-  override def initialiseAnalysisState(): Try[AnalysisState[T]] = Success(AnalysisState(mutable.Map(ProgramPoint.EntryPoint -> AbstractState(cfg.parameters.map { parameter => parameter -> top() }.toMap))))
+  override def initialiseAnalysisState(): Try[AnalysisState[T]] = Success(AnalysisState(mutable.Map()))
 
   override def analyseNode(analysisState: AnalysisState[T], node: ProgramPoint): Try[AbstractState[T]] = {
     val abstractState = analysisState.abstractStates.getOrElse(node, AbstractState())
 
     node match {
+      case EntryPoint => Success(entryAbstractState())
       case ProgramPoint.StatementPoint(statement) => Try(analyseStatement(abstractState, statement))
-      case _ => Success(abstractState)
+      case ExitPoint => Success(abstractState)
     }
   }
 
@@ -91,7 +103,7 @@ def analysis[N: Ordering, S, A, G <: GraphAnalyser[N, S, A], O <: AnalysisObserv
 
         val abstractState = analyser.analyseNode(analysisState, node).get
 
-        for { nextNode <- analyser.nextNodes(abstractState, node).get } {
+        for {nextNode <- analyser.nextNodes(abstractState, node).get} {
           analyser.updateAbstractState(analysisState, node, nextNode, abstractState).get match {
             case None =>
             case Some(updatedAbstractState) =>

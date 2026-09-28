@@ -47,6 +47,8 @@ class ZeroAnalysis(cfg: Cfg) extends SimpleAnalyzer[ZeroAnalysisAbstractValue](c
 
   override def top(): ZeroAnalysisAbstractValue = ZeroAnalysisAbstractValue.Unknown
 
+  override def entryAbstractState(): AbstractState[ZeroAnalysisAbstractValue] = AbstractState(cfg.parameters.map { parameter => parameter -> top() }.toMap)
+
   @tailrec
   final override def analyseStatement(abstractState: AbstractState[ZeroAnalysisAbstractValue], statement: Statement): AbstractState[ZeroAnalysisAbstractValue] = {
     statement match {
