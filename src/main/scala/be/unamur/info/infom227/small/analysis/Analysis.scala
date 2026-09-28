@@ -16,18 +16,18 @@ trait GraphAnalyser[N, S, A] {
   def optimise(analysisState: A, worklist: mutable.Set[N]): Try[Unit] = Try(())
 }
 
-trait AnalysisObserver[N, A] {
+trait AnalysisObserver[N, S, A] {
   def beforeAnalysis(analysisState: A, worklist: mutable.Set[N]): Unit = {}
   def beforeIteration(analysisState: A, worklist: mutable.Set[N]): Unit = {}
   def beforeNodeAnalysis(analysisState: A, worklist: mutable.Set[N], node: N): Unit = {}
-  def afterNodeAnalysis(analysisState: A, worklist: mutable.Set[N], node: N): Unit = {}
+  def afterNodeAnalysis(analysisState: A, abstractState: S, worklist: mutable.Set[N], node: N): Unit = {}
   def afterIteration(analysisState: A, worklist: mutable.Set[N]): Unit = {}
   def afterAnalysis(analysisState: A, worklist: mutable.Set[N]): Unit = {}
 }
 
-class DummyObserver[N, A] extends AnalysisObserver[N, A]
+class DummyObserver[N, S, A] extends AnalysisObserver[N, S, A]
 
-def analysis[N, S, A, G <: GraphAnalyser[N, S, A], O <: AnalysisObserver[N, A]](analyser: G, observer: O): Try[A] = {
+def analysis[N, S, A, G <: GraphAnalyser[N, S, A], O <: AnalysisObserver[N, S, A]](analyser: G, observer: O): Try[A] = {
   Try {
     val analysisState = analyser.initialiseAnalysisState().get
 
@@ -77,7 +77,7 @@ def analysis[N, S, A, G <: GraphAnalyser[N, S, A], O <: AnalysisObserver[N, A]](
           }
         }
 
-        observer.afterNodeAnalysis(analysisState, worklist, node)
+        observer.afterNodeAnalysis(analysisState, abstractState, worklist, node)
 
         analyser.optimise(analysisState, worklist)
 
