@@ -43,15 +43,14 @@ enum ZeroAnalysisAbstractValue extends Lattice[ZeroAnalysisAbstractValue]:
   }
 
 case class ZeroAnalysisAbstractState(variables: Map[String, ZeroAnalysisAbstractValue] = Map()):
-  def get(variable: String): Try[ZeroAnalysisAbstractValue] = {
+  def apply(variable: String): ZeroAnalysisAbstractValue =
     variables.get(variable) match {
-      case Some(value) => Success(value)
-      case None => Failure(new RuntimeException(s"Variable $variable not found"))
+      case Some(value) => value
+      case None => throw new RuntimeException(s"Variable $variable not found")
     }
-  }
 
-  def update(variable: String, abstractValue: ZeroAnalysisAbstractValue): ZeroAnalysisAbstractState = {
-    ZeroAnalysisAbstractState(variables + (variable -> abstractValue))
+  def apply(update: (String, ZeroAnalysisAbstractValue)): ZeroAnalysisAbstractState = {
+    ZeroAnalysisAbstractState(variables + update)
   }
 
   override def toString: String = {
@@ -66,70 +65,62 @@ case class ZeroAnalysisState(var abstractStates: mutable.Map[ProgramPoint, ZeroA
 
 case class ZeroAnalysis(cfg: Cfg) extends GraphAnalyser[ProgramPoint, ZeroAnalysisAbstractState, ZeroAnalysisState]:
   @tailrec
-  private def analyseStatement(abstractState: ZeroAnalysisAbstractState, statement: Statement): Try[ZeroAnalysisAbstractState] = {
+  private def analyseStatement(abstractState: ZeroAnalysisAbstractState, statement: Statement): ZeroAnalysisAbstractState = {
     statement match {
       case AssignStatement(lineNumber, variable, expression) =>
         expression match {
           case ArithmeticConstant(c) =>
-            Success(if (c == 0) {
-              abstractState.update(variable, ZeroAnalysisAbstractValue.Zero)
+            if (c == 0) {
+              abstractState(variable -> ZeroAnalysisAbstractValue.Zero)
             } else {
-              abstractState.update(variable, ZeroAnalysisAbstractValue.NonZero)
-            })
+              abstractState(variable -> ZeroAnalysisAbstractValue.NonZero)
+            }
           case Variable(y) =>
-            for {
-              yAbstractValue <- abstractState.get(y)
-            } yield abstractState.update(variable, yAbstractValue)
+            abstractState(variable -> abstractState(y))
           case ArithmeticBinaryOperation(ArithmeticConstant(c), ArithmeticBinaryOperator.Add, ArithmeticConstant(d)) =>
-            Success(if (c == -d) {
-              abstractState.update(variable, ZeroAnalysisAbstractValue.Zero)
+            if (c == -d) {
+              abstractState(variable -> ZeroAnalysisAbstractValue.Zero)
             } else {
-              abstractState.update(variable, ZeroAnalysisAbstractValue.Unknown)
-            })
+              abstractState(variable -> ZeroAnalysisAbstractValue.Unknown)
+            }
           case ArithmeticBinaryOperation(Variable(y), ArithmeticBinaryOperator.Add, Variable(z)) =>
-            for {
-              yAbstractValue <- abstractState.get(y)
-              zAbstractValue <- abstractState.get(z)
-            } yield if (yAbstractValue == ZeroAnalysisAbstractValue.Zero && zAbstractValue == ZeroAnalysisAbstractValue.Zero) {
-              abstractState.update(variable, ZeroAnalysisAbstractValue.Zero)
+            if (abstractState(y) == ZeroAnalysisAbstractValue.Zero && abstractState(z) == ZeroAnalysisAbstractValue.Zero) {
+              abstractState(variable -> ZeroAnalysisAbstractValue.Zero)
             } else {
-              abstractState.update(variable, ZeroAnalysisAbstractValue.Unknown)
+              abstractState(variable -> ZeroAnalysisAbstractValue.Unknown)
             }
           case ArithmeticBinaryOperation(Variable(y), ArithmeticBinaryOperator.Add, ArithmeticConstant(c)) =>
-            for {
-              yAbstractValue <- abstractState.get(y)
-            } yield if (yAbstractValue == ZeroAnalysisAbstractValue.Zero && c == 0) {
-              abstractState.update(variable, ZeroAnalysisAbstractValue.Zero)
-            } else if (yAbstractValue == ZeroAnalysisAbstractValue.Zero && c != 0) {
-              abstractState.update(variable, ZeroAnalysisAbstractValue.NonZero)
-            } else if (yAbstractValue == ZeroAnalysisAbstractValue.NonZero && c == 0) {
-              abstractState.update(variable, ZeroAnalysisAbstractValue.NonZero)
+            if (abstractState(y) == ZeroAnalysisAbstractValue.Zero && c == 0) {
+              abstractState(variable -> ZeroAnalysisAbstractValue.Zero)
+            } else if (abstractState(y) == ZeroAnalysisAbstractValue.Zero && c != 0) {
+              abstractState(variable -> ZeroAnalysisAbstractValue.NonZero)
+            } else if (abstractState(y) == ZeroAnalysisAbstractValue.NonZero && c == 0) {
+              abstractState(variable -> ZeroAnalysisAbstractValue.NonZero)
             } else {
-              abstractState.update(variable, ZeroAnalysisAbstractValue.Unknown)
+              abstractState(variable -> ZeroAnalysisAbstractValue.Unknown)
             }
           case ArithmeticBinaryOperation(ArithmeticConstant(c), ArithmeticBinaryOperator.Add, Variable(y)) =>
             analyseStatement(abstractState, AssignStatement(lineNumber, variable, ArithmeticBinaryOperation(Variable(y), ArithmeticBinaryOperator.Add, ArithmeticConstant(c))))
           case _ =>
-            Success(abstractState.update(variable, ZeroAnalysisAbstractValue.Unknown))
+            abstractState(variable -> ZeroAnalysisAbstractValue.Unknown)
         }
       case _ =>
-        Success(abstractState)
+        abstractState
     }
   }
 
   @tailrec
-  private def conditionUpdate(abstractState: ZeroAnalysisAbstractState, condition: BooleanExpression): Try[Option[ZeroAnalysisAbstractState]] = {
+  private def conditionUpdate(abstractState: ZeroAnalysisAbstractState, condition: BooleanExpression): Option[ZeroAnalysisAbstractState] = {
     condition match {
       case BooleanConstant(true) =>
-        Success(Some(abstractState))
+        Some(abstractState)
       case BooleanConstant(false) =>
-        Success(None)
+        None
       case IntegerComparisonOperation(Variable(y), IntegerComparisonOperator.Lt, ArithmeticConstant(c)) =>
-        for {
-          yAbstractValue <- abstractState.get(y)
-          metAbstractValue = yAbstractValue.meet(ZeroAnalysisAbstractValue.NonZero)
-        } yield if (c <= 0 && metAbstractValue != ZeroAnalysisAbstractValue.Bottom) {
-          Some(abstractState.update(y, metAbstractValue))
+        val metAbstractValue = abstractState(y).meet(ZeroAnalysisAbstractValue.NonZero)
+
+        if (c <= 0 && metAbstractValue != ZeroAnalysisAbstractValue.Bottom) {
+          Some(abstractState(y -> metAbstractValue))
         } else if (c > 0) {
           Some(abstractState)
         } else {
@@ -138,11 +129,10 @@ case class ZeroAnalysis(cfg: Cfg) extends GraphAnalyser[ProgramPoint, ZeroAnalys
       case IntegerComparisonOperation(ArithmeticConstant(c), IntegerComparisonOperator.Lt, Variable(y)) =>
         conditionUpdate(abstractState, IntegerComparisonOperation(Variable(y), IntegerComparisonOperator.Gt, ArithmeticConstant(c)))
       case IntegerComparisonOperation(Variable(y), IntegerComparisonOperator.Gt, ArithmeticConstant(c)) =>
-        for {
-          yAbstractValue <- abstractState.get(y)
-          metAbstractValue = yAbstractValue.meet(ZeroAnalysisAbstractValue.NonZero)
-        } yield if (c >= 0 && metAbstractValue != ZeroAnalysisAbstractValue.Bottom) {
-          Some(abstractState.update(y, metAbstractValue))
+        val metAbstractValue = abstractState(y).meet(ZeroAnalysisAbstractValue.NonZero)
+
+        if (c >= 0 && metAbstractValue != ZeroAnalysisAbstractValue.Bottom) {
+          Some(abstractState(y -> metAbstractValue))
         } else if (c < 0) {
           Some(abstractState)
         } else {
@@ -151,11 +141,10 @@ case class ZeroAnalysis(cfg: Cfg) extends GraphAnalyser[ProgramPoint, ZeroAnalys
       case IntegerComparisonOperation(ArithmeticConstant(c), IntegerComparisonOperator.Gt, Variable(y)) =>
         conditionUpdate(abstractState, IntegerComparisonOperation(Variable(y), IntegerComparisonOperator.Lt, ArithmeticConstant(c)))
       case IntegerComparisonOperation(Variable(y), IntegerComparisonOperator.Lte, ArithmeticConstant(c)) =>
-        for {
-          yAbstractValue <- abstractState.get(y)
-          metAbstractValue = yAbstractValue.meet(ZeroAnalysisAbstractValue.NonZero)
-        } yield if (c < 0 && metAbstractValue != ZeroAnalysisAbstractValue.Bottom) {
-          Some(abstractState.update(y, metAbstractValue))
+        val metAbstractValue = abstractState(y).meet(ZeroAnalysisAbstractValue.NonZero)
+
+        if (c < 0 && metAbstractValue != ZeroAnalysisAbstractValue.Bottom) {
+          Some(abstractState(y -> metAbstractValue))
         } else if (c >= 0) {
           Some(abstractState)
         } else {
@@ -164,11 +153,10 @@ case class ZeroAnalysis(cfg: Cfg) extends GraphAnalyser[ProgramPoint, ZeroAnalys
       case IntegerComparisonOperation(ArithmeticConstant(c), IntegerComparisonOperator.Lte, Variable(y)) =>
         conditionUpdate(abstractState, IntegerComparisonOperation(Variable(y), IntegerComparisonOperator.Gte, ArithmeticConstant(c)))
       case IntegerComparisonOperation(Variable(y), IntegerComparisonOperator.Gte, ArithmeticConstant(c)) =>
-        for {
-          yAbstractValue <- abstractState.get(y)
-          metAbstractValue = yAbstractValue.meet(ZeroAnalysisAbstractValue.NonZero)
-        } yield if (c > 0 && metAbstractValue != ZeroAnalysisAbstractValue.Bottom) {
-          Some(abstractState.update(y, metAbstractValue))
+        val metAbstractValue = abstractState(y).meet(ZeroAnalysisAbstractValue.NonZero)
+
+        if (c > 0 && metAbstractValue != ZeroAnalysisAbstractValue.Bottom) {
+          Some(abstractState(y -> metAbstractValue))
         } else if (c <= 0) {
           Some(abstractState)
         } else {
@@ -177,25 +165,23 @@ case class ZeroAnalysis(cfg: Cfg) extends GraphAnalyser[ProgramPoint, ZeroAnalys
       case IntegerComparisonOperation(ArithmeticConstant(c), IntegerComparisonOperator.Gte, Variable(y)) =>
         conditionUpdate(abstractState, IntegerComparisonOperation(Variable(y), IntegerComparisonOperator.Lte, ArithmeticConstant(c)))
       case IntegerComparisonOperation(Variable(y), EqualComparisonOperator.Eq, ArithmeticConstant(c)) =>
-        for {
-          yAbstractValue <- abstractState.get(y)
-          metZeroAbstractValue = yAbstractValue.meet(ZeroAnalysisAbstractValue.Zero)
-          metNonZeroAbstractValue = yAbstractValue.meet(ZeroAnalysisAbstractValue.NonZero)
-        } yield if (c == 0 && metZeroAbstractValue != ZeroAnalysisAbstractValue.Bottom) {
-          Some(abstractState.update(y, metZeroAbstractValue))
+        val metZeroAbstractValue = abstractState(y).meet(ZeroAnalysisAbstractValue.Zero)
+        val metNonZeroAbstractValue = abstractState(y).meet(ZeroAnalysisAbstractValue.NonZero)
+
+        if (c == 0 && metZeroAbstractValue != ZeroAnalysisAbstractValue.Bottom) {
+          Some(abstractState(y -> metZeroAbstractValue))
         } else if (c != 0 && metNonZeroAbstractValue != ZeroAnalysisAbstractValue.Bottom) {
-          Some(abstractState.update(y, metNonZeroAbstractValue))
+          Some(abstractState(y -> metNonZeroAbstractValue))
         } else {
           None
         }
       case IntegerComparisonOperation(ArithmeticConstant(c), EqualComparisonOperator.Eq, Variable(y)) =>
         conditionUpdate(abstractState, IntegerComparisonOperation(Variable(y), EqualComparisonOperator.Eq, ArithmeticConstant(c)))
       case IntegerComparisonOperation(Variable(y), EqualComparisonOperator.Ne, ArithmeticConstant(c)) =>
-        for {
-          yAbstractValue <- abstractState.get(y)
-          metNonZeroAbstractValue = yAbstractValue.meet(ZeroAnalysisAbstractValue.NonZero)
-        } yield if (c == 0 && metNonZeroAbstractValue != ZeroAnalysisAbstractValue.Bottom) {
-          Some(abstractState.update(y, metNonZeroAbstractValue))
+        val metNonZeroAbstractValue = abstractState(y).meet(ZeroAnalysisAbstractValue.NonZero)
+
+        if (c == 0 && metNonZeroAbstractValue != ZeroAnalysisAbstractValue.Bottom) {
+          Some(abstractState(y -> metNonZeroAbstractValue))
         } else if (c != 0) {
           Some(abstractState)
         } else {
@@ -204,7 +190,7 @@ case class ZeroAnalysis(cfg: Cfg) extends GraphAnalyser[ProgramPoint, ZeroAnalys
       case IntegerComparisonOperation(ArithmeticConstant(c), EqualComparisonOperator.Ne, Variable(y)) =>
         conditionUpdate(abstractState, IntegerComparisonOperation(Variable(y), EqualComparisonOperator.Ne, ArithmeticConstant(c)))
       case _ =>
-        Success(Some(abstractState))
+        Some(abstractState)
     }
   }
 
@@ -218,14 +204,14 @@ case class ZeroAnalysis(cfg: Cfg) extends GraphAnalyser[ProgramPoint, ZeroAnalys
     val abstractState = analysisState.abstractStates.getOrElse(node, ZeroAnalysisAbstractState())
 
     node match {
-      case ProgramPoint.StatementPoint(statement) => analyseStatement(abstractState, statement)
+      case ProgramPoint.StatementPoint(statement) => Try(analyseStatement(abstractState, statement))
       case _ => Success(abstractState)
     }
   }
 
   override def updateAbstractState(analysisState: ZeroAnalysisState, from: ProgramPoint, to: ProgramPoint, abstractState: ZeroAnalysisAbstractState): Try[Option[ZeroAnalysisAbstractState]] =
     cfg.condition(from, to) match {
-      case Some(condition) => conditionUpdate(abstractState, condition)
+      case Some(condition) => Try(conditionUpdate(abstractState, condition))
       case _ => Failure(new RuntimeException("condition should always exist"))
     }
 
@@ -354,7 +340,7 @@ case class ZeroAnalysisInterpreter(cfg: Cfg, zeroAnalysisState: ZeroAnalysisStat
     zeroAnalysisState.abstractStates.get(node) match {
       case Some(zeroAnalysisAbstractState) => node match {
         case ProgramPoint.StatementPoint(AssignStatement(lineNumber, _, ArithmeticBinaryOperation(_, ArithmeticBinaryOperator.Div, Variable(z)))) =>
-          zeroAnalysisAbstractState.get(z) match {
+          Try(zeroAnalysisAbstractState(z)) match {
             case Success(ZeroAnalysisAbstractValue.Zero) => Success(abstractState.addDiagnostic(ZeroAnalysisDiagnosticType.Error, s"Division by zero at line $lineNumber"))
             case Success(ZeroAnalysisAbstractValue.Unknown) => Success(abstractState.addDiagnostic(ZeroAnalysisDiagnosticType.Warning, s"Potential division by zero at line $lineNumber"))
             case _ => Success(abstractState)
