@@ -33,18 +33,24 @@ val UNKNOWN_ACTION_ERROR_CODE = 3
           println(s"Fatal error:\n${exception.getMessage}")
           System.exit(FATAL_ERROR_CODE)
     case "zero-analysis" =>
-      val observer = TableObserver[ZeroAnalysisAbstractValue](table = Table(bottomSymbol = ZeroAnalysisAbstractValue.Bottom.toString))
-
       val tryResult = for {
         charStream <- Try(CharStreams.fromFileName(file))
         programContext <- cst.parse(charStream)
         program <- ast.build(programContext)
         cfgs = cfg.build(program)
-        zeroAnalyses <- analysis.cfgsAnalysis(cfgs, (_, cfg) => Success(ZeroAnalysis(cfg)), (name, _) => Success(observer))
-        moduleDiagnostics <- analysis.cfgsAnalysis(cfgs, (name, cfg) => zeroAnalyses.get(name) match {
-          case Some((zeroAnalysis, _)) => Success(ZeroAnalysisInterpreter(cfg, zeroAnalysis))
-          case None => Failure(new Exception(s"Zero analysis not found for $name"))
-        }, (_, _) => Success(DummyObserver()))
+        zeroAnalyses <- analysis.cfgsAnalysis(
+          cfgs,
+          (_, cfg) => Success(ZeroAnalysis(cfg)),
+          (name, _) => Success(TableObserver[ZeroAnalysisAbstractValue](table = Table(bottomSymbol = ZeroAnalysisAbstractValue.Bottom.toString)))
+        )
+        moduleDiagnostics <- analysis.cfgsAnalysis(
+          cfgs,
+          (name, cfg) => zeroAnalyses.get(name) match {
+            case Some((zeroAnalysis, _)) => Success(ZeroAnalysisInterpreter(cfg, zeroAnalysis))
+            case None => Failure(new Exception(s"Zero analysis not found for $name"))
+          },
+          (_, _) => Success(DummyObserver())
+        )
       } yield (zeroAnalyses, moduleDiagnostics)
 
       tryResult match {
@@ -52,7 +58,7 @@ val UNKNOWN_ACTION_ERROR_CODE = 3
           println("=====================================")
           println("            Zero Analysis            ")
           println("=====================================")
-          for ((name, (zeroAnalysis, _)) <- zeroAnalyses) {
+          for ((name, (_, observer)) <- zeroAnalyses) {
             println(s"Analysis for $name:")
             if (others.contains("-v")) {
               print(observer.table.toString)
