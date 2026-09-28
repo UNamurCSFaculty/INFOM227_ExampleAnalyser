@@ -1,6 +1,6 @@
 package be.unamur.info.infom227.small.analysis
 
-import be.unamur.info.infom227.small.ast.{ArithmeticBinaryOperation, ArithmeticBinaryOperator, ArithmeticConstant, AssignStatement, BooleanConstant, BooleanExpression, BooleanNegOperation, EqualComparisonOperator, Expression, FunctionCall, IntegerComparisonOperation, IntegerComparisonOperator, Statement, Variable}
+import be.unamur.info.infom227.small.ast.{ArithmeticBinaryOperation, ArithmeticBinaryOperator, ArithmeticConstant, AssignStatement, BooleanConstant, BooleanExpression, EqualComparisonOperator, IntegerComparisonOperation, IntegerComparisonOperator, Statement, Variable}
 import be.unamur.info.infom227.small.cfg.{Cfg, ProgramPoint}
 
 import scala.annotation.tailrec
@@ -179,7 +179,7 @@ def zeroAnalysis(cfgs: Map[String, Cfg], observer: AnalysisObserver[ProgramPoint
     for {
       results <- acc
       (name, cfg) = entry
-      analysisState <- analysis[ProgramPoint, AbstractState[ZeroAnalysisAbstractValue], AnalysisState[AbstractState[ZeroAnalysisAbstractValue]], ZeroAnalysis, AnalysisObserver[ProgramPoint, AbstractState[ZeroAnalysisAbstractValue], AnalysisState[AbstractState[ZeroAnalysisAbstractValue]]]](ZeroAnalysis(cfg), observer)
+      analysisState <- analysis(ZeroAnalysis(cfg), observer)
     } yield results + (name -> analysisState)
   }
 }
@@ -233,7 +233,7 @@ def zeroAnalysisInterpreter(cfgs: Map[String, Cfg], zeroAnalyses: Map[String, An
         case Some(zeroAnalysis) => Success(zeroAnalysis)
         case None => Failure(new Exception(s"Zero analysis not found for $name"))
       }
-      analysisState <- analysis[ProgramPoint, ZeroAnalysisInterpreterAbstractState, AnalysisState[ZeroAnalysisInterpreterAbstractState], ZeroAnalysisInterpreter, AnalysisObserver[ProgramPoint, ZeroAnalysisInterpreterAbstractState, AnalysisState[ZeroAnalysisInterpreterAbstractState]]](ZeroAnalysisInterpreter(cfg, zeroAnalysis), observer)
+      analysisState <- analysis(ZeroAnalysisInterpreter(cfg, zeroAnalysis), observer)
     } yield results + (name -> analysisState.abstractStates(ProgramPoint.ExitPoint))
   }
 }
