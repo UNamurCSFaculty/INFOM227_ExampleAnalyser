@@ -174,16 +174,6 @@ class ZeroAnalysis(cfg: Cfg) extends ForwardMayAnalyzer[AbstractState[ZeroAnalys
     }
   }
 
-def zeroAnalysis(cfgs: Map[String, Cfg], observer: AnalysisObserver[ProgramPoint, AbstractState[ZeroAnalysisAbstractValue], AnalysisState[AbstractState[ZeroAnalysisAbstractValue]]]): Try[Map[String, AnalysisState[AbstractState[ZeroAnalysisAbstractValue]]]] = {
-  cfgs.foldLeft(Try(Map.empty[String, AnalysisState[AbstractState[ZeroAnalysisAbstractValue]]])) { (acc, entry) =>
-    for {
-      results <- acc
-      (name, cfg) = entry
-      analysisState <- analysis(ZeroAnalysis(cfg), observer)
-    } yield results + (name -> analysisState)
-  }
-}
-
 enum ZeroAnalysisDiagnosticType:
   case Warning
   case Error
@@ -222,18 +212,3 @@ class ZeroAnalysisInterpreter(cfg: Cfg, zeroAnalysisState: AnalysisState[Abstrac
   override def conditionUpdate(abstractState: ZeroAnalysisInterpreterAbstractState, condition: BooleanExpression): Option[ZeroAnalysisInterpreterAbstractState] = {
     Some(abstractState)
   }
-
-
-def zeroAnalysisInterpreter(cfgs: Map[String, Cfg], zeroAnalyses: Map[String, AnalysisState[AbstractState[ZeroAnalysisAbstractValue]]], observer: AnalysisObserver[ProgramPoint, ZeroAnalysisInterpreterAbstractState, AnalysisState[ZeroAnalysisInterpreterAbstractState]]): Try[Map[String, ZeroAnalysisInterpreterAbstractState]] = {
-  cfgs.foldLeft(Try(Map.empty[String, ZeroAnalysisInterpreterAbstractState])) { (acc, entry) =>
-    for {
-      results <- acc
-      (name, cfg) = entry
-      zeroAnalysis <- zeroAnalyses.get(name) match {
-        case Some(zeroAnalysis) => Success(zeroAnalysis)
-        case None => Failure(new Exception(s"Zero analysis not found for $name"))
-      }
-      analysisState <- analysis(ZeroAnalysisInterpreter(cfg, zeroAnalysis), observer)
-    } yield results + (name -> analysisState.abstractStates(ProgramPoint.ExitPoint))
-  }
-}

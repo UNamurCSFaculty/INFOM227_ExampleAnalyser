@@ -1,7 +1,8 @@
 package be.unamur.info.infom227.small
 
-import be.unamur.info.infom227.small.analysis.{DummyObserver, Table, TableObserver, ZeroAnalysisAbstractValue}
+import be.unamur.info.infom227.small.analysis.{DummyObserver, Table, TableObserver, ZeroAnalysis, ZeroAnalysisAbstractValue, ZeroAnalysisInterpreter}
 import be.unamur.info.infom227.small.ast.BuiltAstException
+import be.unamur.info.infom227.small.cfg.ProgramPoint
 import org.antlr.v4.runtime.CharStreams
 
 import scala.util.{Failure, Success, Try}
@@ -39,8 +40,11 @@ val UNKNOWN_ACTION_ERROR_CODE = 3
         programContext <- cst.parse(charStream)
         program <- ast.build(programContext)
         cfgs = cfg.build(program)
-        zeroAnalyses <- analysis.zeroAnalysis(cfgs, observer)
-        moduleDiagnostics <- analysis.zeroAnalysisInterpreter(cfgs, zeroAnalyses, DummyObserver())
+        zeroAnalyses <- analysis.cfgsAnalysis(cfgs, (_, cfg) => Success(ZeroAnalysis(cfg)), (name, _) => Success(observer))
+        moduleDiagnostics <- analysis.cfgsAnalysis(cfgs, (name, cfg) => zeroAnalyses.get(name) match {
+          case Some((zeroAnalysis, _)) => Success(ZeroAnalysisInterpreter(cfg, zeroAnalysis))
+          case None => Failure(new Exception(s"Zero analysis not found for $name"))
+        }, (_, _) => Success(DummyObserver()))
       } yield (zeroAnalyses, moduleDiagnostics)
 
       tryResult match {
@@ -48,14 +52,14 @@ val UNKNOWN_ACTION_ERROR_CODE = 3
           println("=====================================")
           println("            Zero Analysis            ")
           println("=====================================")
-          for ((name, zeroAnalysis) <- zeroAnalyses) {
+          for ((name, (zeroAnalysis, _)) <- zeroAnalyses) {
             println(s"Analysis for $name:")
             if (others.contains("-v")) {
               print(observer.table.toString)
             }
 
-            moduleDiagnostics.get(name).foreach(diagnostics =>
-              for ((diagnosticType, message) <- diagnostics.diagnostics) {
+            moduleDiagnostics.get(name).foreach((diagnostics, _) =>
+              for ((diagnosticType, message) <- diagnostics.abstractStates(ProgramPoint.ExitPoint).diagnostics) {
                 println(s"  [$diagnosticType] $message\n")
               }
             )

@@ -130,3 +130,15 @@ def analysis[N: Ordering, S, A, G <: GraphAnalyser[N, S, A], O <: AnalysisObserv
     analysisState
   }
 }
+
+def cfgsAnalysis[N: Ordering, S, A, G <: GraphAnalyser[N, S, A], O <: AnalysisObserver[N, S, A]](cfgs: Map[String, Cfg], analyserFactory: (name: String, cfg: Cfg) => Try[G], observerFactory: (name: String, cfg: Cfg) => Try[O]): Try[Map[String, (A, O)]] = {
+  cfgs.foldLeft(Try(Map.empty[String, (A, O)])) { (acc, entry) =>
+    for {
+      results <- acc
+      (name, cfg) = entry
+      analyser <- analyserFactory(name, cfg)
+      observer <- observerFactory(name, cfg)
+      analysisState <- analysis(analyser, observer)
+    } yield results + (name -> (analysisState, observer))
+  }
+}

@@ -1,6 +1,6 @@
 package be.unamur.info.infom227.small.analysis
 
-import be.unamur.info.infom227.small.analysis.{DummyObserver, zeroAnalysis}
+import be.unamur.info.infom227.small.analysis.{DummyObserver, cfgsAnalysis}
 import be.unamur.info.infom227.small.cfg.ProgramPoint
 import be.unamur.info.infom227.small.{ast, cfg, cst}
 import org.antlr.v4.runtime.CharStreams
@@ -111,7 +111,7 @@ class TestZeroAnalysis extends AnyFunSuite {
         programContext <- cst.parse(charStream)
         program <- ast.build(programContext)
         cfgs = cfg.build(program)
-        analyses <- zeroAnalysis(cfgs, DummyObserver())
+        analyses <- cfgsAnalysis(cfgs, (_, cfg) => Success(ZeroAnalysis(cfg)), (name, _) => Success(DummyObserver()))
       } yield analyses
 
       val analyses = tryAnalyses match {
@@ -120,7 +120,7 @@ class TestZeroAnalysis extends AnyFunSuite {
       }
 
       val builder = new StringBuilder
-      for ((functionName, analysis) <- analyses) {
+      for ((functionName, (analysis, _)) <- analyses) {
         builder.append(s"      $functionName:\n")
         for {line <- analysis.abstractStates(ProgramPoint.ExitPoint).toString.split("\n")} {
           builder.append(s"        $line\n")
@@ -173,8 +173,11 @@ class TestZeroAnalysis extends AnyFunSuite {
         programContext <- cst.parse(charStream)
         program <- ast.build(programContext)
         cfgs = cfg.build(program)
-        zeroAnalyses <- zeroAnalysis(cfgs, DummyObserver())
-        analyses <- zeroAnalysisInterpreter(cfgs, zeroAnalyses, DummyObserver())
+        zeroAnalyses <- cfgsAnalysis(cfgs, (_, cfg) => Success(ZeroAnalysis(cfg)), (name, _) => Success(DummyObserver()))
+        analyses <- cfgsAnalysis(cfgs, (name, cfg) => zeroAnalyses.get(name) match {
+          case Some((zeroAnalysis, _)) => Success(ZeroAnalysisInterpreter(cfg, zeroAnalysis))
+          case None => Failure(new Exception(s"Zero analysis not found for $name"))
+        }, (name, _) => Success(DummyObserver()))
       } yield analyses
 
       val analyses = tryAnalyses match {
@@ -183,9 +186,9 @@ class TestZeroAnalysis extends AnyFunSuite {
       }
 
       val builder = new StringBuilder
-      for ((functionName, analysis) <- analyses) {
+      for ((functionName, (analysis, _)) <- analyses) {
         builder.append(s"      $functionName:\n")
-        for {(diagnosticType, message) <- analysis.diagnostics} {
+        for {(diagnosticType, message) <- analysis.abstractStates(ProgramPoint.ExitPoint).diagnostics} {
           builder.append(s"        [$diagnosticType] $message\n")
         }
       }
