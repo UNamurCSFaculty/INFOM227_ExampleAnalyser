@@ -42,12 +42,8 @@ enum ZeroAnalysisAbstractValue extends Lattice[ZeroAnalysisAbstractValue]:
     }
   }
 
-class ZeroAnalysis(cfg: Cfg) extends SimpleAnalyzer[ZeroAnalysisAbstractValue](cfg):
-  override def bottom(): ZeroAnalysisAbstractValue = ZeroAnalysisAbstractValue.Bottom
-
-  override def top(): ZeroAnalysisAbstractValue = ZeroAnalysisAbstractValue.Unknown
-
-  override def entryAbstractState(): AbstractState[ZeroAnalysisAbstractValue] = AbstractState(cfg.parameters.map { parameter => parameter -> top() }.toMap)
+class ZeroAnalysis(cfg: Cfg) extends ForwardMayAnalyzer[AbstractState[ZeroAnalysisAbstractValue]](cfg):
+  override def entryAbstractState(): AbstractState[ZeroAnalysisAbstractValue] = AbstractState(cfg.parameters.map { parameter => parameter -> ZeroAnalysisAbstractValue.Unknown }.toMap)
 
   @tailrec
   final override def analyseStatement(abstractState: AbstractState[ZeroAnalysisAbstractValue], statement: Statement): AbstractState[ZeroAnalysisAbstractValue] = {
@@ -179,12 +175,12 @@ class ZeroAnalysis(cfg: Cfg) extends SimpleAnalyzer[ZeroAnalysisAbstractValue](c
     }
   }
 
-def zeroAnalysis(cfgs: Map[String, Cfg], observer: AnalysisObserver[ProgramPoint, AbstractState[ZeroAnalysisAbstractValue], AnalysisState[ZeroAnalysisAbstractValue]]): Try[Map[String, AnalysisState[ZeroAnalysisAbstractValue]]] = {
-  cfgs.foldLeft(Try(Map.empty[String, AnalysisState[ZeroAnalysisAbstractValue]])) { (acc, entry) =>
+def zeroAnalysis(cfgs: Map[String, Cfg], observer: AnalysisObserver[ProgramPoint, AbstractState[ZeroAnalysisAbstractValue], AnalysisState[AbstractState[ZeroAnalysisAbstractValue]]]): Try[Map[String, AnalysisState[AbstractState[ZeroAnalysisAbstractValue]]]] = {
+  cfgs.foldLeft(Try(Map.empty[String, AnalysisState[AbstractState[ZeroAnalysisAbstractValue]]])) { (acc, entry) =>
     for {
       results <- acc
       (name, cfg) = entry
-      analysisState <- analysis[ProgramPoint, AbstractState[ZeroAnalysisAbstractValue], AnalysisState[ZeroAnalysisAbstractValue], ZeroAnalysis, AnalysisObserver[ProgramPoint, AbstractState[ZeroAnalysisAbstractValue], AnalysisState[ZeroAnalysisAbstractValue]]](ZeroAnalysis(cfg), observer)
+      analysisState <- analysis[ProgramPoint, AbstractState[ZeroAnalysisAbstractValue], AnalysisState[AbstractState[ZeroAnalysisAbstractValue]], ZeroAnalysis, AnalysisObserver[ProgramPoint, AbstractState[ZeroAnalysisAbstractValue], AnalysisState[AbstractState[ZeroAnalysisAbstractValue]]]](ZeroAnalysis(cfg), observer)
     } yield results + (name -> analysisState)
   }
 }
@@ -201,7 +197,7 @@ case class ZeroAnalysisInterpreterAbstractState(diagnostics: Set[(ZeroAnalysisDi
 class ZeroAnalysisInterpreterAnalysisState:
   var abstractStates: mutable.Map[ProgramPoint, ZeroAnalysisInterpreterAbstractState] = mutable.Map()
 
-case class ZeroAnalysisInterpreter(cfg: Cfg, zeroAnalysisState: AnalysisState[ZeroAnalysisAbstractValue]) extends GraphAnalyser[ProgramPoint, ZeroAnalysisInterpreterAbstractState, ZeroAnalysisInterpreterAnalysisState]:
+case class ZeroAnalysisInterpreter(cfg: Cfg, zeroAnalysisState: AnalysisState[AbstractState[ZeroAnalysisAbstractValue]]) extends GraphAnalyser[ProgramPoint, ZeroAnalysisInterpreterAbstractState, ZeroAnalysisInterpreterAnalysisState]:
   override def entryNodes: Set[ProgramPoint] = cfg.entryPoints
 
   override def nextNodes(abstractState: ZeroAnalysisInterpreterAbstractState, node: ProgramPoint): Try[Set[ProgramPoint]] = Success(cfg.successors(node))
@@ -239,7 +235,7 @@ case class ZeroAnalysisInterpreter(cfg: Cfg, zeroAnalysisState: AnalysisState[Ze
     Success(ZeroAnalysisInterpreterAbstractState(left.diagnostics ++ right.diagnostics))
   }
 
-def zeroAnalysisInterpreter(cfgs: Map[String, Cfg], zeroAnalyses: Map[String, AnalysisState[ZeroAnalysisAbstractValue]], observer: AnalysisObserver[ProgramPoint, ZeroAnalysisInterpreterAbstractState, ZeroAnalysisInterpreterAnalysisState]): Try[Map[String, ZeroAnalysisInterpreterAbstractState]] = {
+def zeroAnalysisInterpreter(cfgs: Map[String, Cfg], zeroAnalyses: Map[String, AnalysisState[AbstractState[ZeroAnalysisAbstractValue]]], observer: AnalysisObserver[ProgramPoint, ZeroAnalysisInterpreterAbstractState, ZeroAnalysisInterpreterAnalysisState]): Try[Map[String, ZeroAnalysisInterpreterAbstractState]] = {
   cfgs.foldLeft(Try(Map.empty[String, ZeroAnalysisInterpreterAbstractState])) { (acc, entry) =>
     for {
       results <- acc

@@ -33,16 +33,14 @@ val UNKNOWN_ACTION_ERROR_CODE = 3
           println(s"Fatal error:\n${exception.getMessage}")
           System.exit(FATAL_ERROR_CODE)
     case "zero-analysis" =>
+      val observer = TableObserver[ZeroAnalysisAbstractValue]()
+
       val tryResult = for {
         charStream <- Try(CharStreams.fromFileName(file))
         programContext <- cst.parse(charStream)
         program <- ast.build(programContext)
         cfgs = cfg.build(program)
-        zeroAnalyses <- analysis.zeroAnalysis(cfgs, if (others.contains("-v")) {
-          TableObserver[ZeroAnalysisAbstractValue]()
-        } else {
-          DummyObserver()
-        })
+        zeroAnalyses <- analysis.zeroAnalysis(cfgs, observer)
         moduleDiagnostics <- analysis.zeroAnalysisInterpreter(cfgs, zeroAnalyses, DummyObserver())
       } yield (zeroAnalyses, moduleDiagnostics)
 
@@ -53,8 +51,8 @@ val UNKNOWN_ACTION_ERROR_CODE = 3
           println("=====================================")
           for ((name, zeroAnalysis) <- zeroAnalyses) {
             println(s"Analysis for $name:")
-            for (line <- zeroAnalysis.abstractStates(ProgramPoint.ExitPoint).toString().split("\n")) {
-              println(s"  $line")
+            if (others.contains("-v")) {
+              print(observer.table.toString)
             }
 
             moduleDiagnostics.get(name).foreach(diagnostics =>

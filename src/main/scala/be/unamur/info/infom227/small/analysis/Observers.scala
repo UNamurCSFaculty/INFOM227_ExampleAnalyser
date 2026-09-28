@@ -20,21 +20,9 @@ trait AnalysisObserver[N, S, A] {
 
 class DummyObserver[N, S, A] extends AnalysisObserver[N, S, A]
 
-case class TableRow[T](programPoint: ProgramPoint, worklist: Set[ProgramPoint], beforeAbstractState: AbstractState[T], afterAbstractState: AbstractState[T])
+case class Row[T <: Lattice[T]](programPoint: ProgramPoint, worklist: Set[ProgramPoint], beforeAbstractState: AbstractState[T], afterAbstractState: AbstractState[T])
 
-case class TableObserver[T](var beforeAbstractState: Option[AbstractState[T]] = None, table: mutable.ListBuffer[TableRow[T]] = mutable.ListBuffer[TableRow[T]]()) extends AnalysisObserver[ProgramPoint, AbstractState[T], AnalysisState[T]]:
-  override def beforeNodeAnalysis(analysisState: AnalysisState[T], worklist: mutable.Set[ProgramPoint], node: ProgramPoint): Unit = {
-    beforeAbstractState = analysisState.abstractStates.get(node)
-  }
-
-  override def afterNodeAnalysis(analysisState: AnalysisState[T], abstractState: AbstractState[T], worklist: mutable.Set[ProgramPoint], node: ProgramPoint): Unit = {
-    table += TableRow(node, worklist.toSet, beforeAbstractState.getOrElse(AbstractState()), abstractState)
-  }
-
-  private def printRow(pp: String, worklist: String, before: List[String], after: List[String], delim: String): Unit = {
-    println(s"$delim$pp$delim$worklist$delim${before.mkString(delim)}$delim${after.mkString(delim)}$delim")
-  }
-
+case class Table[T <: Lattice[T]](rows: mutable.ListBuffer[Row[T]] = mutable.ListBuffer[Row[T]]()):
   private def center(string: String, width: Int): String = {
     val padding = math.max(0, width - string.length)
     val left = padding / 2
@@ -46,12 +34,16 @@ case class TableObserver[T](var beforeAbstractState: Option[AbstractState[T]] = 
     ":" ++ "-" * (width - 2) ++ ":"
   }
 
-  override def afterAnalysis(analysisState: AnalysisState[T], worklist: mutable.Set[ProgramPoint]): Unit = {
-    val variables = table.foldLeft(Set.empty[String]) { (acc, row) =>
+  private def rowToString(pp: String, worklist: String, before: List[String], after: List[String], delim: String): String = {
+    s"$delim$pp$delim$worklist$delim${before.mkString(delim)}$delim${after.mkString(delim)}$delim\n"
+  }
+
+  override def toString: String = {
+    val variables = rows.foldLeft(Set.empty[String]) { (acc, row) =>
       acc.union(row.beforeAbstractState.variables.keys.toSet).union(row.afterAbstractState.variables.keys.toSet)
     }.toList
     val header = List((" PP ", " WL ", variables.map { variable => f" Φ($variable) " }, variables.map { variable => f" res($variable) " }))
-    val stringTable = table.foldLeft(header) { (acc, row) =>
+    val stringTable = rows.foldLeft(header) { (acc, row) =>
       acc :+ (
         s" ${row.programPoint.toString} ",
         s" ${row.worklist.mkString(",")} ",
@@ -78,16 +70,33 @@ case class TableObserver[T](var beforeAbstractState: Option[AbstractState[T]] = 
       )
     }
 
+    val builder = new StringBuilder()
     for (((pp, wl, before, after), i) <- stringTable.zipWithIndex) {
-      printRow(
+      builder.append(rowToString(
         center(pp, ppSize),
         center(wl, wlSize),
         before.zip(beforeSize).map { (b, s) => center(b, s) },
         after.zip(afterSize).map { (a, s) => center(a, s) },
         "|"
-      )
+      ))
       if (i == 0) {
-        printRow(headerDelimiter(ppSize), headerDelimiter(wlSize), beforeSize.map(headerDelimiter), afterSize.map(headerDelimiter), "|")
+        builder.append(rowToString(
+          headerDelimiter(ppSize),
+          headerDelimiter(wlSize),
+          beforeSize.map(headerDelimiter),
+          afterSize.map(headerDelimiter),
+          "|"
+        ))
       }
     }
+    builder.toString
+  }
+
+case class TableObserver[T <: Lattice[T]](var beforeAbstractState: Option[AbstractState[T]] = None, table: Table[T] = Table[T]()) extends AnalysisObserver[ProgramPoint, AbstractState[T], AnalysisState[AbstractState[T]]]:
+  override def beforeNodeAnalysis(analysisState: AnalysisState[AbstractState[T]], worklist: mutable.Set[ProgramPoint], node: ProgramPoint): Unit = {
+    beforeAbstractState = analysisState.abstractStates.get(node)
+  }
+
+  override def afterNodeAnalysis(analysisState: AnalysisState[AbstractState[T]], abstractState: AbstractState[T], worklist: mutable.Set[ProgramPoint], node: ProgramPoint): Unit = {
+    table.rows += Row(node, worklist.toSet, beforeAbstractState.getOrElse(AbstractState()), abstractState)
   }

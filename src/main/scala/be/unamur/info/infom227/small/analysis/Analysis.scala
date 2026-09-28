@@ -29,55 +29,42 @@ trait GraphAnalyser[N, S, A] {
 }
 
 
-abstract class SimpleAnalyzer[T <: Lattice[T]](cfg: Cfg) extends GraphAnalyser[ProgramPoint, AbstractState[T], AnalysisState[T]]:
-  def bottom(): T
+abstract class ForwardMayAnalyzer[S <: Lattice[S]](cfg: Cfg) extends GraphAnalyser[ProgramPoint, S, AnalysisState[S]]:
+  def entryAbstractState(): S
 
-  def top(): T
+  def analyseStatement(abstractState: S, statement: Statement): S
 
-  def entryAbstractState(): AbstractState[T]
-
-  def analyseStatement(abstractState: AbstractState[T], statement: Statement): AbstractState[T]
-
-  def conditionUpdate(abstractState: AbstractState[T], condition: BooleanExpression): Option[AbstractState[T]]
+  def conditionUpdate(abstractState: S, condition: BooleanExpression): Option[S]
 
   override def entryNodes: Set[ProgramPoint] = cfg.entryPoints
 
-  override def nextNodes(abstractState: AbstractState[T], node: ProgramPoint): Try[Set[ProgramPoint]] = Success(cfg.successors(node))
+  override def nextNodes(abstractState: S, node: ProgramPoint): Try[Set[ProgramPoint]] = Success(cfg.successors(node))
 
-  override def initialiseAnalysisState(): Try[AnalysisState[T]] = Success(AnalysisState(mutable.Map()))
+  override def initialiseAnalysisState(): Try[AnalysisState[S]] = Success(AnalysisState(mutable.Map()))
 
-  override def analyseNode(analysisState: AnalysisState[T], node: ProgramPoint): Try[AbstractState[T]] = {
-    val abstractState = analysisState.abstractStates.getOrElse(node, AbstractState())
-
+  override def analyseNode(analysisState: AnalysisState[S], node: ProgramPoint): Try[S] = {
     node match {
       case EntryPoint => Success(entryAbstractState())
-      case ProgramPoint.StatementPoint(statement) => Try(analyseStatement(abstractState, statement))
-      case ExitPoint => Success(abstractState)
+      case ProgramPoint.StatementPoint(statement) => Try(analyseStatement(analysisState.abstractStates(node), statement))
+      case ExitPoint => Try(analysisState.abstractStates(node))
     }
   }
 
-  override def updateAbstractState(analysisState: AnalysisState[T], from: ProgramPoint, to: ProgramPoint, abstractState: AbstractState[T]): Try[Option[AbstractState[T]]] =
+  override def updateAbstractState(analysisState: AnalysisState[S], from: ProgramPoint, to: ProgramPoint, abstractState: S): Try[Option[S]] =
     cfg.condition(from, to) match {
       case Some(condition) => Try(conditionUpdate(abstractState, condition))
       case _ => Failure(new RuntimeException("condition should always exist"))
     }
 
-  override def getAbstractState(analysisState: AnalysisState[T], node: ProgramPoint): Try[Option[AbstractState[T]]] = Success(analysisState.abstractStates.get(node))
+  override def getAbstractState(analysisState: AnalysisState[S], node: ProgramPoint): Try[Option[S]] = Success(analysisState.abstractStates.get(node))
 
-  override def setAbstractState(analysisState: AnalysisState[T], node: ProgramPoint, abstractState: AbstractState[T]): Try[Unit] = {
+  override def setAbstractState(analysisState: AnalysisState[S], node: ProgramPoint, abstractState: S): Try[Unit] = {
     analysisState.abstractStates.addOne(node -> abstractState)
     Success(())
   }
 
-  override def merge(analysisState: AnalysisState[T], node: ProgramPoint, left: AbstractState[T], right: AbstractState[T]): Try[AbstractState[T]] = {
-    Success(AbstractState(left.variables.foldLeft(right.variables) { (acc, entry) =>
-      val (name, newAbstractValue) = entry
-      val mergedValue = acc.get(name) match {
-        case Some(currentAbstractValue) => newAbstractValue.join(currentAbstractValue)
-        case None => newAbstractValue
-      }
-      acc + (name -> mergedValue)
-    }))
+  override def merge(analysisState: AnalysisState[S], node: ProgramPoint, left: S, right: S): Try[S] = {
+    Success(left.join(right))
   }
 
 def analysis[N: Ordering, S, A, G <: GraphAnalyser[N, S, A], O <: AnalysisObserver[N, S, A]](analyser: G, observer: O): Try[A] = {
