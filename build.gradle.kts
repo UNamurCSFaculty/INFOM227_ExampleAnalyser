@@ -32,6 +32,10 @@ dependencies {
     testRuntimeOnly("org.scalatestplus:junit-5-14_3:3.2.20.0")
 }
 
+tasks.jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 tasks.test {
     useJUnitPlatform {
         includeEngines("scalatest")
