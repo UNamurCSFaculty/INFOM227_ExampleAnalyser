@@ -1,7 +1,7 @@
 package be.unamur.info.infom227.small
 
-import be.unamur.info.infom227.small.analysis.{DummyObserver, SignAnalysis, SignAnalysisAbstractValue, Table, TableObserver, ZeroAnalysis, ZeroAnalysisAbstractValue, ZeroAnalysisInterpreter}
-import be.unamur.info.infom227.small.ast.BuiltAstException
+import be.unamur.info.infom227.small.analysis.{AnalysisState, DummyObserver, Lattice, SignAnalysis, SignAnalysisAbstractValue, Table, TableObserver, ZeroAnalysis, ZeroAnalysisAbstractValue, ZeroAnalysisInterpreter}
+import be.unamur.info.infom227.small.ast.{BuiltAstException, Program}
 import be.unamur.info.infom227.small.cfg.ProgramPoint
 import be.unamur.info.infom227.small.interpreter.VariableType
 import org.antlr.v4.runtime.CharStreams
@@ -19,6 +19,47 @@ def parseArgument(string: String): Try[VariableType] =
     .orElse(string.toBooleanOption.map(b => Success(b: VariableType)))
     .getOrElse(Failure(new IllegalArgumentException(s"Cannot parse: $string")))
 
+def buildAstFromFileName(filename: String): Try[Program] =
+  for {
+    charStream <- Try(CharStreams.fromFileName(filename))
+    programContext <- cst.parse(charStream)
+    program <- ast.build(programContext)
+  } yield program
+
+def printTitle(title: String, size: Int = 50): Unit = {
+  println("=" * size)
+  println(" " * ((size - title.length) / 2) ++ title)
+  println("=" * size)
+}
+
+def printAnalysis[T <: Lattice[T], S](analyses: Map[String, (AnalysisState[S], TableObserver[T])], verbose: Boolean, f: String => Unit = _ => {}): Unit = {
+  for ((name, (_, observer)) <- analyses) {
+    println(s"Analysis for $name:")
+    if (verbose) {
+      print(observer.table.toString)
+    }
+    f(name)
+  }
+}
+
+def handleExit[T](tryResult: Try[T], f: T => Unit): Unit = {
+  tryResult match
+    case Success(value) =>
+      Try(f(value)) match {
+        case Success(value) =>
+          System.exit(SUCCESS_ERROR_CODE)
+        case Failure(exception) =>
+          println(s"Fatal error:\n${exception.getMessage}")
+          System.exit(FATAL_ERROR_CODE)
+      }
+    case Failure(exception: BuiltAstException) =>
+      println(s"Compilation Error:\n${exception.getMessage}")
+      System.exit(COMPILATION_ERROR_CODE)
+    case Failure(exception: Throwable) =>
+      println(s"Fatal error:\n${exception.getMessage}")
+      System.exit(FATAL_ERROR_CODE)
+}
+
 @main def main(action: String, file: String, others: String*): Unit = {
   action match {
     case "run" =>
@@ -29,27 +70,16 @@ def parseArgument(string: String): Try[VariableType] =
             arg <- parseArgument(string)
           } yield arg :: args
         }
-        charStream <- Try(CharStreams.fromFileName(file))
-        programContext <- cst.parse(charStream)
-        program <- ast.build(programContext)
+        program <- buildAstFromFileName(file)
         result <- interpreter.execute(program, "main", arguments)
       } yield result
 
-      tryResult match
-        case Success(returnValue) =>
-          println(returnValue)
-          System.exit(SUCCESS_ERROR_CODE)
-        case Failure(exception: BuiltAstException) =>
-          println(s"Compilation Error:\n${exception.getMessage}")
-          System.exit(COMPILATION_ERROR_CODE)
-        case Failure(exception: Throwable) =>
-          println(s"Fatal error:\n${exception.getMessage}")
-          System.exit(FATAL_ERROR_CODE)
+      handleExit(tryResult, returnValue => {
+        println(returnValue)
+      })
     case "zero-analysis" =>
       val tryResult = for {
-        charStream <- Try(CharStreams.fromFileName(file))
-        programContext <- cst.parse(charStream)
-        program <- ast.build(programContext)
+        program <- buildAstFromFileName(file)
         cfgs = cfg.build(program)
         zeroAnalyses <- analysis.cfgsAnalysis(
           cfgs,
@@ -66,36 +96,19 @@ def parseArgument(string: String): Try[VariableType] =
         )
       } yield (zeroAnalyses, moduleDiagnostics)
 
-      tryResult match {
-        case Success((zeroAnalyses, moduleDiagnostics)) =>
-          println("=====================================")
-          println("            Zero Analysis            ")
-          println("=====================================")
-          for ((name, (_, observer)) <- zeroAnalyses) {
-            println(s"Analysis for $name:")
-            if (others.contains("-v")) {
-              print(observer.table.toString)
+      handleExit(tryResult, (zeroAnalyses, moduleDiagnostics) => {
+        printTitle("Zero Analysis")
+        printAnalysis(zeroAnalyses, others.contains("-v"), name => {
+          moduleDiagnostics.get(name).foreach((diagnostics, _) =>
+            for ((diagnosticType, message) <- diagnostics.abstractStates(ProgramPoint.ExitPoint).diagnostics) {
+              println(s"  [$diagnosticType] $message\n")
             }
-
-            moduleDiagnostics.get(name).foreach((diagnostics, _) =>
-              for ((diagnosticType, message) <- diagnostics.abstractStates(ProgramPoint.ExitPoint).diagnostics) {
-                println(s"  [$diagnosticType] $message\n")
-              }
-            )
-          }
-          System.exit(SUCCESS_ERROR_CODE)
-        case Failure(exception: BuiltAstException) =>
-          println(s"Compilation Error:\n${exception.getMessage}")
-          System.exit(COMPILATION_ERROR_CODE)
-        case Failure(exception: Throwable) =>
-          println(s"Fatal error:\n${exception.getMessage}")
-          System.exit(FATAL_ERROR_CODE)
-      }
+          )
+        })
+      })
     case "sign-analysis" =>
       val tryResult = for {
-        charStream <- Try(CharStreams.fromFileName(file))
-        programContext <- cst.parse(charStream)
-        program <- ast.build(programContext)
+        program <- buildAstFromFileName(file)
         cfgs = cfg.build(program)
         signAnalyses <- analysis.cfgsAnalysis(
           cfgs,
@@ -104,25 +117,10 @@ def parseArgument(string: String): Try[VariableType] =
         )
       } yield signAnalyses
 
-      tryResult match {
-        case Success(signAnalyses) =>
-          println("=====================================")
-          println("            Sign Analysis            ")
-          println("=====================================")
-          for ((name, (_, observer)) <- signAnalyses) {
-            println(s"Analysis for $name:")
-            if (others.contains("-v")) {
-              print(observer.table.toString)
-            }
-          }
-          System.exit(SUCCESS_ERROR_CODE)
-        case Failure(exception: BuiltAstException) =>
-          println(s"Compilation Error:\n${exception.getMessage}")
-          System.exit(COMPILATION_ERROR_CODE)
-        case Failure(exception: Throwable) =>
-          println(s"Fatal error:\n${exception.getMessage}")
-          System.exit(FATAL_ERROR_CODE)
-      }
+      handleExit(tryResult, signAnalyses => {
+        printTitle("Sign Analysis")
+        printAnalysis(signAnalyses, others.contains("-v"))
+      })
     case action =>
       println(f"Unknown action: $action")
       System.exit(UNKNOWN_ACTION_ERROR_CODE)
