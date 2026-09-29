@@ -1,6 +1,6 @@
 package be.unamur.info.infom227.small
 
-import be.unamur.info.infom227.small.analysis.{AnalysisState, DummyObserver, Lattice, SignAnalysis, SignAnalysisAbstractValue, Table, TableObserver, ZeroAnalysis, ZeroAnalysisAbstractValue, ZeroAnalysisInterpreter}
+import be.unamur.info.infom227.small.analysis.{AnalysisState, ConstantAnalysis, ConstantAnalysisAbstractValue, DummyObserver, Lattice, SignAnalysis, SignAnalysisAbstractValue, Table, TableObserver, ZeroAnalysis, ZeroAnalysisAbstractValue, ZeroAnalysisInterpreter}
 import be.unamur.info.infom227.small.ast.{BuiltAstException, Program}
 import be.unamur.info.infom227.small.cfg.ProgramPoint
 import be.unamur.info.infom227.small.interpreter.VariableType
@@ -120,6 +120,21 @@ def handleExit[T](tryResult: Try[T], f: T => Unit): Unit = {
       handleExit(tryResult, signAnalyses => {
         printTitle("Sign Analysis")
         printAnalysis(signAnalyses, others.contains("-v"))
+      })
+    case "constant-analysis" =>
+      val tryResult = for {
+        program <- buildAstFromFileName(file)
+        cfgs = cfg.build(program)
+        constantAnalyses <- analysis.cfgsAnalysis(
+          cfgs,
+          (_, cfg) => Success(ConstantAnalysis(cfg)),
+          (name, _) => Success(TableObserver[ConstantAnalysisAbstractValue](table = Table(bottomSymbol = ConstantAnalysisAbstractValue.Bottom.toString)))
+        )
+      } yield constantAnalyses
+
+      handleExit(tryResult, constantAnalyses => {
+        printTitle("Constant Analysis")
+        printAnalysis(constantAnalyses, others.contains("-v"))
       })
     case action =>
       println(f"Unknown action: $action")
