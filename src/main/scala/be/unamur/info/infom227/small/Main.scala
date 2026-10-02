@@ -1,6 +1,6 @@
 package be.unamur.info.infom227.small
 
-import be.unamur.info.infom227.small.analysis.{AnalysisState, ConstantAnalysis, ConstantAnalysisAbstractValue, DummyObserver, Lattice, SignAnalysis, SignAnalysisAbstractValue, Table, TableObserver, ZeroAnalysis, ZeroAnalysisAbstractValue, ZeroAnalysisInterpreter}
+import be.unamur.info.infom227.small.analysis.{AnalysisState, ConstantAnalysis, ConstantAnalysisAbstractValue, DummyObserver, IntervalAnalysis, IntervalAnalysisAbstractValue, Lattice, SignAnalysis, SignAnalysisAbstractValue, Table, TableObserver, ZeroAnalysis, ZeroAnalysisAbstractValue, ZeroAnalysisInterpreter}
 import be.unamur.info.infom227.small.ast.{BuiltAstException, Program}
 import be.unamur.info.infom227.small.cfg.ProgramPoint
 import be.unamur.info.infom227.small.interpreter.VariableType
@@ -135,6 +135,21 @@ def handleExit[T](tryResult: Try[T], f: T => Unit): Unit = {
       handleExit(tryResult, constantAnalyses => {
         printTitle("Constant Analysis")
         printAnalysis(constantAnalyses, others.contains("-v"))
+      })
+    case "interval-analysis" =>
+      val tryResult = for {
+        program <- buildAstFromFileName(file)
+        cfgs = cfg.build(program)
+        intervalAnalyses <- analysis.cfgsAnalysis(
+          cfgs,
+          (_, cfg) => Success(IntervalAnalysis(cfg)),
+          (name, _) => Success(TableObserver[IntervalAnalysisAbstractValue](table = Table(bottomSymbol = IntervalAnalysisAbstractValue.Bottom.toString)))
+        )
+      } yield intervalAnalyses
+
+      handleExit(tryResult, intervalAnalyses => {
+        printTitle("Interval Analysis")
+        printAnalysis(intervalAnalyses, others.contains("-v"))
       })
     case action =>
       println(f"Unknown action: $action")

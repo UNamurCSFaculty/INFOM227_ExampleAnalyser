@@ -23,21 +23,29 @@ case class AbstractState[T <: Lattice[T]](variables: Map[String, T] = Map()) ext
     builder.toString()
   }
 
-  override def join(other: AbstractState[T]): AbstractState[T] = {
+  def joinWith(other: AbstractState[T], f: (T, T) => T): AbstractState[T] = {
     AbstractState(this.variables.foldLeft(other.variables) {
       case (acc, (name, newAbstractValue)) =>
         val mergedValue = acc.get(name) match {
-          case Some(currentAbstractValue) => newAbstractValue.join(currentAbstractValue)
+          case Some(currentAbstractValue) => f(newAbstractValue, currentAbstractValue)
           case None => newAbstractValue
         }
         acc + (name -> mergedValue)
     })
   }
 
-  override def meet(other: AbstractState[T]): AbstractState[T] = {
+  override def join(other: AbstractState[T]): AbstractState[T] = {
+    joinWith(other, (left, right) => left.join(right))
+  }
+
+  def meetWith(other: AbstractState[T], f: (T, T) => T): AbstractState[T] = {
     AbstractState(this.variables.keys.toSet.intersect(other.variables.keys.toSet).map { name =>
-      name -> this.variables(name).meet(other.variables(name))
+      name -> f(this.variables(name), other.variables(name))
     }.toMap)
+  }
+
+  override def meet(other: AbstractState[T]): AbstractState[T] = {
+    meetWith(other, (left, right) => left.meet(right))
   }
 
 case class AnalysisState[S](var abstractStates: mutable.Map[ProgramPoint, S] = mutable.Map())
