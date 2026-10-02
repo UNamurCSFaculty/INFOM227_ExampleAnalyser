@@ -1,0 +1,9 @@
+function main(d) {
+    if (d < 0) {
+        v = 0 - 10;
+        r = v * d;
+    } else {
+        r = d;
+    }
+    return r;
+}

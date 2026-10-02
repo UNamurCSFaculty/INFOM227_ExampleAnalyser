@@ -1,0 +1,10 @@
+function main(b) {
+    x = 5;
+    if (b) {
+        y = x + 3;
+    } else {
+        y = x * 2;
+    }
+    z = y + 1;
+    return z;
+}
