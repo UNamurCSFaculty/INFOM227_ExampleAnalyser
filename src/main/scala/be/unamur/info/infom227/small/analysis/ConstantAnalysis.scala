@@ -58,7 +58,11 @@ class ConstantAnalysis(cfg: Cfg) extends ForwardMayAnalyzer[AbstractState[Consta
                 case ArithmeticBinaryOperator.Add => abstractState(variable -> ConstantAnalysisAbstractValue.Constant(c + d))
                 case ArithmeticBinaryOperator.Sub => abstractState(variable -> ConstantAnalysisAbstractValue.Constant(c - d))
                 case ArithmeticBinaryOperator.Mul => abstractState(variable -> ConstantAnalysisAbstractValue.Constant(c * d))
-                case ArithmeticBinaryOperator.Div => abstractState(variable -> ConstantAnalysisAbstractValue.Constant(c / d))
+                case ArithmeticBinaryOperator.Div => if (d == 0) {
+                  abstractState(variable -> ConstantAnalysisAbstractValue.Unknown)
+                } else {
+                  abstractState(variable -> ConstantAnalysisAbstractValue.Constant(c / d))
+                }
               }
               case (_, _) => abstractState(variable -> ConstantAnalysisAbstractValue.Unknown)
             }
