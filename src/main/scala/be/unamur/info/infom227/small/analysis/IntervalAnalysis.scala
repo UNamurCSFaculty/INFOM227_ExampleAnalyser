@@ -87,8 +87,8 @@ object IntervalAnalysisAbstractValue:
     }
   }
 
-class IntervalAnalysis(cfg: Cfg) extends ForwardMayAnalyzer[AbstractState[IntervalAnalysisAbstractValue]](cfg):
-  override def entryAbstractState(): AbstractState[IntervalAnalysisAbstractValue] = AbstractState(cfg.parameters.map { parameter => parameter -> IntervalAnalysisAbstractValue.Unknown }.toMap)
+class IntervalAnalysis(cfg: Cfg, maxIteration: Int = 5) extends ForwardMayAnalyzer[IterationAbstractState[IntervalAnalysisAbstractValue]](cfg):
+  override def entryAbstractState(): IterationAbstractState[IntervalAnalysisAbstractValue] = IterationAbstractState(state = AbstractState(cfg.parameters.map { parameter => parameter -> IntervalAnalysisAbstractValue.Unknown }.toMap))
 
   def evaluateOperation(left: IntervalNumber, operator: ArithmeticBinaryOperator, right: IntervalNumber): Option[IntervalNumber] = {
     (left, operator, right) match {
@@ -144,7 +144,7 @@ class IntervalAnalysis(cfg: Cfg) extends ForwardMayAnalyzer[AbstractState[Interv
     }
   }
 
-  final override def analyseStatement(abstractState: AbstractState[IntervalAnalysisAbstractValue], statement: Statement): AbstractState[IntervalAnalysisAbstractValue] = {
+  final override def analyseStatement(abstractState: IterationAbstractState[IntervalAnalysisAbstractValue], statement: Statement): IterationAbstractState[IntervalAnalysisAbstractValue] = {
     statement match {
       case AssignStatement(lineNumber, variable, expression) =>
         expression match {
@@ -175,7 +175,7 @@ class IntervalAnalysis(cfg: Cfg) extends ForwardMayAnalyzer[AbstractState[Interv
     }
   }
 
-  final override def conditionUpdate(abstractState: AbstractState[IntervalAnalysisAbstractValue], condition: BooleanExpression): Option[AbstractState[IntervalAnalysisAbstractValue]] = {
+  final override def conditionUpdate(abstractState: IterationAbstractState[IntervalAnalysisAbstractValue], condition: BooleanExpression): Option[IterationAbstractState[IntervalAnalysisAbstractValue]] = {
     condition match {
       case BooleanConstant(true) =>
         Some(abstractState)
@@ -190,7 +190,10 @@ class IntervalAnalysis(cfg: Cfg) extends ForwardMayAnalyzer[AbstractState[Interv
           case IntegerComparisonOperator.Gt => IntervalAnalysisAbstractValue.Interval(IntervalNumber.Integer(c + 1), IntervalNumber.PosInf)
           case IntegerComparisonOperator.Gte => IntervalAnalysisAbstractValue.Interval(IntervalNumber.Integer(c), IntervalNumber.PosInf)
         }
-        Some(abstractState(x -> abstractState(x).meet(validRange)))
+        abstractState(x).meet(validRange) match {
+          case IntervalAnalysisAbstractValue.Bottom => None
+          case value => Some(abstractState(x -> value))
+        }
       case IntegerComparisonOperation(ArithmeticConstant(c), operator: IntegerComparisonOperator, Variable(x)) =>
         val validRange = operator match {
           case IntegerComparisonOperator.Lt => IntervalAnalysisAbstractValue.Interval(IntervalNumber.Integer(c + 1), IntervalNumber.PosInf)
@@ -198,18 +201,45 @@ class IntervalAnalysis(cfg: Cfg) extends ForwardMayAnalyzer[AbstractState[Interv
           case IntegerComparisonOperator.Gt => IntervalAnalysisAbstractValue.Interval(IntervalNumber.NegInf, IntervalNumber.Integer(c - 1))
           case IntegerComparisonOperator.Gte => IntervalAnalysisAbstractValue.Interval(IntervalNumber.NegInf, IntervalNumber.Integer(c))
         }
-        Some(abstractState(x -> abstractState(x).meet(validRange)))
+        abstractState(x).meet(validRange) match {
+          case IntervalAnalysisAbstractValue.Bottom => None
+          case value => Some(abstractState(x -> value))
+        }
       case _ =>
         Some(abstractState)
     }
   }
 
-  override def merge(analysisState: AnalysisState[AbstractState[IntervalAnalysisAbstractValue]], node: ProgramPoint, left: AbstractState[IntervalAnalysisAbstractValue], right: AbstractState[IntervalAnalysisAbstractValue]): Try[AbstractState[IntervalAnalysisAbstractValue]] = {
-    Success(left.joinWith(right, (leftValue, rightValue) => (leftValue, rightValue) match {
-      case (
-        IntervalAnalysisAbstractValue.Interval(IntervalNumber.Integer(a), IntervalNumber.Integer(b)),
-        IntervalAnalysisAbstractValue.Interval(IntervalNumber.Integer(c), IntervalNumber.Integer(d))
-      ) => IntervalAnalysisAbstractValue.interval(if (a <= c) IntervalNumber.Integer(a) else IntervalNumber.NegInf, if (b >= d) IntervalNumber.Integer(b) else IntervalNumber.PosInf)
-      case (_, _) => leftValue.join(rightValue)
-    }))
+  override def merge(analysisState: AnalysisState[IterationAbstractState[IntervalAnalysisAbstractValue]], node: ProgramPoint, left: IterationAbstractState[IntervalAnalysisAbstractValue], right: IterationAbstractState[IntervalAnalysisAbstractValue]): Try[IterationAbstractState[IntervalAnalysisAbstractValue]] = {
+    var tryWiden = false
+
+    val joined = left.joinWith(
+      right,
+      (leftValue, rightValue, iterations) => {
+        (leftValue, rightValue) match {
+          case (
+            IntervalAnalysisAbstractValue.Interval(IntervalNumber.Integer(a), IntervalNumber.Integer(b)),
+            IntervalAnalysisAbstractValue.Interval(IntervalNumber.Integer(c), IntervalNumber.Integer(d))
+          ) =>
+            if (iterations.getOrElse(node, 0) > maxIteration) {
+              IntervalAnalysisAbstractValue.interval(
+                if (a <= c) IntervalNumber.Integer(a) else IntervalNumber.NegInf,
+                if (b >= d) IntervalNumber.Integer(b) else IntervalNumber.PosInf
+              )
+            } else {
+              tryWiden = true
+              leftValue.join(rightValue)
+            }
+          case (_, _) => leftValue.join(rightValue)
+        }
+      }
+    )
+
+    Success(
+      if (tryWiden) {
+        joined.increased(node)
+      } else {
+        joined
+      }
+    )
   }

@@ -20,7 +20,7 @@ trait AnalysisObserver[N, S, A] {
 
 class DummyObserver[N, S, A] extends AnalysisObserver[N, S, A]
 
-case class Row[T <: Lattice[T]](programPoint: ProgramPoint, worklist: Set[ProgramPoint], beforeAbstractState: AbstractState[T], afterAbstractState: AbstractState[T])
+case class Row[T <: Lattice[T]](programPoint: ProgramPoint, worklist: Set[ProgramPoint], beforeVariables: Map[String, T], afterVariables: Map[String, T])
 
 case class Table[T <: Lattice[T]](rows: mutable.ListBuffer[Row[T]] = mutable.ListBuffer.empty[Row[T]], bottomSymbol: String = ""):
   private def center(string: String, width: Int): String = {
@@ -40,7 +40,7 @@ case class Table[T <: Lattice[T]](rows: mutable.ListBuffer[Row[T]] = mutable.Lis
 
   override def toString: String = {
     val variables = rows.foldLeft(Set.empty[String]) { (acc, row) =>
-      acc.union(row.beforeAbstractState.variables.keys.toSet).union(row.afterAbstractState.variables.keys.toSet)
+      acc.union(row.beforeVariables.keys.toSet).union(row.afterVariables.keys.toSet)
     }.toList
     val header = List((" PP ", " WL ", variables.map { variable => f" Φ($variable) " }, variables.map { variable => f" res($variable) " }))
     val stringTable = rows.foldLeft(header) { (acc, row) =>
@@ -48,13 +48,13 @@ case class Table[T <: Lattice[T]](rows: mutable.ListBuffer[Row[T]] = mutable.Lis
         s" ${row.programPoint.toString} ",
         s" ${row.worklist.mkString(",")} ",
         variables.map { variable =>
-          row.beforeAbstractState.variables.get(variable) match {
+          row.beforeVariables.get(variable) match {
             case Some(value) => s" ${value.toString} "
             case None => bottomSymbol
           }
         },
         variables.map { variable =>
-          row.afterAbstractState.variables.get(variable) match {
+          row.afterVariables.get(variable) match {
             case Some(value) => s" ${value.toString} "
             case None => bottomSymbol
           }
@@ -92,11 +92,19 @@ case class Table[T <: Lattice[T]](rows: mutable.ListBuffer[Row[T]] = mutable.Lis
     builder.toString
   }
 
-case class TableObserver[T <: Lattice[T]](var beforeAbstractState: Option[AbstractState[T]] = None, table: Table[T] = Table[T]()) extends AnalysisObserver[ProgramPoint, AbstractState[T], AnalysisState[AbstractState[T]]]:
-  override def beforeNodeAnalysis(analysisState: AnalysisState[AbstractState[T]], worklist: mutable.Set[ProgramPoint], node: ProgramPoint): Unit = {
+case class TableObserver[T <: Lattice[T], S <: State[T]](var beforeAbstractState: Option[S] = None, table: Table[T] = Table[T]()) extends AnalysisObserver[ProgramPoint, S, AnalysisState[S]]:
+  override def beforeNodeAnalysis(analysisState: AnalysisState[S], worklist: mutable.Set[ProgramPoint], node: ProgramPoint): Unit = {
     beforeAbstractState = analysisState.abstractStates.get(node)
   }
 
-  override def afterNodeAnalysis(analysisState: AnalysisState[AbstractState[T]], abstractState: AbstractState[T], worklist: mutable.Set[ProgramPoint], node: ProgramPoint): Unit = {
-    table.rows += Row(node, worklist.toSet, beforeAbstractState.getOrElse(AbstractState()), abstractState)
+  override def afterNodeAnalysis(analysisState: AnalysisState[S], abstractState: S, worklist: mutable.Set[ProgramPoint], node: ProgramPoint): Unit = {
+    table.rows += Row(
+      node,
+      worklist.toSet,
+      beforeAbstractState match {
+        case Some(state) => state.variables
+        case None => Map.empty
+      },
+      abstractState.variables
+    )
   }

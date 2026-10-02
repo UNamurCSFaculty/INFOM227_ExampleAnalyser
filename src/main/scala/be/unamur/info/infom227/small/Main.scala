@@ -1,6 +1,6 @@
 package be.unamur.info.infom227.small
 
-import be.unamur.info.infom227.small.analysis.{AnalysisState, ConstantAnalysis, ConstantAnalysisAbstractValue, DummyObserver, IntervalAnalysis, IntervalAnalysisAbstractValue, Lattice, SignAnalysis, SignAnalysisAbstractValue, Table, TableObserver, ZeroAnalysis, ZeroAnalysisAbstractValue, ZeroAnalysisInterpreter}
+import be.unamur.info.infom227.small.analysis.{State, AnalysisState, ConstantAnalysis, ConstantAnalysisAbstractValue, DummyObserver, IntervalAnalysis, IntervalAnalysisAbstractValue, Lattice, SignAnalysis, SignAnalysisAbstractValue, Table, TableObserver, ZeroAnalysis, ZeroAnalysisAbstractValue, ZeroAnalysisInterpreter}
 import be.unamur.info.infom227.small.ast.{BuiltAstException, Program}
 import be.unamur.info.infom227.small.cfg.ProgramPoint
 import be.unamur.info.infom227.small.interpreter.VariableType
@@ -32,7 +32,7 @@ def printTitle(title: String, size: Int = 50): Unit = {
   println("=" * size)
 }
 
-def printAnalysis[T <: Lattice[T], S](analyses: Map[String, (AnalysisState[S], TableObserver[T])], verbose: Boolean, f: String => Unit = _ => {}): Unit = {
+def printAnalysis[T <: Lattice[T], S <: State[T]](analyses: Map[String, (AnalysisState[S], TableObserver[T, S])], verbose: Boolean, f: String => Unit = _ => {}): Unit = {
   for ((name, (_, observer)) <- analyses) {
     println(s"Analysis for $name:")
     if (verbose) {
@@ -84,7 +84,7 @@ def handleExit[T](tryResult: Try[T], f: T => Unit): Unit = {
         zeroAnalyses <- analysis.cfgsAnalysis(
           cfgs,
           (_, cfg) => Success(ZeroAnalysis(cfg)),
-          (name, _) => Success(TableObserver[ZeroAnalysisAbstractValue](table = Table(bottomSymbol = ZeroAnalysisAbstractValue.Bottom.toString)))
+          (name, _) => Success(TableObserver(table = Table(bottomSymbol = ZeroAnalysisAbstractValue.Bottom.toString)))
         )
         moduleDiagnostics <- analysis.cfgsAnalysis(
           cfgs,
@@ -113,7 +113,7 @@ def handleExit[T](tryResult: Try[T], f: T => Unit): Unit = {
         signAnalyses <- analysis.cfgsAnalysis(
           cfgs,
           (_, cfg) => Success(SignAnalysis(cfg)),
-          (name, _) => Success(TableObserver[SignAnalysisAbstractValue](table = Table(bottomSymbol = SignAnalysisAbstractValue.Bottom.toString)))
+          (name, _) => Success(TableObserver(table = Table(bottomSymbol = SignAnalysisAbstractValue.Bottom.toString)))
         )
       } yield signAnalyses
 
@@ -128,7 +128,7 @@ def handleExit[T](tryResult: Try[T], f: T => Unit): Unit = {
         constantAnalyses <- analysis.cfgsAnalysis(
           cfgs,
           (_, cfg) => Success(ConstantAnalysis(cfg)),
-          (name, _) => Success(TableObserver[ConstantAnalysisAbstractValue](table = Table(bottomSymbol = ConstantAnalysisAbstractValue.Bottom.toString)))
+          (name, _) => Success(TableObserver(table = Table(bottomSymbol = ConstantAnalysisAbstractValue.Bottom.toString)))
         )
       } yield constantAnalyses
 
@@ -143,7 +143,7 @@ def handleExit[T](tryResult: Try[T], f: T => Unit): Unit = {
         intervalAnalyses <- analysis.cfgsAnalysis(
           cfgs,
           (_, cfg) => Success(IntervalAnalysis(cfg)),
-          (name, _) => Success(TableObserver[IntervalAnalysisAbstractValue](table = Table(bottomSymbol = IntervalAnalysisAbstractValue.Bottom.toString)))
+          (name, _) => Success(TableObserver(table = Table(bottomSymbol = IntervalAnalysisAbstractValue.Bottom.toString)))
         )
       } yield intervalAnalyses
 
