@@ -128,7 +128,7 @@ class TestZeroAnalysis extends AnyFunSuite {
       }
       val actualAnalysis = builder.toString()
 
-      assert(expectedAnalysis.strip == actualAnalysis.strip, s"Expected:\n      ${expectedAnalysis.strip}\nActual:\n      ${actualAnalysis.strip}")
+      assert(expectedAnalysis.strip.replace("\r\n", "\n") == actualAnalysis.strip.replace("\r\n", "\n"), s"Expected:\n      ${expectedAnalysis.strip}\nActual:\n      ${actualAnalysis.strip}")
     }
   }
 
@@ -194,7 +194,7 @@ class TestZeroAnalysis extends AnyFunSuite {
       }
       val actualAnalysis = builder.toString()
 
-      assert(expectedAnalysis.strip == actualAnalysis.strip, s"Expected:\n      ${expectedAnalysis.strip}\nActual:\n      ${actualAnalysis.strip}")
+      assert(expectedAnalysis.strip.replace("\r\n", "\n") == actualAnalysis.strip.replace("\r\n", "\n"), s"Expected:\n      ${expectedAnalysis.strip}\nActual:\n      ${actualAnalysis.strip}")
     }
   }
 }
