@@ -13,18 +13,20 @@ val COMPILATION_ERROR_CODE = 1
 val FATAL_ERROR_CODE = 2
 val UNKNOWN_ACTION_ERROR_CODE = 3
 
-def parseArgument(string: String): Try[VariableType] =
+def parseArgument(string: String): Try[VariableType] = {
   string.toIntOption
     .map(i => Success(i: VariableType))
     .orElse(string.toBooleanOption.map(b => Success(b: VariableType)))
     .getOrElse(Failure(new IllegalArgumentException(s"Cannot parse: $string")))
+}
 
-def buildAstFromFileName(filename: String): Try[Program] =
+def buildAstFromFileName(filename: String): Try[Program] = {
   for {
     charStream <- Try(CharStreams.fromFileName(filename))
     programContext <- cst.parse(charStream)
     program <- ast.build(programContext)
   } yield program
+}
 
 def printTitle(title: String, size: Int = 50): Unit = {
   println("=" * size)
@@ -32,7 +34,11 @@ def printTitle(title: String, size: Int = 50): Unit = {
   println("=" * size)
 }
 
-def printAnalysis[T <: Lattice[T], S <: State[T]](analyses: Map[String, (AnalysisState[S], TableObserver[T, S])], verbose: Boolean, f: String => Unit = _ => {}): Unit = {
+def printAnalysis[T <: Lattice[T], S <: State[T]](
+  analyses: Map[String, (AnalysisState[S], TableObserver[T, S])],
+  verbose: Boolean,
+  f: String => Unit = _ => {}
+): Unit = {
   for ((name, (_, observer)) <- analyses) {
     println(s"Analysis for $name:")
     if (verbose) {
@@ -76,9 +82,12 @@ def handleExit[T](tryResult: Try[T], f: T => Unit): Unit = {
         result <- interpreter.execute(program, "main", arguments)
       } yield result
 
-      handleExit(tryResult, returnValue => {
-        println(returnValue)
-      })
+      handleExit(
+        tryResult,
+        returnValue => {
+          println(returnValue)
+        }
+      )
     case "zero-analysis" =>
       val tryResult = for {
         program <- buildAstFromFileName(file)
@@ -90,24 +99,33 @@ def handleExit[T](tryResult: Try[T], f: T => Unit): Unit = {
         )
         moduleDiagnostics <- analysis.cfgsAnalysis(
           cfgs,
-          (name, cfg) => zeroAnalyses.get(name) match {
-            case Some((zeroAnalysis, _)) => Success(ZeroAnalysisInterpreter(cfg, zeroAnalysis))
-            case None => Failure(new Exception(s"Zero analysis not found for $name"))
+          (name, cfg) => {
+            zeroAnalyses.get(name) match {
+              case Some((zeroAnalysis, _)) => Success(ZeroAnalysisInterpreter(cfg, zeroAnalysis))
+              case None => Failure(new Exception(s"Zero analysis not found for $name"))
+            }
           },
           (_, _) => Success(DummyObserver())
         )
       } yield (zeroAnalyses, moduleDiagnostics)
 
-      handleExit(tryResult, (zeroAnalyses, moduleDiagnostics) => {
-        printTitle("Zero Analysis")
-        printAnalysis(zeroAnalyses, others.contains("-v"), name => {
-          moduleDiagnostics.get(name).foreach((diagnostics, _) =>
-            for ((diagnosticType, message) <- diagnostics.abstractStates(ProgramPoint.ExitPoint).diagnostics) {
-              println(s"  [$diagnosticType] $message\n")
+      handleExit(
+        tryResult,
+        (zeroAnalyses, moduleDiagnostics) => {
+          printTitle("Zero Analysis")
+          printAnalysis(
+            zeroAnalyses,
+            others.contains("-v"),
+            name => {
+              moduleDiagnostics.get(name).foreach((diagnostics, _) => {
+                for ((diagnosticType, message) <- diagnostics.abstractStates(ProgramPoint.ExitPoint).diagnostics) {
+                  println(s"  [$diagnosticType] $message\n")
+                }
+              })
             }
           )
-        })
-      })
+        }
+      )
     case "sign-analysis" =>
       val tryResult = for {
         program <- buildAstFromFileName(file)
@@ -119,10 +137,13 @@ def handleExit[T](tryResult: Try[T], f: T => Unit): Unit = {
         )
       } yield signAnalyses
 
-      handleExit(tryResult, signAnalyses => {
-        printTitle("Sign Analysis")
-        printAnalysis(signAnalyses, others.contains("-v"))
-      })
+      handleExit(
+        tryResult,
+        signAnalyses => {
+          printTitle("Sign Analysis")
+          printAnalysis(signAnalyses, others.contains("-v"))
+        }
+      )
     case "constant-analysis" =>
       val tryResult = for {
         program <- buildAstFromFileName(file)
@@ -134,10 +155,13 @@ def handleExit[T](tryResult: Try[T], f: T => Unit): Unit = {
         )
       } yield constantAnalyses
 
-      handleExit(tryResult, constantAnalyses => {
-        printTitle("Constant Analysis")
-        printAnalysis(constantAnalyses, others.contains("-v"))
-      })
+      handleExit(
+        tryResult,
+        constantAnalyses => {
+          printTitle("Constant Analysis")
+          printAnalysis(constantAnalyses, others.contains("-v"))
+        }
+      )
     case "interprocedural-constant-analysis" =>
       val tryResult = for {
         program <- buildAstFromFileName(file)
@@ -152,19 +176,22 @@ def handleExit[T](tryResult: Try[T], f: T => Unit): Unit = {
         )
       } yield (constantAnalyses, interproceduralObserver)
 
-      handleExit(tryResult, (constantAnalyses, interproceduralObserver) => {
-        printTitle("Interprocedural Constant Analysis")
-        for ((name, observer) <- interproceduralObserver.observers) {
-          println(s"Analysis for $name:")
-          if (others.contains("-v")) {
-            print(observer.table.toString)
+      handleExit(
+        tryResult,
+        (constantAnalyses, interproceduralObserver) => {
+          printTitle("Interprocedural Constant Analysis")
+          for ((name, observer) <- interproceduralObserver.observers) {
+            println(s"Analysis for $name:")
+            if (others.contains("-v")) {
+              print(observer.table.toString)
+            }
+          }
+          println("Signatures:")
+          for ((name, functionState) <- constantAnalyses.functions) {
+            println(s"    ${name}(${functionState.arguments.map(argument => argument.toString).mkString(", ")}) -> ${functionState.returnValue}")
           }
         }
-        println("Signatures:")
-        for ((name, functionState) <- constantAnalyses.functions) {
-          println(s"    ${name}(${functionState.arguments.map(argument => argument.toString).mkString(", ")}) -> ${functionState.returnValue}")
-        }
-      })
+      )
     case "interval-analysis" =>
       val tryResult = for {
         program <- buildAstFromFileName(file)
@@ -176,10 +203,13 @@ def handleExit[T](tryResult: Try[T], f: T => Unit): Unit = {
         )
       } yield intervalAnalyses
 
-      handleExit(tryResult, intervalAnalyses => {
-        printTitle("Interval Analysis")
-        printAnalysis(intervalAnalyses, others.contains("-v"))
-      })
+      handleExit(
+        tryResult,
+        intervalAnalyses => {
+          printTitle("Interval Analysis")
+          printAnalysis(intervalAnalyses, others.contains("-v"))
+        }
+      )
     case action =>
       println(f"Unknown action: $action")
       System.exit(UNKNOWN_ACTION_ERROR_CODE)

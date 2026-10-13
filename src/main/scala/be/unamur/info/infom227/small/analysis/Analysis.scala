@@ -50,13 +50,24 @@ abstract class ForwardMayAnalyzer[S <: Lattice[S]](cfg: Cfg) extends GraphAnalys
     }
   }
 
-  override def updateAbstractState(analysisState: AnalysisState[S], from: ProgramPoint, to: ProgramPoint, abstractState: S): Try[Option[S]] =
+  override def updateAbstractState(
+    analysisState: AnalysisState[S],
+    from: ProgramPoint,
+    to: ProgramPoint,
+    abstractState: S
+  ): Try[Option[S]] = {
     cfg.condition(from, to) match {
       case Some(condition) => Try(conditionUpdate(abstractState, condition))
       case _ => Failure(new RuntimeException("condition should always exist"))
     }
+  }
 
-  override def getAbstractState(analysisState: AnalysisState[S], node: ProgramPoint): Try[Option[S]] = Success(analysisState.abstractStates.get(node))
+  override def getAbstractState(
+    analysisState: AnalysisState[S],
+    node: ProgramPoint
+  ): Try[Option[S]] = {
+    Success(analysisState.abstractStates.get(node))
+  }
 
   override def setAbstractState(analysisState: AnalysisState[S], node: ProgramPoint, abstractState: S): Try[Unit] = {
     analysisState.abstractStates.addOne(node -> abstractState)
@@ -67,7 +78,10 @@ abstract class ForwardMayAnalyzer[S <: Lattice[S]](cfg: Cfg) extends GraphAnalys
     Success(left.join(right))
   }
 
-def analysis[N: Ordering, S, A, G <: GraphAnalyser[N, S, A], O <: AnalysisObserver[N, S, A]](analyser: G, observer: O): Try[A] = {
+def analysis[N: Ordering, S, A, G <: GraphAnalyser[N, S, A], O <: AnalysisObserver[N, S, A]](
+  analyser: G,
+  observer: O
+): Try[A] = {
   Try {
     val analysisState = analyser.initialiseAnalysisState().get
 
@@ -131,7 +145,11 @@ def analysis[N: Ordering, S, A, G <: GraphAnalyser[N, S, A], O <: AnalysisObserv
   }
 }
 
-def cfgsAnalysis[N: Ordering, S, A, G <: GraphAnalyser[N, S, A], O <: AnalysisObserver[N, S, A]](cfgs: Map[String, Cfg], analyserFactory: (name: String, cfg: Cfg) => Try[G], observerFactory: (name: String, cfg: Cfg) => Try[O]): Try[Map[String, (A, O)]] = {
+def cfgsAnalysis[N: Ordering, S, A, G <: GraphAnalyser[N, S, A], O <: AnalysisObserver[N, S, A]](
+  cfgs: Map[String, Cfg],
+  analyserFactory: (name: String, cfg: Cfg) => Try[G],
+  observerFactory: (name: String, cfg: Cfg) => Try[O]
+): Try[Map[String, (A, O)]] = {
   cfgs.foldLeft(Try(Map.empty[String, (A, O)])) { (acc, entry) =>
     for {
       results <- acc
@@ -163,7 +181,10 @@ trait CallGraphAnalyser[N, I, R, S, A] {
   def optimise(analysisState: A, worklist: mutable.Set[N]): Try[Unit] = Try(())
 }
 
-def interproceduralAnalysis[N: Ordering, I, R, S, A, G <: CallGraphAnalyser[N, I, R, S, A], O <: AnalysisObserver[N, S, A]](analyser: G, observer: O): Try[A] = {
+def interproceduralAnalysis[N: Ordering, I, R, S, A, G <: CallGraphAnalyser[N, I, R, S, A], O <: AnalysisObserver[N, S, A]](
+  analyser: G,
+  observer: O
+): Try[A] = {
   Try {
     var analysisState = analyser.initialiseAnalysisState().get
 

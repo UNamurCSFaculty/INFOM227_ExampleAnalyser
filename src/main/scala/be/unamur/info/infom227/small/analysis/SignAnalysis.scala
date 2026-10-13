@@ -47,7 +47,10 @@ enum SignAnalysisAbstractValue extends Lattice[SignAnalysisAbstractValue]:
 class SignAnalysis(cfg: Cfg) extends ForwardMayAnalyzer[AbstractState[SignAnalysisAbstractValue]](cfg):
   override def entryAbstractState(): AbstractState[SignAnalysisAbstractValue] = AbstractState(cfg.parameters.map { parameter => parameter -> SignAnalysisAbstractValue.Unknown }.toMap)
 
-  final override def analyseStatement(abstractState: AbstractState[SignAnalysisAbstractValue], statement: Statement): AbstractState[SignAnalysisAbstractValue] = {
+  final override def analyseStatement(
+    abstractState: AbstractState[SignAnalysisAbstractValue],
+    statement: Statement
+  ): AbstractState[SignAnalysisAbstractValue] = {
     statement match {
       case AssignStatement(lineNumber, variable, expression) =>
         expression match {
@@ -82,7 +85,10 @@ class SignAnalysis(cfg: Cfg) extends ForwardMayAnalyzer[AbstractState[SignAnalys
   }
 
   @tailrec
-  final override def conditionUpdate(abstractState: AbstractState[SignAnalysisAbstractValue], condition: BooleanExpression): Option[AbstractState[SignAnalysisAbstractValue]] = {
+  final override def conditionUpdate(
+    abstractState: AbstractState[SignAnalysisAbstractValue],
+    condition: BooleanExpression
+  ): Option[AbstractState[SignAnalysisAbstractValue]] = {
     condition match {
       case BooleanConstant(true) =>
         Some(abstractState)

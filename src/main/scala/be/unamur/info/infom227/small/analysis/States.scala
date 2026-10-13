@@ -51,11 +51,12 @@ trait State[T]:
   def variables: Map[String, T]
 
 class AbstractState[T <: Lattice[T]](val variables: Map[String, T] = Map()) extends Lattice[AbstractState[T]], State[T]:
-  def apply(variable: String): T =
+  def apply(variable: String): T = {
     variables.get(variable) match {
       case Some(value) => value
       case None => throw new RuntimeException(s"Variable $variable not found")
     }
+  }
 
   def apply(update: (String, T)): AbstractState[T] = {
     AbstractState(variables + update)
@@ -69,9 +70,11 @@ class AbstractState[T <: Lattice[T]](val variables: Map[String, T] = Map()) exte
     builder.toString()
   }
 
-  override def equals(obj: Any): Boolean = obj match {
-    case other: AbstractState[_] => variables == other.variables
-    case _ => false
+  override def equals(obj: Any): Boolean = {
+    obj match {
+      case other: AbstractState[_] => variables == other.variables
+      case _ => false
+    }
   }
 
   override def hashCode(): Int = variables.hashCode()
@@ -92,11 +95,16 @@ class AbstractState[T <: Lattice[T]](val variables: Map[String, T] = Map()) exte
     meetWith(other, (left, right) => left.meet(right))
   }
 
-class ExtendedAbstractState[T <: Lattice[T]](val state: AbstractState[T], val calls: Map[String, List[T]] = Map.empty[String, List[T]], val returnValue: Option[T] = None) extends Lattice[ExtendedAbstractState[T]], State[T]:
+class ExtendedAbstractState[T <: Lattice[T]](
+  val state: AbstractState[T],
+  val calls: Map[String, List[T]] = Map.empty[String, List[T]],
+  val returnValue: Option[T] = None
+) extends Lattice[ExtendedAbstractState[T]], State[T]:
   def variables: Map[String, T] = state.variables
 
-  def apply(variable: String): T =
+  def apply(variable: String): T = {
     state(variable)
+  }
 
   def apply(update: (String, T)): ExtendedAbstractState[T] = {
     ExtendedAbstractState(state(update), calls, returnValue)
@@ -125,9 +133,11 @@ class ExtendedAbstractState[T <: Lattice[T]](val state: AbstractState[T], val ca
     builder.toString()
   }
 
-  override def equals(obj: Any): Boolean = obj match {
-    case other: ExtendedAbstractState[_] => state == other.state && calls == other.calls && returnValue == other.returnValue
-    case _ => false
+  override def equals(obj: Any): Boolean = {
+    obj match {
+      case other: ExtendedAbstractState[_] => state == other.state && calls == other.calls && returnValue == other.returnValue
+      case _ => false
+    }
   }
 
   override def hashCode(): Int = state.hashCode() + calls.hashCode() + returnValue.hashCode()
@@ -148,11 +158,15 @@ class ExtendedAbstractState[T <: Lattice[T]](val state: AbstractState[T], val ca
     )
   }
 
-class IterationAbstractState[T <: Lattice[T]](val state: AbstractState[T], val iterations: Map[ProgramPoint, Int] = Map()) extends Lattice[IterationAbstractState[T]], State[T]:
+class IterationAbstractState[T <: Lattice[T]](
+  val state: AbstractState[T],
+  val iterations: Map[ProgramPoint, Int] = Map()
+) extends Lattice[IterationAbstractState[T]], State[T]:
   def variables: Map[String, T] = state.variables
 
-  def apply(variable: String): T =
+  def apply(variable: String): T = {
     state(variable)
+  }
 
   def apply(update: (String, T)): IterationAbstractState[T] = {
     IterationAbstractState(state(update), iterations)
@@ -170,9 +184,11 @@ class IterationAbstractState[T <: Lattice[T]](val state: AbstractState[T], val i
     builder.toString()
   }
 
-  override def equals(obj: Any): Boolean = obj match {
-    case other: IterationAbstractState[_] => state == other.state && iterations == other.iterations
-    case _ => false
+  override def equals(obj: Any): Boolean = {
+    obj match {
+      case other: IterationAbstractState[_] => state == other.state && iterations == other.iterations
+      case _ => false
+    }
   }
 
   override def hashCode(): Int = state.hashCode() + iterations.hashCode()
@@ -197,9 +213,18 @@ class IterationAbstractState[T <: Lattice[T]](val state: AbstractState[T], val i
 
 class AnalysisState[S](val abstractStates: mutable.Map[ProgramPoint, S] = mutable.Map.empty[ProgramPoint, S])
 
-case class InterproceduralAbstractState[S, O](name: String, abstractState: S, observer: O) extends ObservableAbstractState[O]
+case class InterproceduralAbstractState[S, O](
+  name: String,
+  abstractState: S,
+  observer: O
+) extends ObservableAbstractState[O]
 
-case class FunctionState[T <: Lattice[T]](abstractState: AbstractState[T] = AbstractState[T](), arguments: List[T] = List.empty[T], returnValue: Option[T] = None, callees: Set[String] = Set.empty) extends Lattice[FunctionState[T]]:
+case class FunctionState[T <: Lattice[T]](
+  abstractState: AbstractState[T] = AbstractState[T](),
+  arguments: List[T] = List.empty[T],
+  returnValue: Option[T] = None,
+  callees: Set[String] = Set.empty
+) extends Lattice[FunctionState[T]]:
   override def join(other: FunctionState[T]): FunctionState[T] = {
     FunctionState(
       abstractState.join(other.abstractState),

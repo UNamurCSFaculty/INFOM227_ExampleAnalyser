@@ -42,7 +42,10 @@ type ConstantAnalysisAbstractState = AbstractState[ConstantAnalysisAbstractValue
 class ConstantAnalysis(cfg: Cfg) extends ForwardMayAnalyzer[ConstantAnalysisAbstractState](cfg):
   override def entryAbstractState(): ConstantAnalysisAbstractState = AbstractState(cfg.parameters.map { parameter => parameter -> ConstantAnalysisAbstractValue.Unknown }.toMap)
 
-  final override def analyseStatement(abstractState: ConstantAnalysisAbstractState, statement: Statement): ConstantAnalysisAbstractState = {
+  final override def analyseStatement(
+    abstractState: ConstantAnalysisAbstractState,
+    statement: Statement
+  ): ConstantAnalysisAbstractState = {
     statement match {
       case AssignStatement(lineNumber, variable, expression) =>
         expression match {
@@ -78,7 +81,10 @@ class ConstantAnalysis(cfg: Cfg) extends ForwardMayAnalyzer[ConstantAnalysisAbst
     }
   }
 
-  final override def conditionUpdate(abstractState: ConstantAnalysisAbstractState, condition: BooleanExpression): Option[ConstantAnalysisAbstractState] = {
+  final override def conditionUpdate(
+    abstractState: ConstantAnalysisAbstractState,
+    condition: BooleanExpression
+  ): Option[ConstantAnalysisAbstractState] = {
     condition match {
       case BooleanConstant(true) =>
         Some(abstractState)
@@ -116,13 +122,20 @@ class ConstantAnalysis(cfg: Cfg) extends ForwardMayAnalyzer[ConstantAnalysisAbst
 type ExtendedConstantAnalysisAbstractState = ExtendedAbstractState[ConstantAnalysisAbstractValue]
 type ExtendedConstantAnalysisState = AnalysisState[ExtendedConstantAnalysisAbstractState]
 
-class InterproceduralConstantAnalysis(name: String, cfgs: Map[String, Cfg], analysisState: InterproceduralConstantAnalysisState) extends ForwardMayAnalyzer[ExtendedConstantAnalysisAbstractState](cfgs(name)):
+class InterproceduralConstantAnalysis(
+  name: String,
+  cfgs: Map[String, Cfg],
+  analysisState: InterproceduralConstantAnalysisState
+) extends ForwardMayAnalyzer[ExtendedConstantAnalysisAbstractState](cfgs(name)):
   override def entryAbstractState(): ExtendedConstantAnalysisAbstractState = {
     val arguments = analysisState.functions.get(name).map(function => function.arguments).getOrElse(List[ConstantAnalysisAbstractValue]())
     ExtendedAbstractState(AbstractState(cfgs(name).parameters.zip(arguments).toMap))
   }
 
-  private def analyseExpression(abstractState: ExtendedConstantAnalysisAbstractState, expression: Expression): ConstantAnalysisAbstractValue = {
+  private def analyseExpression(
+    abstractState: ExtendedConstantAnalysisAbstractState,
+    expression: Expression
+  ): ConstantAnalysisAbstractValue = {
     expression match {
       case ArithmeticConstant(c) => ConstantAnalysisAbstractValue.Constant(c)
       case Variable(y) => abstractState(y)
@@ -153,7 +166,10 @@ class InterproceduralConstantAnalysis(name: String, cfgs: Map[String, Cfg], anal
     }
   }
 
-  final override def analyseStatement(abstractState: ExtendedConstantAnalysisAbstractState, statement: Statement): ExtendedConstantAnalysisAbstractState = {
+  final override def analyseStatement(
+    abstractState: ExtendedConstantAnalysisAbstractState,
+    statement: Statement
+  ): ExtendedConstantAnalysisAbstractState = {
     statement match {
       case AssignStatement(lineNumber, variable, expression: Expression) =>
         abstractState(variable -> analyseExpression(abstractState, expression))
@@ -169,7 +185,10 @@ class InterproceduralConstantAnalysis(name: String, cfgs: Map[String, Cfg], anal
     }
   }
 
-  final override def conditionUpdate(abstractState: ExtendedConstantAnalysisAbstractState, condition: BooleanExpression): Option[ExtendedConstantAnalysisAbstractState] = {
+  final override def conditionUpdate(
+    abstractState: ExtendedConstantAnalysisAbstractState,
+    condition: BooleanExpression
+  ): Option[ExtendedConstantAnalysisAbstractState] = {
     condition match {
       case BooleanConstant(true) =>
         Some(abstractState)
@@ -208,25 +227,46 @@ type InterproceduralConstantAnalysisObserver = AnalysisObserver[ProgramPoint, Ex
 type InterproceduralConstantAnalysisAbstractState[O] = InterproceduralAbstractState[ExtendedConstantAnalysisAbstractState, O]
 type InterproceduralConstantAnalysisState = InterproceduralAnalysisState[ConstantAnalysisAbstractValue]
 
-class InterproceduralConstantCallGraphAnalysis[O <: InterproceduralConstantAnalysisObserver](val cfgs: Map[String, Cfg], val observerFactory: (name: String, cfg: Cfg) => Try[O]) extends CallGraphAnalyser[String, List[ConstantAnalysisAbstractValue], Option[ConstantAnalysisAbstractValue], InterproceduralConstantAnalysisAbstractState[O], InterproceduralConstantAnalysisState]:
+class InterproceduralConstantCallGraphAnalysis[O <: InterproceduralConstantAnalysisObserver](
+  val cfgs: Map[String, Cfg],
+  val observerFactory: (name: String, cfg: Cfg) => Try[O]
+) extends CallGraphAnalyser[String, List[ConstantAnalysisAbstractValue], Option[ConstantAnalysisAbstractValue], InterproceduralConstantAnalysisAbstractState[O], InterproceduralConstantAnalysisState]:
   override def entryNodes: Set[String] = Set("main")
 
-  override def calleeNodes(analysisState: InterproceduralConstantAnalysisState, node: String): Try[Set[String]] = Success(analysisState.functions(node).callees)
+  override def calleeNodes(
+    analysisState: InterproceduralConstantAnalysisState,
+    node: String
+  ): Try[Set[String]] = {
+    Success(analysisState.functions(node).callees)
+  }
 
-  override def callerNodes(analysisState: InterproceduralConstantAnalysisState, node: String): Try[Set[String]] = Success(analysisState.functions.foldLeft(Set.empty[String]) { case (acc, (caller, functionState)) => if (functionState.callees.contains(node)) acc + caller else acc })
+  override def callerNodes(
+    analysisState: InterproceduralConstantAnalysisState,
+    node: String
+  ): Try[Set[String]] = {
+    Success(analysisState.functions.foldLeft(Set.empty[String]) { case (acc, (caller, functionState)) => if (functionState.callees.contains(node)) acc + caller else acc })
+  }
 
-  override def initialiseAnalysisState(): Try[InterproceduralConstantAnalysisState] = Success(InterproceduralAnalysisState(
-    cfgs.map((name, cfg) => name -> FunctionState(arguments = cfg.parameters.map(_ => ConstantAnalysisAbstractValue.Bottom)))
-  ))
+  override def initialiseAnalysisState(): Try[InterproceduralConstantAnalysisState] = {
+    Success(InterproceduralAnalysisState(
+      cfgs.map((name, cfg) => name -> FunctionState(arguments = cfg.parameters.map(_ => ConstantAnalysisAbstractValue.Bottom)))
+    ))
+  }
 
-  override def analyseNode(analysisState: InterproceduralConstantAnalysisState, node: String): Try[InterproceduralConstantAnalysisAbstractState[O]] = {
+  override def analyseNode(
+    analysisState: InterproceduralConstantAnalysisState,
+    node: String
+  ): Try[InterproceduralConstantAnalysisAbstractState[O]] = {
     for {
       observer <- observerFactory(node, cfgs(node))
       constantAnalysisState <- analysis(InterproceduralConstantAnalysis(node, cfgs, analysisState), observer)
     } yield InterproceduralAbstractState(node, constantAnalysisState.abstractStates(ProgramPoint.ExitPoint), observer)
   }
 
-  override def merge(analysisState: InterproceduralConstantAnalysisState, abstractState: InterproceduralConstantAnalysisAbstractState[O]): Try[InterproceduralConstantAnalysisState] = {
+  override def merge(
+    analysisState: InterproceduralConstantAnalysisState,
+    abstractState: InterproceduralConstantAnalysisAbstractState[O]
+  ): Try[InterproceduralConstantAnalysisState] = {
     val constantAbstractState = abstractState.abstractState
     val previousFunctionState = analysisState.functions(abstractState.name)
     val functionState = previousFunctionState.join(FunctionState(
@@ -236,17 +276,29 @@ class InterproceduralConstantCallGraphAnalysis[O <: InterproceduralConstantAnaly
       constantAbstractState.calls.keys.toSet
     ))
     val functions = analysisState.functions + (abstractState.name -> functionState)
-    Success(InterproceduralAnalysisState(functions.map((name, functionState) => constantAbstractState.calls.get(name) match {
-      case Some(arguments) => name -> FunctionState(
-        functionState.abstractState,
-        joinList(functionState.arguments, arguments),
-        functionState.returnValue,
-        functionState.callees
-      )
-      case None => name -> functionState
+    Success(InterproceduralAnalysisState(functions.map((name, functionState) => {
+      constantAbstractState.calls.get(name) match {
+        case Some(arguments) => name -> FunctionState(
+          functionState.abstractState,
+          joinList(functionState.arguments, arguments),
+          functionState.returnValue,
+          functionState.callees
+        )
+        case None => name -> functionState
+      }
     })))
   }
 
-  override def getArguments(analysisState: InterproceduralConstantAnalysisState, node: String): Try[List[ConstantAnalysisAbstractValue]] = Success(analysisState.functions(node).arguments)
+  override def getArguments(
+    analysisState: InterproceduralConstantAnalysisState,
+    node: String
+  ): Try[List[ConstantAnalysisAbstractValue]] = {
+    Success(analysisState.functions(node).arguments)
+  }
 
-  override def getReturnValue(analysisState: InterproceduralConstantAnalysisState, node: String): Try[Option[ConstantAnalysisAbstractValue]] = Success(analysisState.functions(node).returnValue)
+  override def getReturnValue(
+    analysisState: InterproceduralConstantAnalysisState,
+    node: String
+  ): Try[Option[ConstantAnalysisAbstractValue]] = {
+    Success(analysisState.functions(node).returnValue)
+  }

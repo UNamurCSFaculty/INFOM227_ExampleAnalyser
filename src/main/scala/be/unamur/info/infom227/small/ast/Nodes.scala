@@ -6,9 +6,11 @@ enum EqualComparisonOperator {
   case Eq
   case Ne
 
-  def negate: EqualComparisonOperator = this match {
-    case Eq => Ne
-    case Ne => Eq
+  def negate: EqualComparisonOperator = {
+    this match {
+      case Eq => Ne
+      case Ne => Eq
+    }
   }
 }
 
@@ -25,11 +27,13 @@ enum IntegerComparisonOperator {
   case Gte
   case Lte
 
-  def negate: IntegerComparisonOperator = this match {
-    case Gt => Lte
-    case Lt => Gte
-    case Gte => Lt
-    case Lte => Gt
+  def negate: IntegerComparisonOperator = {
+    this match {
+      case Gt => Lte
+      case Lt => Gte
+      case Gte => Lt
+      case Lte => Gt
+    }
   }
 }
 
@@ -37,9 +41,11 @@ enum BooleanBinaryOperator {
   case And
   case Or
 
-  def negate: BooleanBinaryOperator = this match {
-    case And => Or
-    case Or => And
+  def negate: BooleanBinaryOperator = {
+    this match {
+      case And => Or
+      case Or => And
+    }
   }
 }
 
@@ -52,7 +58,11 @@ sealed trait ArithmeticExpression extends Expression
 
 case class ArithmeticConstant(value: Int) extends ArithmeticExpression
 
-case class ArithmeticBinaryOperation(left: ArithmeticOperand, operator: ArithmeticBinaryOperator, right: ArithmeticOperand) extends ArithmeticExpression
+case class ArithmeticBinaryOperation(
+  left: ArithmeticOperand,
+  operator: ArithmeticBinaryOperator,
+  right: ArithmeticOperand
+) extends ArithmeticExpression
 
 
 sealed trait BooleanExpression extends Expression {
@@ -67,17 +77,29 @@ case class BooleanNegOperation(value: BooleanOperand) extends BooleanExpression 
   override def negate: BooleanOperand = value
 }
 
-case class BooleanBinaryOperation(left: BooleanOperand, operator: BooleanBinaryOperator | EqualComparisonOperator, right: BooleanOperand) extends BooleanExpression {
+case class BooleanBinaryOperation(
+  left: BooleanOperand,
+  operator: BooleanBinaryOperator | EqualComparisonOperator,
+  right: BooleanOperand
+) extends BooleanExpression {
 
-  override def negate: BooleanExpression = operator match
-    case booleanBinaryOperator: BooleanBinaryOperator => BooleanBinaryOperation(negateBooleanOperand(left), booleanBinaryOperator.negate, negateBooleanOperand(right))
-    case equalComparisonOperator: EqualComparisonOperator => BooleanBinaryOperation(left, equalComparisonOperator.negate, right)
+  override def negate: BooleanExpression = {
+    operator match
+      case booleanBinaryOperator: BooleanBinaryOperator => BooleanBinaryOperation(negateBooleanOperand(left), booleanBinaryOperator.negate, negateBooleanOperand(right))
+      case equalComparisonOperator: EqualComparisonOperator => BooleanBinaryOperation(left, equalComparisonOperator.negate, right)
+  }
 }
 
-case class IntegerComparisonOperation(left: ArithmeticOperand, operator: IntegerComparisonOperator | EqualComparisonOperator, right: ArithmeticOperand) extends BooleanExpression {
-  override def negate: BooleanExpression = operator match {
-    case integerComparisonOperator: IntegerComparisonOperator => IntegerComparisonOperation(left, integerComparisonOperator.negate, right)
-    case equalComparisonOperator: EqualComparisonOperator => IntegerComparisonOperation(left, equalComparisonOperator.negate, right)
+case class IntegerComparisonOperation(
+  left: ArithmeticOperand,
+  operator: IntegerComparisonOperator | EqualComparisonOperator,
+  right: ArithmeticOperand
+) extends BooleanExpression {
+  override def negate: BooleanExpression = {
+    operator match {
+      case integerComparisonOperator: IntegerComparisonOperator => IntegerComparisonOperation(left, integerComparisonOperator.negate, right)
+      case equalComparisonOperator: EqualComparisonOperator => IntegerComparisonOperation(left, equalComparisonOperator.negate, right)
+    }
   }
 }
 
@@ -91,10 +113,12 @@ type ArithmeticOperand = ArithmeticConstant | Variable
 
 type BooleanOperand = BooleanConstant | BooleanNegOperation | Variable
 
-def negateBooleanOperand(operand: BooleanOperand): BooleanOperand = operand match {
-  case booleanConstant: BooleanConstant => booleanConstant.negate
-  case booleanNegOperation: BooleanNegOperation => booleanNegOperation.negate
-  case variable: Variable => variable.negate
+def negateBooleanOperand(operand: BooleanOperand): BooleanOperand = {
+  operand match {
+    case booleanConstant: BooleanConstant => booleanConstant.negate
+    case booleanNegOperation: BooleanNegOperation => booleanNegOperation.negate
+    case variable: Variable => variable.negate
+  }
 }
 
 // Call
@@ -109,7 +133,12 @@ sealed trait Statement {
 
 case class AssignStatement(lineNumber: Int, variable: String, expression: Expression | FunctionCall) extends Statement
 
-case class IfStatement(lineNumber: Int, condition: BooleanExpression, ifBody: List[Statement], elseBody: List[Statement]) extends Statement
+case class IfStatement(
+  lineNumber: Int,
+  condition: BooleanExpression,
+  ifBody: List[Statement],
+  elseBody: List[Statement]
+) extends Statement
 
 case class WhileStatement(lineNumber: Int, condition: BooleanExpression, body: List[Statement]) extends Statement
 

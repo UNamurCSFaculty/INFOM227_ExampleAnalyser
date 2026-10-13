@@ -20,9 +20,17 @@ trait AnalysisObserver[N, S, A] {
 
 class DummyObserver[N, S, A] extends AnalysisObserver[N, S, A]
 
-case class Row[T <: Lattice[T]](programPoint: ProgramPoint, worklist: Set[ProgramPoint], beforeVariables: Map[String, T], afterVariables: Map[String, T])
+case class Row[T <: Lattice[T]](
+  programPoint: ProgramPoint,
+  worklist: Set[ProgramPoint],
+  beforeVariables: Map[String, T],
+  afterVariables: Map[String, T]
+)
 
-case class Table[T <: Lattice[T]](rows: mutable.ListBuffer[Row[T]] = mutable.ListBuffer.empty[Row[T]], bottomSymbol: String = ""):
+case class Table[T <: Lattice[T]](
+  rows: mutable.ListBuffer[Row[T]] = mutable.ListBuffer.empty[Row[T]],
+  bottomSymbol: String = ""
+):
   private def center(string: String, width: Int): String = {
     val padding = math.max(0, width - string.length)
     val left = padding / 2
@@ -34,7 +42,13 @@ case class Table[T <: Lattice[T]](rows: mutable.ListBuffer[Row[T]] = mutable.Lis
     ":" ++ "-" * (width - 2) ++ ":"
   }
 
-  private def rowToString(pp: String, worklist: String, before: List[String], after: List[String], delim: String): String = {
+  private def rowToString(
+    pp: String,
+    worklist: String,
+    before: List[String],
+    after: List[String],
+    delim: String
+  ): String = {
     s"$delim$pp$delim$worklist$delim${before.mkString(delim)}$delim${after.mkString(delim)}$delim\n"
   }
 
@@ -92,12 +106,24 @@ case class Table[T <: Lattice[T]](rows: mutable.ListBuffer[Row[T]] = mutable.Lis
     builder.toString
   }
 
-case class TableObserver[T <: Lattice[T], S <: State[T]](var beforeAbstractState: Option[S] = None, table: Table[T] = Table[T]()) extends AnalysisObserver[ProgramPoint, S, AnalysisState[S]]:
-  override def beforeNodeAnalysis(analysisState: AnalysisState[S], worklist: mutable.Set[ProgramPoint], node: ProgramPoint): Unit = {
+case class TableObserver[T <: Lattice[T], S <: State[T]](
+  var beforeAbstractState: Option[S] = None,
+  table: Table[T] = Table[T]()
+) extends AnalysisObserver[ProgramPoint, S, AnalysisState[S]]:
+  override def beforeNodeAnalysis(
+    analysisState: AnalysisState[S],
+    worklist: mutable.Set[ProgramPoint],
+    node: ProgramPoint
+  ): Unit = {
     beforeAbstractState = analysisState.abstractStates.get(node)
   }
 
-  override def afterNodeAnalysis(analysisState: AnalysisState[S], abstractState: S, worklist: mutable.Set[ProgramPoint], node: ProgramPoint): Unit = {
+  override def afterNodeAnalysis(
+    analysisState: AnalysisState[S],
+    abstractState: S,
+    worklist: mutable.Set[ProgramPoint],
+    node: ProgramPoint
+  ): Unit = {
     table.rows += Row(
       node,
       worklist.toSet,
@@ -113,6 +139,11 @@ trait ObservableAbstractState[O]:
   def observer: O
 
 class InterproceduralTableObserver[T <: Lattice[T], O, S <: ObservableAbstractState[O]](val observers: mutable.Buffer[(String, O)] = mutable.Buffer.empty[(String, O)]) extends AnalysisObserver[String, S, InterproceduralAnalysisState[T]]:
-  override def afterNodeAnalysis(analysisState: InterproceduralAnalysisState[T], abstractState: S, worklist: mutable.Set[String], node: String): Unit = {
+  override def afterNodeAnalysis(
+    analysisState: InterproceduralAnalysisState[T],
+    abstractState: S,
+    worklist: mutable.Set[String],
+    node: String
+  ): Unit = {
     observers.addOne(node -> abstractState.observer)
   }

@@ -87,10 +87,17 @@ object IntervalAnalysisAbstractValue:
     }
   }
 
-class IntervalAnalysis(cfg: Cfg, maxIteration: Int = 5) extends ForwardMayAnalyzer[IterationAbstractState[IntervalAnalysisAbstractValue]](cfg):
+class IntervalAnalysis(
+  cfg: Cfg,
+  maxIteration: Int = 5
+) extends ForwardMayAnalyzer[IterationAbstractState[IntervalAnalysisAbstractValue]](cfg):
   override def entryAbstractState(): IterationAbstractState[IntervalAnalysisAbstractValue] = IterationAbstractState(state = AbstractState(cfg.parameters.map { parameter => parameter -> IntervalAnalysisAbstractValue.Unknown }.toMap))
 
-  def evaluateOperation(left: IntervalNumber, operator: ArithmeticBinaryOperator, right: IntervalNumber): Option[IntervalNumber] = {
+  def evaluateOperation(
+    left: IntervalNumber,
+    operator: ArithmeticBinaryOperator,
+    right: IntervalNumber
+  ): Option[IntervalNumber] = {
     (left, operator, right) match {
       case (IntervalNumber.Integer(leftVal), ArithmeticBinaryOperator.Add, IntervalNumber.Integer(rightVal)) => Some(IntervalNumber.Integer(leftVal + rightVal))
       case (IntervalNumber.Integer(leftVal), ArithmeticBinaryOperator.Sub, IntervalNumber.Integer(rightVal)) => Some(IntervalNumber.Integer(leftVal - rightVal))
@@ -144,7 +151,10 @@ class IntervalAnalysis(cfg: Cfg, maxIteration: Int = 5) extends ForwardMayAnalyz
     }
   }
 
-  final override def analyseStatement(abstractState: IterationAbstractState[IntervalAnalysisAbstractValue], statement: Statement): IterationAbstractState[IntervalAnalysisAbstractValue] = {
+  final override def analyseStatement(
+    abstractState: IterationAbstractState[IntervalAnalysisAbstractValue],
+    statement: Statement
+  ): IterationAbstractState[IntervalAnalysisAbstractValue] = {
     statement match {
       case AssignStatement(lineNumber, variable, expression) =>
         expression match {
@@ -175,7 +185,10 @@ class IntervalAnalysis(cfg: Cfg, maxIteration: Int = 5) extends ForwardMayAnalyz
     }
   }
 
-  final override def conditionUpdate(abstractState: IterationAbstractState[IntervalAnalysisAbstractValue], condition: BooleanExpression): Option[IterationAbstractState[IntervalAnalysisAbstractValue]] = {
+  final override def conditionUpdate(
+    abstractState: IterationAbstractState[IntervalAnalysisAbstractValue],
+    condition: BooleanExpression
+  ): Option[IterationAbstractState[IntervalAnalysisAbstractValue]] = {
     condition match {
       case BooleanConstant(true) =>
         Some(abstractState)
@@ -210,7 +223,12 @@ class IntervalAnalysis(cfg: Cfg, maxIteration: Int = 5) extends ForwardMayAnalyz
     }
   }
 
-  override def merge(analysisState: AnalysisState[IterationAbstractState[IntervalAnalysisAbstractValue]], node: ProgramPoint, left: IterationAbstractState[IntervalAnalysisAbstractValue], right: IterationAbstractState[IntervalAnalysisAbstractValue]): Try[IterationAbstractState[IntervalAnalysisAbstractValue]] = {
+  override def merge(
+    analysisState: AnalysisState[IterationAbstractState[IntervalAnalysisAbstractValue]],
+    node: ProgramPoint,
+    left: IterationAbstractState[IntervalAnalysisAbstractValue],
+    right: IterationAbstractState[IntervalAnalysisAbstractValue]
+  ): Try[IterationAbstractState[IntervalAnalysisAbstractValue]] = {
     var tryWiden = false
 
     val joined = left.joinWith(

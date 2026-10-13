@@ -174,10 +174,16 @@ class TestZeroAnalysis extends AnyFunSuite {
         program <- ast.build(programContext)
         cfgs = cfg.build(program)
         zeroAnalyses <- cfgsAnalysis(cfgs, (_, cfg) => Success(ZeroAnalysis(cfg)), (name, _) => Success(DummyObserver()))
-        analyses <- cfgsAnalysis(cfgs, (name, cfg) => zeroAnalyses.get(name) match {
-          case Some((zeroAnalysis, _)) => Success(ZeroAnalysisInterpreter(cfg, zeroAnalysis))
-          case None => Failure(new Exception(s"Zero analysis not found for $name"))
-        }, (name, _) => Success(DummyObserver()))
+        analyses <- cfgsAnalysis(
+          cfgs,
+          (name, cfg) => {
+            zeroAnalyses.get(name) match {
+              case Some((zeroAnalysis, _)) => Success(ZeroAnalysisInterpreter(cfg, zeroAnalysis))
+              case None => Failure(new Exception(s"Zero analysis not found for $name"))
+            }
+          },
+          (name, _) => Success(DummyObserver())
+        )
       } yield analyses
 
       val analyses = tryAnalyses match {
