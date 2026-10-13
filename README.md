@@ -412,7 +412,7 @@ $$
 
 ### GEN/KILL
 
-It is also possible to represent the analysis using GEN/KILL:
+It is also possible to represent the analysis using an extended version of GEN/KILL:
 
 $$
 \begin{align}
