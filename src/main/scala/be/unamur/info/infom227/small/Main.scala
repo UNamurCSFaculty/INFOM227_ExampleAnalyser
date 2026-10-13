@@ -180,10 +180,15 @@ def handleExit[T](tryResult: Try[T], f: T => Unit): Unit = {
         tryResult,
         (constantAnalyses, interproceduralObserver) => {
           printTitle("Interprocedural Constant Analysis")
-          for ((name, observer) <- interproceduralObserver.observers) {
+          for ((name, observer, analysisState, worklist) <- interproceduralObserver.trace) {
             println(s"Analysis for $name:")
             if (others.contains("-v")) {
               print(observer.table.toString)
+              for ((name, functionState) <- analysisState.functions) {
+                println(s"> function $name(${functionState.arguments.map(_.toString).mkString(", ")}) -> ${functionState.returnValue}")
+                println(s"      Callees: {${functionState.callees.map(_.toString).mkString(", ")}}")
+              }
+              println(s"> Worklist: {${worklist.mkString(", ")}}")
             }
           }
           println("Signatures:")

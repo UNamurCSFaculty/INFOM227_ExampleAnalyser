@@ -138,12 +138,12 @@ case class TableObserver[T <: Lattice[T], S <: State[T]](
 trait ObservableAbstractState[O]:
   def observer: O
 
-class InterproceduralTableObserver[T <: Lattice[T], O, S <: ObservableAbstractState[O]](val observers: mutable.Buffer[(String, O)] = mutable.Buffer.empty[(String, O)]) extends AnalysisObserver[String, S, InterproceduralAnalysisState[T]]:
+class InterproceduralTableObserver[T <: Lattice[T], O, S <: ObservableAbstractState[O]](val trace: mutable.Buffer[(String, O, InterproceduralAnalysisState[T], Set[String])] = mutable.Buffer.empty[(String, O, InterproceduralAnalysisState[T], Set[String])]) extends AnalysisObserver[String, S, InterproceduralAnalysisState[T]]:
   override def afterNodeAnalysis(
     analysisState: InterproceduralAnalysisState[T],
     abstractState: S,
     worklist: mutable.Set[String],
     node: String
   ): Unit = {
-    observers.addOne(node -> abstractState.observer)
+    trace.addOne((node, abstractState.observer, analysisState, worklist.toSet))
   }
