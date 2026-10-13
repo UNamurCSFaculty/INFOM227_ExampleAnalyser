@@ -22,7 +22,7 @@ The analyser has been implemented in [Scala](https://www.scala-lang.org/) for se
 
 The application requires:
 
-- [Java](https://adoptium.net/) >= 23
+- [Java](https://adoptium.net/) >= 21
 
 ## Download
 
