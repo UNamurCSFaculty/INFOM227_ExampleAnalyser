@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="sign-analysis" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="be.unamur.info.infom227.small.main" />
+    <module name="Small.main" />
+    <option name="PROGRAM_PARAMETERS" value="sign-analysis data/foo.small -v" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="be.unamur.info.infom227.small.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
