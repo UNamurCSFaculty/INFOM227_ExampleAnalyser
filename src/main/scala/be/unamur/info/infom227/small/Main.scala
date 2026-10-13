@@ -1,8 +1,8 @@
 package be.unamur.info.infom227.small
 
-import be.unamur.info.infom227.small.analysis.{State, AnalysisState, ConstantAnalysis, ConstantAnalysisAbstractValue, DummyObserver, IntervalAnalysis, IntervalAnalysisAbstractValue, Lattice, SignAnalysis, SignAnalysisAbstractValue, Table, TableObserver, ZeroAnalysis, ZeroAnalysisAbstractValue, ZeroAnalysisInterpreter}
+import be.unamur.info.infom227.small.analysis.{AbstractState, AnalysisState, ConstantAnalysis, ConstantAnalysisAbstractValue, DummyObserver, ExtendedConstantAnalysisAbstractState, InterproceduralAbstractState, InterproceduralConstantCallGraphAnalysis, InterproceduralTableObserver, IntervalAnalysis, IntervalAnalysisAbstractValue, Lattice, SignAnalysis, SignAnalysisAbstractValue, State, Table, TableObserver, ZeroAnalysis, ZeroAnalysisAbstractValue, ZeroAnalysisInterpreter}
 import be.unamur.info.infom227.small.ast.{BuiltAstException, Program}
-import be.unamur.info.infom227.small.cfg.ProgramPoint
+import be.unamur.info.infom227.small.cfg.{Cfg, ProgramPoint}
 import be.unamur.info.infom227.small.interpreter.VariableType
 import org.antlr.v4.runtime.CharStreams
 
@@ -50,6 +50,7 @@ def handleExit[T](tryResult: Try[T], f: T => Unit): Unit = {
           System.exit(SUCCESS_ERROR_CODE)
         case Failure(exception) =>
           println(s"Fatal error:\n${exception.getMessage}")
+          exception.printStackTrace()
           System.exit(FATAL_ERROR_CODE)
       }
     case Failure(exception: BuiltAstException) =>
@@ -57,6 +58,7 @@ def handleExit[T](tryResult: Try[T], f: T => Unit): Unit = {
       System.exit(COMPILATION_ERROR_CODE)
     case Failure(exception: Throwable) =>
       println(s"Fatal error:\n${exception.getMessage}")
+      exception.printStackTrace()
       System.exit(FATAL_ERROR_CODE)
 }
 
@@ -135,6 +137,33 @@ def handleExit[T](tryResult: Try[T], f: T => Unit): Unit = {
       handleExit(tryResult, constantAnalyses => {
         printTitle("Constant Analysis")
         printAnalysis(constantAnalyses, others.contains("-v"))
+      })
+    case "interprocedural-constant-analysis" =>
+      val tryResult = for {
+        program <- buildAstFromFileName(file)
+        cfgs = cfg.build(program)
+        interproceduralObserver = InterproceduralTableObserver[ConstantAnalysisAbstractValue, TableObserver[ConstantAnalysisAbstractValue, ExtendedConstantAnalysisAbstractState], InterproceduralAbstractState[ExtendedConstantAnalysisAbstractState, TableObserver[ConstantAnalysisAbstractValue, ExtendedConstantAnalysisAbstractState]]]()
+        constantAnalyses <- analysis.interproceduralAnalysis(
+          InterproceduralConstantCallGraphAnalysis(
+            cfgs,
+            (_, _) => Success(TableObserver(table = Table(bottomSymbol = ConstantAnalysisAbstractValue.Bottom.toString)))
+          ),
+          interproceduralObserver
+        )
+      } yield (constantAnalyses, interproceduralObserver)
+
+      handleExit(tryResult, (constantAnalyses, interproceduralObserver) => {
+        printTitle("Interprocedural Constant Analysis")
+        for ((name, observer) <- interproceduralObserver.observers) {
+          println(s"Analysis for $name:")
+          if (others.contains("-v")) {
+            print(observer.table.toString)
+          }
+        }
+        println("Signatures:")
+        for ((name, functionState) <- constantAnalyses.functions) {
+          println(s"    ${name}(${functionState.arguments.map(argument => argument.toString).mkString(", ")}) -> ${functionState.returnValue}")
+        }
       })
     case "interval-analysis" =>
       val tryResult = for {

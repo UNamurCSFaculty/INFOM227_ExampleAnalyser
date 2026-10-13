@@ -165,7 +165,7 @@ trait CallGraphAnalyser[N, I, R, S, A] {
 
 def interproceduralAnalysis[N: Ordering, I, R, S, A, G <: CallGraphAnalyser[N, I, R, S, A], O <: AnalysisObserver[N, S, A]](analyser: G, observer: O): Try[A] = {
   Try {
-    val analysisState = analyser.initialiseAnalysisState().get
+    var analysisState = analyser.initialiseAnalysisState().get
 
     val worklist = mutable.SortedSet.from(analyser.entryNodes)
 
@@ -188,17 +188,19 @@ def interproceduralAnalysis[N: Ordering, I, R, S, A, G <: CallGraphAnalyser[N, I
 
         val newAnalysisState = analyser.merge(analysisState, abstractState).get
 
-        for (callee <- analyser.calleeNodes(analysisState, node).get) {
-          if (analyser.getArguments(analysisState, node).get != analyser.getArguments(newAnalysisState, node).get) {
+        for (callee <- analyser.calleeNodes(newAnalysisState, node).get) {
+          if (analyser.getArguments(analysisState, callee).get != analyser.getArguments(newAnalysisState, callee).get) {
             worklist.add(callee)
           }
         }
 
         if (analyser.getReturnValue(analysisState, node).get != analyser.getReturnValue(newAnalysisState, node).get) {
-          for (caller <- analyser.callerNodes(analysisState, node).get) {
+          for (caller <- analyser.callerNodes(newAnalysisState, node).get) {
             worklist.add(caller)
           }
         }
+
+        analysisState = newAnalysisState
 
         observer.afterNodeAnalysis(analysisState, abstractState, worklist, node)
 
