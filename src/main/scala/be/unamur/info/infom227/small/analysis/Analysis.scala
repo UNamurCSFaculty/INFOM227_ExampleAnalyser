@@ -142,3 +142,74 @@ def cfgsAnalysis[N: Ordering, S, A, G <: GraphAnalyser[N, S, A], O <: AnalysisOb
     } yield results + (name -> (analysisState, observer))
   }
 }
+
+trait CallGraphAnalyser[N, I, R, S, A] {
+  def entryNodes: Set[N]
+
+  def calleeNodes(analysisState: A, node: N): Try[Set[N]]
+
+  def callerNodes(analysisState: A, node: N): Try[Set[N]]
+
+  def initialiseAnalysisState(): Try[A]
+
+  def analyseNode(analysisState: A, node: N): Try[S]
+
+  def merge(analysisState: A, abstractState: S): Try[A]
+
+  def getArguments(analysisState: A, node: N): Try[I]
+
+  def getReturnValue(analysisState: A, node: N): Try[R]
+
+  def optimise(analysisState: A, worklist: mutable.Set[N]): Try[Unit] = Try(())
+}
+
+def interproceduralAnalysis[N: Ordering, I, R, S, A, G <: CallGraphAnalyser[N, I, R, S, A], O <: AnalysisObserver[N, S, A]](analyser: G, observer: O): Try[A] = {
+  Try {
+    val analysisState = analyser.initialiseAnalysisState().get
+
+    val worklist = mutable.SortedSet.from(analyser.entryNodes)
+
+    observer.beforeAnalysis(analysisState, worklist)
+
+    breakable {
+      while (true) {
+        observer.beforeIteration(analysisState, worklist)
+
+        val node = worklist.headOption match {
+          case Some(n) =>
+            worklist.remove(n)
+            n
+          case None => break()
+        }
+
+        observer.beforeNodeAnalysis(analysisState, worklist, node)
+
+        val abstractState = analyser.analyseNode(analysisState, node).get
+
+        val newAnalysisState = analyser.merge(analysisState, abstractState).get
+
+        for (callee <- analyser.calleeNodes(analysisState, node).get) {
+          if (analyser.getArguments(analysisState, node).get != analyser.getArguments(newAnalysisState, node).get) {
+            worklist.add(callee)
+          }
+        }
+
+        if (analyser.getReturnValue(analysisState, node).get != analyser.getReturnValue(newAnalysisState, node).get) {
+          for (caller <- analyser.callerNodes(analysisState, node).get) {
+            worklist.add(caller)
+          }
+        }
+
+        observer.afterNodeAnalysis(analysisState, abstractState, worklist, node)
+
+        analyser.optimise(analysisState, worklist)
+
+        observer.afterIteration(analysisState, worklist)
+      }
+    }
+
+    observer.afterAnalysis(analysisState, worklist)
+
+    analysisState
+  }
+}
