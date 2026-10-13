@@ -15,6 +15,12 @@ private def joinMap[K, V](left: Map[K, V], right: Map[K, V], f: (V, V) => V): Ma
   }
 }
 
+private def meetMap[K, V](left: Map[K, V], right: Map[K, V], f: (V, V) => V): Map[K, V] = {
+  left.keys.toSet.intersect(right.keys.toSet).map { name =>
+    name -> f(left(name), right(name))
+  }.toMap
+}
+
 trait State[T]:
   def variables: Map[String, T]
 
@@ -53,13 +59,70 @@ class AbstractState[T <: Lattice[T]](val variables: Map[String, T] = Map()) exte
   }
 
   def meetWith(other: AbstractState[T], f: (T, T) => T): AbstractState[T] = {
-    AbstractState(this.variables.keys.toSet.intersect(other.variables.keys.toSet).map { name =>
-      name -> f(this.variables(name), other.variables(name))
-    }.toMap)
+    AbstractState(meetMap(this.variables, other.variables, f))
   }
 
   override def meet(other: AbstractState[T]): AbstractState[T] = {
     meetWith(other, (left, right) => left.meet(right))
+  }
+
+class InterproceduralAbstractState[T <: Lattice[T]](val state: AbstractState[T], val calls: Map[String, Set[List[T]]], val returnValue: Option[T]) extends Lattice[InterproceduralAbstractState[T]], State[T]:
+  def variables: Map[String, T] = state.variables
+
+  def apply(variable: String): T =
+    state(variable)
+
+  def apply(update: (String, T)): InterproceduralAbstractState[T] = {
+    InterproceduralAbstractState(state(update), calls, returnValue)
+  }
+
+  def withReturn(value: T): InterproceduralAbstractState[T] = {
+    InterproceduralAbstractState(state, calls, Some(value))
+  }
+
+  def addCall(callee: String, arguments: List[T]): InterproceduralAbstractState[T] = {
+    InterproceduralAbstractState(state, calls + (callee -> (calls.getOrElse(callee, Set()) + arguments)), returnValue)
+  }
+
+  override def toString: String = {
+    val builder = new StringBuilder()
+    for ((variable, abstractValue) <- variables) {
+      builder.append(s"$variable: $abstractValue\n")
+    }
+    builder.toString()
+  }
+
+  override def equals(obj: Any): Boolean = obj match {
+    case other: InterproceduralAbstractState[_] => state == other.state && calls == other.calls && returnValue == other.returnValue
+    case _ => false
+  }
+
+  override def hashCode(): Int = state.hashCode() + calls.hashCode() + returnValue.hashCode()
+
+  override def join(other: InterproceduralAbstractState[T]): InterproceduralAbstractState[T] = {
+    InterproceduralAbstractState(
+      state.join(other.state),
+      joinMap(calls, other.calls, (left, right) => left union right),
+      (returnValue, other.returnValue) match {
+        case (Some(left), Some(right)) => Some(left.join(right))
+        case (Some(left), None) => Some(left)
+        case (None, Some(right)) => Some(right)
+        case (None, None) => None
+      }
+    )
+  }
+
+  override def meet(other: InterproceduralAbstractState[T]): InterproceduralAbstractState[T] = {
+    InterproceduralAbstractState(
+      state.meet(other.state),
+      joinMap(calls, other.calls, (left, right) => left intersect right),
+      (returnValue, other.returnValue) match {
+        case (Some(left), Some(right)) => Some(left.meet(right))
+        case (Some(left), None) => Some(left)
+        case (None, Some(right)) => Some(right)
+        case (None, None) => None
+      }
+    )
   }
 
 class IterationAbstractState[T <: Lattice[T]](val state: AbstractState[T], val iterations: Map[ProgramPoint, Int] = Map()) extends Lattice[IterationAbstractState[T]], State[T]:
