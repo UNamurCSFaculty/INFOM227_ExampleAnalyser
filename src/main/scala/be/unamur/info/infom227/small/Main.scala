@@ -1,8 +1,8 @@
 package be.unamur.info.infom227.small
 
-import be.unamur.info.infom227.small.analysis.{AbstractState, AnalysisState, ConstantAnalysis, ConstantAnalysisAbstractValue, DummyObserver, ExtendedConstantAnalysisAbstractState, InterproceduralAbstractState, InterproceduralConstantCallGraphAnalysis, InterproceduralTableObserver, IntervalAnalysis, IntervalAnalysisAbstractValue, Lattice, SignAnalysis, SignAnalysisAbstractValue, State, Table, TableObserver, ZeroAnalysis, ZeroAnalysisAbstractValue, ZeroAnalysisInterpreter}
+import be.unamur.info.infom227.small.analysis.*
 import be.unamur.info.infom227.small.ast.{BuiltAstException, Program}
-import be.unamur.info.infom227.small.cfg.{Cfg, ProgramPoint}
+import be.unamur.info.infom227.small.cfg.ProgramPoint
 import be.unamur.info.infom227.small.interpreter.VariableType
 import org.antlr.v4.runtime.CharStreams
 
@@ -92,12 +92,12 @@ def handleExit[T](tryResult: Try[T], f: T => Unit): Unit = {
       val tryResult = for {
         program <- buildAstFromFileName(file)
         cfgs = cfg.build(program)
-        zeroAnalyses <- analysis.cfgsAnalysis(
+        zeroAnalyses <- cfgsAnalysis(
           cfgs,
           (_, cfg) => Success(ZeroAnalysis(cfg)),
           (name, _) => Success(TableObserver(table = Table(bottomSymbol = ZeroAnalysisAbstractValue.Bottom.toString)))
         )
-        moduleDiagnostics <- analysis.cfgsAnalysis(
+        moduleDiagnostics <- cfgsAnalysis(
           cfgs,
           (name, cfg) => {
             zeroAnalyses.get(name) match {
@@ -130,7 +130,7 @@ def handleExit[T](tryResult: Try[T], f: T => Unit): Unit = {
       val tryResult = for {
         program <- buildAstFromFileName(file)
         cfgs = cfg.build(program)
-        signAnalyses <- analysis.cfgsAnalysis(
+        signAnalyses <- cfgsAnalysis(
           cfgs,
           (_, cfg) => Success(SignAnalysis(cfg)),
           (name, _) => Success(TableObserver(table = Table(bottomSymbol = SignAnalysisAbstractValue.Bottom.toString)))
@@ -148,7 +148,7 @@ def handleExit[T](tryResult: Try[T], f: T => Unit): Unit = {
       val tryResult = for {
         program <- buildAstFromFileName(file)
         cfgs = cfg.build(program)
-        constantAnalyses <- analysis.cfgsAnalysis(
+        constantAnalyses <- cfgsAnalysis(
           cfgs,
           (_, cfg) => Success(ConstantAnalysis(cfg)),
           (name, _) => Success(TableObserver(table = Table(bottomSymbol = ConstantAnalysisAbstractValue.Bottom.toString)))
@@ -167,7 +167,7 @@ def handleExit[T](tryResult: Try[T], f: T => Unit): Unit = {
         program <- buildAstFromFileName(file)
         cfgs = cfg.build(program)
         interproceduralObserver = InterproceduralTableObserver[ConstantAnalysisAbstractValue, TableObserver[ConstantAnalysisAbstractValue, ExtendedConstantAnalysisAbstractState], InterproceduralAbstractState[ExtendedConstantAnalysisAbstractState, TableObserver[ConstantAnalysisAbstractValue, ExtendedConstantAnalysisAbstractState]]]()
-        constantAnalyses <- analysis.interproceduralAnalysis(
+        constantAnalyses <- interproceduralAnalysis(
           InterproceduralConstantCallGraphAnalysis(
             cfgs,
             (_, _) => Success(TableObserver(table = Table(bottomSymbol = ConstantAnalysisAbstractValue.Bottom.toString)))
@@ -196,7 +196,7 @@ def handleExit[T](tryResult: Try[T], f: T => Unit): Unit = {
       val tryResult = for {
         program <- buildAstFromFileName(file)
         cfgs = cfg.build(program)
-        intervalAnalyses <- analysis.cfgsAnalysis(
+        intervalAnalyses <- cfgsAnalysis(
           cfgs,
           (_, cfg) => Success(IntervalAnalysis(cfg)),
           (name, _) => Success(TableObserver(table = Table(bottomSymbol = IntervalAnalysisAbstractValue.Bottom.toString)))

@@ -1,10 +1,10 @@
 package be.unamur.info.infom227.small.cfg
 
-import ProgramPoint.StatementPoint
 import be.unamur.info.infom227.small.ast.{AssignStatement, BooleanConstant, BooleanExpression, Function, IfStatement, Program, ReturnStatement, Statement, WhileStatement}
+import be.unamur.info.infom227.small.cfg.ProgramPoint.StatementPoint
 
-import scala.util.control.Breaks.*
 import scala.collection.{SortedMap, mutable}
+import scala.util.control.Breaks.*
 
 private type PreviousPoints = Set[(ProgramPoint, BooleanExpression)]
 

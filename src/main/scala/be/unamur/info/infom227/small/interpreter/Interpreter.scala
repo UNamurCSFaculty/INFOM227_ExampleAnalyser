@@ -1,6 +1,6 @@
 package be.unamur.info.infom227.small.interpreter
 
-import be.unamur.info.infom227.small.ast.{ArithmeticBinaryOperation, ArithmeticBinaryOperator, ArithmeticConstant, ArithmeticExpression, AssignStatement, BooleanBinaryOperation, BooleanBinaryOperator, BooleanConstant, BooleanExpression, BooleanNegOperation, EqualComparisonOperator, Expression, FunctionCall, IfStatement, IntegerComparisonOperation, IntegerComparisonOperator, Program, ReturnStatement, Statement, Variable, WhileStatement}
+import be.unamur.info.infom227.small.ast.*
 
 import scala.collection.immutable.HashMap
 import scala.util.{Failure, Success, Try}

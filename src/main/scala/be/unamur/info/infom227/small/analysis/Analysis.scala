@@ -4,9 +4,9 @@ import be.unamur.info.infom227.small.ast.{BooleanExpression, Statement}
 import be.unamur.info.infom227.small.cfg.ProgramPoint.{EntryPoint, ExitPoint}
 import be.unamur.info.infom227.small.cfg.{Cfg, ProgramPoint}
 
-import scala.util.{Failure, Success, Try}
 import scala.collection.mutable
 import scala.util.control.Breaks.*
+import scala.util.{Failure, Success, Try}
 
 trait GraphAnalyser[N, S, A] {
   def entryNodes: Set[N]
