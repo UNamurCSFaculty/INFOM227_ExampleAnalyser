@@ -1,8 +1,6 @@
 package be.unamur.info.infom227.small.interpreter
 
-import be.unamur.info.infom227.small.ast
-import be.unamur.info.infom227.small.cst
-import be.unamur.info.infom227.small.interpreter
+import be.unamur.info.infom227.small.{ast, cst, interpreter}
 import org.antlr.v4.runtime.CharStreams
 import org.scalatest.funsuite.AnyFunSuite
 

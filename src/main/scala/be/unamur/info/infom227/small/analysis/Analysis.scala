@@ -4,9 +4,9 @@ import be.unamur.info.infom227.small.ast.{BooleanExpression, Statement}
 import be.unamur.info.infom227.small.cfg.ProgramPoint.{EntryPoint, ExitPoint}
 import be.unamur.info.infom227.small.cfg.{Cfg, ProgramPoint}
 
-import scala.util.{Failure, Success, Try}
 import scala.collection.mutable
 import scala.util.control.Breaks.*
+import scala.util.{Failure, Success, Try}
 
 trait GraphAnalyser[N, S, A] {
   def entryNodes: Set[N]
@@ -50,13 +50,24 @@ abstract class ForwardMayAnalyzer[S <: Lattice[S]](cfg: Cfg) extends GraphAnalys
     }
   }
 
-  override def updateAbstractState(analysisState: AnalysisState[S], from: ProgramPoint, to: ProgramPoint, abstractState: S): Try[Option[S]] =
+  override def updateAbstractState(
+    analysisState: AnalysisState[S],
+    from: ProgramPoint,
+    to: ProgramPoint,
+    abstractState: S
+  ): Try[Option[S]] = {
     cfg.condition(from, to) match {
       case Some(condition) => Try(conditionUpdate(abstractState, condition))
       case _ => Failure(new RuntimeException("condition should always exist"))
     }
+  }
 
-  override def getAbstractState(analysisState: AnalysisState[S], node: ProgramPoint): Try[Option[S]] = Success(analysisState.abstractStates.get(node))
+  override def getAbstractState(
+    analysisState: AnalysisState[S],
+    node: ProgramPoint
+  ): Try[Option[S]] = {
+    Success(analysisState.abstractStates.get(node))
+  }
 
   override def setAbstractState(analysisState: AnalysisState[S], node: ProgramPoint, abstractState: S): Try[Unit] = {
     analysisState.abstractStates.addOne(node -> abstractState)
@@ -67,7 +78,10 @@ abstract class ForwardMayAnalyzer[S <: Lattice[S]](cfg: Cfg) extends GraphAnalys
     Success(left.join(right))
   }
 
-def analysis[N: Ordering, S, A, G <: GraphAnalyser[N, S, A], O <: AnalysisObserver[N, S, A]](analyser: G, observer: O): Try[A] = {
+def analysis[N: Ordering, S, A, G <: GraphAnalyser[N, S, A], O <: AnalysisObserver[N, S, A]](
+  analyser: G,
+  observer: O
+): Try[A] = {
   Try {
     val analysisState = analyser.initialiseAnalysisState().get
 
@@ -131,7 +145,11 @@ def analysis[N: Ordering, S, A, G <: GraphAnalyser[N, S, A], O <: AnalysisObserv
   }
 }
 
-def cfgsAnalysis[N: Ordering, S, A, G <: GraphAnalyser[N, S, A], O <: AnalysisObserver[N, S, A]](cfgs: Map[String, Cfg], analyserFactory: (name: String, cfg: Cfg) => Try[G], observerFactory: (name: String, cfg: Cfg) => Try[O]): Try[Map[String, (A, O)]] = {
+def cfgsAnalysis[N: Ordering, S, A, G <: GraphAnalyser[N, S, A], O <: AnalysisObserver[N, S, A]](
+  cfgs: Map[String, Cfg],
+  analyserFactory: (name: String, cfg: Cfg) => Try[G],
+  observerFactory: (name: String, cfg: Cfg) => Try[O]
+): Try[Map[String, (A, O)]] = {
   cfgs.foldLeft(Try(Map.empty[String, (A, O)])) { (acc, entry) =>
     for {
       results <- acc
@@ -140,5 +158,81 @@ def cfgsAnalysis[N: Ordering, S, A, G <: GraphAnalyser[N, S, A], O <: AnalysisOb
       observer <- observerFactory(name, cfg)
       analysisState <- analysis(analyser, observer)
     } yield results + (name -> (analysisState, observer))
+  }
+}
+
+trait CallGraphAnalyser[N, I, R, S, A] {
+  def entryNodes: Set[N]
+
+  def calleeNodes(analysisState: A, node: N): Try[Set[N]]
+
+  def callerNodes(analysisState: A, node: N): Try[Set[N]]
+
+  def initialiseAnalysisState(): Try[A]
+
+  def analyseNode(analysisState: A, node: N): Try[S]
+
+  def merge(analysisState: A, abstractState: S): Try[A]
+
+  def getArguments(analysisState: A, node: N): Try[I]
+
+  def getReturnValue(analysisState: A, node: N): Try[R]
+
+  def optimise(analysisState: A, worklist: mutable.Set[N]): Try[Unit] = Try(())
+}
+
+def interproceduralAnalysis[N: Ordering, I, R, S, A, G <: CallGraphAnalyser[N, I, R, S, A], O <: AnalysisObserver[N, S, A]](
+  analyser: G,
+  observer: O
+): Try[A] = {
+  Try {
+    var analysisState = analyser.initialiseAnalysisState().get
+
+    val worklist = mutable.SortedSet.from(analyser.entryNodes)
+
+    observer.beforeAnalysis(analysisState, worklist)
+
+    breakable {
+      while (true) {
+        observer.beforeIteration(analysisState, worklist)
+
+        val node = worklist.headOption match {
+          case Some(n) =>
+            worklist.remove(n)
+            n
+          case None => break()
+        }
+
+        observer.beforeNodeAnalysis(analysisState, worklist, node)
+
+        val abstractState = analyser.analyseNode(analysisState, node).get
+
+        val newAnalysisState = analyser.merge(analysisState, abstractState).get
+
+        for (callee <- analyser.calleeNodes(newAnalysisState, node).get) {
+          if (analyser.getArguments(analysisState, callee).get != analyser.getArguments(newAnalysisState, callee).get) {
+            worklist.add(callee)
+          }
+        }
+
+        if (analyser.getReturnValue(analysisState, node).get != analyser.getReturnValue(newAnalysisState, node).get) {
+          for (caller <- analyser.callerNodes(newAnalysisState, node).get) {
+            worklist.add(caller)
+          }
+        }
+
+        analysisState = newAnalysisState
+
+        observer.afterNodeAnalysis(analysisState, abstractState, worklist, node)
+
+        analyser.optimise(analysisState, worklist)
+
+        observer.afterIteration(analysisState, worklist)
+      }
+    }
+
+    observer.afterAnalysis(analysisState, worklist)
+
+    analysisState
   }
 }

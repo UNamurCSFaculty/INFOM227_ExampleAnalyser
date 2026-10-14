@@ -22,7 +22,7 @@ The analyser has been implemented in [Scala](https://www.scala-lang.org/) for se
 
 The application requires:
 
-- [Java](https://adoptium.net/) >= 23
+- [Java](https://adoptium.net/) >= 21
 
 ## Download
 
@@ -412,7 +412,7 @@ $$
 
 ### GEN/KILL
 
-It is also possible to represent the analysis using GEN/KILL:
+It is also possible to represent the analysis using an extended version of GEN/KILL:
 
 $$
 \begin{align}

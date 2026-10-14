@@ -1,6 +1,6 @@
 package be.unamur.info.infom227.small.interpreter
 
-import be.unamur.info.infom227.small.ast.{ArithmeticBinaryOperation, ArithmeticBinaryOperator, ArithmeticConstant, ArithmeticExpression, AssignStatement, BooleanBinaryOperation, BooleanBinaryOperator, BooleanConstant, BooleanExpression, BooleanNegOperation, EqualComparisonOperator, Expression, FunctionCall, IfStatement, IntegerComparisonOperation, IntegerComparisonOperator, Program, ReturnStatement, Statement, Variable, WhileStatement}
+import be.unamur.info.infom227.small.ast.*
 
 import scala.collection.immutable.HashMap
 import scala.util.{Failure, Success, Try}
@@ -22,7 +22,11 @@ def execute(program: Program, entry: String, arguments: List[VariableType] = Lis
   }
 }
 
-def executeFunction(program: Program, environments: Environments[VariableType], body: List[Statement]): Try[(Environments[VariableType], VariableType)] = {
+def executeFunction(
+  program: Program,
+  environments: Environments[VariableType],
+  body: List[Statement]
+): Try[(Environments[VariableType], VariableType)] = {
   for {
     (newEnvironments, returnValueOption) <- executeSequence(program, environments, body)
     updatedEnvironments <- newEnvironments.pop()
@@ -33,7 +37,11 @@ def executeFunction(program: Program, environments: Environments[VariableType], 
   } yield (updatedEnvironments, returnValue)
 }
 
-def executeSequence(program: Program, environments: Environments[VariableType], sequence: List[Statement]): Try[(Environments[VariableType], Option[VariableType])] = {
+def executeSequence(
+  program: Program,
+  environments: Environments[VariableType],
+  sequence: List[Statement]
+): Try[(Environments[VariableType], Option[VariableType])] = {
   sequence match {
     case Nil => Success((environments, None))
     case statement :: rest =>
@@ -47,7 +55,11 @@ def executeSequence(program: Program, environments: Environments[VariableType], 
   }
 }
 
-def executeStatement(program: Program, environments: Environments[VariableType], statement: Statement): Try[(Environments[VariableType], Option[VariableType])] = {
+def executeStatement(
+  program: Program,
+  environments: Environments[VariableType],
+  statement: Statement
+): Try[(Environments[VariableType], Option[VariableType])] = {
   statement match {
     case assignStatement: AssignStatement => executeAssignStatement(program, environments, assignStatement)
     case ifStatement: IfStatement => executeIfStatement(program, environments, ifStatement)
@@ -56,7 +68,11 @@ def executeStatement(program: Program, environments: Environments[VariableType],
   }
 }
 
-def executeAssignStatement(program: Program, environments: Environments[VariableType], assignStatement: AssignStatement): Try[(Environments[VariableType], Option[VariableType])] = {
+def executeAssignStatement(
+  program: Program,
+  environments: Environments[VariableType],
+  assignStatement: AssignStatement
+): Try[(Environments[VariableType], Option[VariableType])] = {
   assignStatement.expression match {
     case expression: Expression => for {
       value <- executeExpression(environments, expression)
@@ -70,7 +86,11 @@ def executeAssignStatement(program: Program, environments: Environments[Variable
   }
 }
 
-def executeIfStatement(program: Program, environments: Environments[VariableType], ifStatement: IfStatement): Try[(Environments[VariableType], Option[VariableType])] = {
+def executeIfStatement(
+  program: Program,
+  environments: Environments[VariableType],
+  ifStatement: IfStatement
+): Try[(Environments[VariableType], Option[VariableType])] = {
   for {
     conditionValue <- executeBooleanExpression(environments, ifStatement.condition)
     result <- if (conditionValue) {
@@ -81,7 +101,11 @@ def executeIfStatement(program: Program, environments: Environments[VariableType
   } yield result
 }
 
-def executeWhileStatement(program: Program, environments: Environments[VariableType], whileStatement: WhileStatement): Try[(Environments[VariableType], Option[VariableType])] = {
+def executeWhileStatement(
+  program: Program,
+  environments: Environments[VariableType],
+  whileStatement: WhileStatement
+): Try[(Environments[VariableType], Option[VariableType])] = {
   for {
     conditionValue <- executeBooleanExpression(environments, whileStatement.condition)
     result <- if (conditionValue) {
@@ -98,7 +122,11 @@ def executeWhileStatement(program: Program, environments: Environments[VariableT
   } yield result
 }
 
-def executeReturnStatement(program: Program, environments: Environments[VariableType], returnStatement: ReturnStatement): Try[(Environments[VariableType], Option[VariableType])] = {
+def executeReturnStatement(
+  program: Program,
+  environments: Environments[VariableType],
+  returnStatement: ReturnStatement
+): Try[(Environments[VariableType], Option[VariableType])] = {
   for {
     returnValue <- executeExpression(environments, returnStatement.expression)
   } yield (environments, Some(returnValue))
@@ -112,7 +140,10 @@ def executeExpression(environments: Environments[VariableType], expression: Expr
   }
 }
 
-def executeArithmeticExpression(environments: Environments[VariableType], arithmeticExpression: ArithmeticExpression): Try[Int] = {
+def executeArithmeticExpression(
+  environments: Environments[VariableType],
+  arithmeticExpression: ArithmeticExpression
+): Try[Int] = {
   arithmeticExpression match {
     case ArithmeticConstant(value) => Success(value)
     case ArithmeticBinaryOperation(left, operator, right) =>
@@ -142,7 +173,10 @@ def executeArithmeticExpression(environments: Environments[VariableType], arithm
   }
 }
 
-def executeBooleanExpression(environments: Environments[VariableType], booleanExpression: BooleanExpression): Try[Boolean] = {
+def executeBooleanExpression(
+  environments: Environments[VariableType],
+  booleanExpression: BooleanExpression
+): Try[Boolean] = {
   booleanExpression match {
     case BooleanConstant(value) => Success(value)
     case BooleanNegOperation(value) =>
@@ -184,7 +218,11 @@ def executeBooleanExpression(environments: Environments[VariableType], booleanEx
   }
 }
 
-def executeCall(program: Program, environments: Environments[VariableType], call: FunctionCall): Try[(Environments[VariableType], VariableType)] = {
+def executeCall(
+  program: Program,
+  environments: Environments[VariableType],
+  call: FunctionCall
+): Try[(Environments[VariableType], VariableType)] = {
   program.functions.get(call.name) match {
     case Some(function) =>
       for {

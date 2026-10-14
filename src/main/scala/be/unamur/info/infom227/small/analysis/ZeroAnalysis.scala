@@ -45,7 +45,10 @@ class ZeroAnalysis(cfg: Cfg) extends ForwardMayAnalyzer[AbstractState[ZeroAnalys
   override def entryAbstractState(): AbstractState[ZeroAnalysisAbstractValue] = AbstractState(cfg.parameters.map { parameter => parameter -> ZeroAnalysisAbstractValue.Unknown }.toMap)
 
   @tailrec
-  final override def analyseStatement(abstractState: AbstractState[ZeroAnalysisAbstractValue], statement: Statement): AbstractState[ZeroAnalysisAbstractValue] = {
+  final override def analyseStatement(
+    abstractState: AbstractState[ZeroAnalysisAbstractValue],
+    statement: Statement
+  ): AbstractState[ZeroAnalysisAbstractValue] = {
     statement match {
       case AssignStatement(lineNumber, variable, expression) =>
         expression match {
@@ -90,7 +93,10 @@ class ZeroAnalysis(cfg: Cfg) extends ForwardMayAnalyzer[AbstractState[ZeroAnalys
   }
 
   @tailrec
-  final override def conditionUpdate(abstractState: AbstractState[ZeroAnalysisAbstractValue], condition: BooleanExpression): Option[AbstractState[ZeroAnalysisAbstractValue]] = {
+  final override def conditionUpdate(
+    abstractState: AbstractState[ZeroAnalysisAbstractValue],
+    condition: BooleanExpression
+  ): Option[AbstractState[ZeroAnalysisAbstractValue]] = {
     condition match {
       case BooleanConstant(true) =>
         Some(abstractState)
@@ -179,7 +185,10 @@ enum ZeroAnalysisDiagnosticType:
   case Error
 
 case class ZeroAnalysisInterpreterAbstractState(diagnostics: Set[(ZeroAnalysisDiagnosticType, String)] = Set()) extends Lattice[ZeroAnalysisInterpreterAbstractState]:
-  def addDiagnostic(diagnosticType: ZeroAnalysisDiagnosticType, message: String): ZeroAnalysisInterpreterAbstractState = {
+  def addDiagnostic(
+    diagnosticType: ZeroAnalysisDiagnosticType,
+    message: String
+  ): ZeroAnalysisInterpreterAbstractState = {
     ZeroAnalysisInterpreterAbstractState(diagnostics + ((diagnosticType, message)))
   }
 
@@ -191,10 +200,16 @@ case class ZeroAnalysisInterpreterAbstractState(diagnostics: Set[(ZeroAnalysisDi
     ZeroAnalysisInterpreterAbstractState(diagnostics.intersect(other.diagnostics))
   }
 
-class ZeroAnalysisInterpreter(cfg: Cfg, zeroAnalysisState: AnalysisState[AbstractState[ZeroAnalysisAbstractValue]]) extends ForwardMayAnalyzer[ZeroAnalysisInterpreterAbstractState](cfg):
+class ZeroAnalysisInterpreter(
+  cfg: Cfg,
+  zeroAnalysisState: AnalysisState[AbstractState[ZeroAnalysisAbstractValue]]
+) extends ForwardMayAnalyzer[ZeroAnalysisInterpreterAbstractState](cfg):
   override def entryAbstractState(): ZeroAnalysisInterpreterAbstractState = ZeroAnalysisInterpreterAbstractState()
 
-  override def analyseStatement(abstractState: ZeroAnalysisInterpreterAbstractState, statement: Statement): ZeroAnalysisInterpreterAbstractState = {
+  override def analyseStatement(
+    abstractState: ZeroAnalysisInterpreterAbstractState,
+    statement: Statement
+  ): ZeroAnalysisInterpreterAbstractState = {
     zeroAnalysisState.abstractStates.get(ProgramPoint.StatementPoint(statement)) match {
       case Some(zeroAnalysisAbstractState) => statement match {
         case AssignStatement(lineNumber, _, ArithmeticBinaryOperation(_, ArithmeticBinaryOperator.Div, Variable(z))) =>
@@ -209,6 +224,9 @@ class ZeroAnalysisInterpreter(cfg: Cfg, zeroAnalysisState: AnalysisState[Abstrac
     }
   }
 
-  override def conditionUpdate(abstractState: ZeroAnalysisInterpreterAbstractState, condition: BooleanExpression): Option[ZeroAnalysisInterpreterAbstractState] = {
+  override def conditionUpdate(
+    abstractState: ZeroAnalysisInterpreterAbstractState,
+    condition: BooleanExpression
+  ): Option[ZeroAnalysisInterpreterAbstractState] = {
     Some(abstractState)
   }

@@ -1,6 +1,6 @@
 package be.unamur.info.infom227.small.cst
 
-import org.antlr.v4.runtime.{CharStream, CommonTokenStream, ConsoleErrorListener, RecognitionException, Recognizer}
+import org.antlr.v4.runtime.*
 
 import scala.util.{Failure, Success, Try}
 
@@ -14,7 +14,14 @@ def parse(stream: CharStream): Try[SmallGrammarParser.ProgramContext] = {
   parser.removeErrorListeners()
   var errors: List[String] = List.empty
   parser.addErrorListener(new ConsoleErrorListener {
-    override def syntaxError(recognizer: Recognizer[?, ?], offendingSymbol: AnyRef, line: Int, charPositionInLine: Int, msg: String, e: RecognitionException): Unit = {
+    override def syntaxError(
+      recognizer: Recognizer[?, ?],
+      offendingSymbol: AnyRef,
+      line: Int,
+      charPositionInLine: Int,
+      msg: String,
+      e: RecognitionException
+    ): Unit = {
       errors = f"line $line:$charPositionInLine $msg" :: errors
     }
   })

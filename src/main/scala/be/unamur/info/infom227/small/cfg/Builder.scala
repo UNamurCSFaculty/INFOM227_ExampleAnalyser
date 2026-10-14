@@ -1,10 +1,10 @@
 package be.unamur.info.infom227.small.cfg
 
-import ProgramPoint.StatementPoint
 import be.unamur.info.infom227.small.ast.{AssignStatement, BooleanConstant, BooleanExpression, Function, IfStatement, Program, ReturnStatement, Statement, WhileStatement}
+import be.unamur.info.infom227.small.cfg.ProgramPoint.StatementPoint
 
-import scala.util.control.Breaks.*
 import scala.collection.{SortedMap, mutable}
+import scala.util.control.Breaks.*
 
 private type PreviousPoints = Set[(ProgramPoint, BooleanExpression)]
 
@@ -16,7 +16,11 @@ def build(program: Program): Map[String, Cfg] = {
   program.functions.map((name, function) => name -> analyseFunction(function)).toMap
 }
 
-private def createProgramPoint(edges: Edges, previousPoints: PreviousPoints, programPoint: ProgramPoint): ProgramPoint = {
+private def createProgramPoint(
+  edges: Edges,
+  previousPoints: PreviousPoints,
+  programPoint: ProgramPoint
+): ProgramPoint = {
   for ((previousPoint, edge) <- previousPoints) {
     edges += (previousPoint, programPoint) -> edge
   }
@@ -60,7 +64,11 @@ private def analyseBody(edges: Edges, previousPoints: PreviousPoints, body: List
   ResultPoints(currentPreviousEdges, returnPoints)
 }
 
-private def analyseAssignStatement(edges: Edges, previousEdges: PreviousPoints, assignStatement: AssignStatement): ResultPoints = {
+private def analyseAssignStatement(
+  edges: Edges,
+  previousEdges: PreviousPoints,
+  assignStatement: AssignStatement
+): ResultPoints = {
   val programPoint = createProgramPoint(edges, previousEdges, StatementPoint(assignStatement))
 
   ResultPoints(Set((programPoint, BooleanConstant(true))), Set.empty)
@@ -75,7 +83,11 @@ private def analyseIfStatement(edges: Edges, previousEdges: PreviousPoints, ifSt
   ResultPoints(ifResultPoints.previousPoints ++ elseResultPoints.previousPoints, ifResultPoints.returnPoints ++ elseResultPoints.returnPoints)
 }
 
-private def analyseWhileStatement(edges: Edges, previousEdges: PreviousPoints, whileStatement: WhileStatement): ResultPoints = {
+private def analyseWhileStatement(
+  edges: Edges,
+  previousEdges: PreviousPoints,
+  whileStatement: WhileStatement
+): ResultPoints = {
   val programPoint = createProgramPoint(edges, previousEdges, StatementPoint(whileStatement))
 
   val resultPoints = analyseBody(edges, Set((programPoint, whileStatement.condition)), whileStatement.body)
@@ -87,7 +99,11 @@ private def analyseWhileStatement(edges: Edges, previousEdges: PreviousPoints, w
   ResultPoints(Set((programPoint, whileStatement.condition.negate)), resultPoints.returnPoints)
 }
 
-private def analyseReturnStatement(edges: Edges, previousEdges: PreviousPoints, returnStatement: ReturnStatement): ResultPoints = {
+private def analyseReturnStatement(
+  edges: Edges,
+  previousEdges: PreviousPoints,
+  returnStatement: ReturnStatement
+): ResultPoints = {
   val programPoint = createProgramPoint(edges, previousEdges, StatementPoint(returnStatement))
 
   ResultPoints(Set.empty, Set((programPoint, BooleanConstant(true))))

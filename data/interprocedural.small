@@ -1,0 +1,13 @@
+function abs(x) {
+    if (x >= 0) {
+        return x;
+    } else {
+        return 0 - x;
+    }
+}
+
+function main() {
+    x = 0 - 5;
+    s = abs(x);
+    return s;
+}

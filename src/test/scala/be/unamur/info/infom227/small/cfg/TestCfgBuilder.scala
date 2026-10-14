@@ -135,7 +135,7 @@ class TestCfgBuilder extends AnyFunSuite {
       }
       val actualDot = builder.toString()
 
-      assert(expectedDot.strip == actualDot.strip, s"Expected:\n      ${expectedDot.strip}\nActual:\n      ${actualDot.strip}")
+      assert(expectedDot.strip.replace("\r\n", "\n") == actualDot.strip.replace("\r\n", "\n"), s"Expected:\n      ${expectedDot.strip}\nActual:\n      ${actualDot.strip}")
     }
   }
 }

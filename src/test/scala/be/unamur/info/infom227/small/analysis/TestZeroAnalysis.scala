@@ -128,7 +128,7 @@ class TestZeroAnalysis extends AnyFunSuite {
       }
       val actualAnalysis = builder.toString()
 
-      assert(expectedAnalysis.strip == actualAnalysis.strip, s"Expected:\n      ${expectedAnalysis.strip}\nActual:\n      ${actualAnalysis.strip}")
+      assert(expectedAnalysis.strip.replace("\r\n", "\n") == actualAnalysis.strip.replace("\r\n", "\n"), s"Expected:\n      ${expectedAnalysis.strip}\nActual:\n      ${actualAnalysis.strip}")
     }
   }
 
@@ -174,10 +174,16 @@ class TestZeroAnalysis extends AnyFunSuite {
         program <- ast.build(programContext)
         cfgs = cfg.build(program)
         zeroAnalyses <- cfgsAnalysis(cfgs, (_, cfg) => Success(ZeroAnalysis(cfg)), (name, _) => Success(DummyObserver()))
-        analyses <- cfgsAnalysis(cfgs, (name, cfg) => zeroAnalyses.get(name) match {
-          case Some((zeroAnalysis, _)) => Success(ZeroAnalysisInterpreter(cfg, zeroAnalysis))
-          case None => Failure(new Exception(s"Zero analysis not found for $name"))
-        }, (name, _) => Success(DummyObserver()))
+        analyses <- cfgsAnalysis(
+          cfgs,
+          (name, cfg) => {
+            zeroAnalyses.get(name) match {
+              case Some((zeroAnalysis, _)) => Success(ZeroAnalysisInterpreter(cfg, zeroAnalysis))
+              case None => Failure(new Exception(s"Zero analysis not found for $name"))
+            }
+          },
+          (name, _) => Success(DummyObserver())
+        )
       } yield analyses
 
       val analyses = tryAnalyses match {
@@ -194,7 +200,7 @@ class TestZeroAnalysis extends AnyFunSuite {
       }
       val actualAnalysis = builder.toString()
 
-      assert(expectedAnalysis.strip == actualAnalysis.strip, s"Expected:\n      ${expectedAnalysis.strip}\nActual:\n      ${actualAnalysis.strip}")
+      assert(expectedAnalysis.strip.replace("\r\n", "\n") == actualAnalysis.strip.replace("\r\n", "\n"), s"Expected:\n      ${expectedAnalysis.strip}\nActual:\n      ${actualAnalysis.strip}")
     }
   }
 }
