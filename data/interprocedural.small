@@ -7,7 +7,7 @@ function abs(x) {
 }
 
 function main() {
-    x = 0 - 5;
-    s = abs(x);
+    s = abs(0 - 5);
+    s = abs(5);
     return s;
 }
